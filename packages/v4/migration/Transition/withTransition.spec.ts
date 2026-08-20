@@ -22,7 +22,16 @@ class ForcedProbe extends withTransition(Base) {
   }
 }
 
-registerComponents(Transition, TransitionProbe, ForcedProbe);
+/** A consumer whose visible part is a set of refs, not its own root. */
+class MultiProbe extends withTransition(Base) {
+  static config: BaseConfig = { name: 'MultiProbe', refs: ['item[]'] };
+
+  get target(): HTMLElement[] {
+    return this.$refs.item as HTMLElement[];
+  }
+}
+
+registerComponents(Transition, TransitionProbe, ForcedProbe, MultiProbe);
 
 afterEach(resetDom);
 
@@ -89,6 +98,61 @@ describe('withTransition behaviour', () => {
     await instance.toggle();
     expect(instance.state).toBe('leaving');
     expect(el.classList.contains('gone')).toBe(true);
+  });
+
+  /** v3's `target` getter returned `HTMLElement | HTMLElement[]`. */
+  it('transitions every element when the target getter returns a list', async () => {
+    const root = document.createElement('div');
+    root.innerHTML = `
+      <div data-component="MultiProbe" data-option-enter-to="on" data-option-enter-keep="true">
+        <span data-ref="item[]"></span>
+        <span data-ref="item[]"></span>
+      </div>`;
+    document.body.append(root);
+    await settle();
+    const el = root.firstElementChild as HTMLElement;
+    const instance = getInstance<MultiProbe>(el, 'MultiProbe');
+    const items = [...el.querySelectorAll('[data-ref="item[]"]')];
+
+    await instance.enter();
+
+    expect(items.map((item) => item.classList.contains('on'))).toEqual([true, true]);
+    // The root itself is not a target here.
+    expect(el.classList.contains('on')).toBe(false);
+  });
+
+  /** v3's `enter(target?)`/`leave(target?)` took an explicit override. */
+  it('lets one call name its own target, replacing the getter', async () => {
+    const el = await render(
+      'TransitionProbe',
+      'data-option-enter-to="on" data-option-enter-keep="true"',
+    );
+    const instance = getInstance<TransitionProbe>(el, 'TransitionProbe');
+    const other = document.createElement('div');
+    document.body.append(other);
+
+    await instance.enter(other);
+
+    expect(other.classList.contains('on')).toBe(true);
+    // Replaced rather than added to: the default target is untouched.
+    expect(el.classList.contains('on')).toBe(false);
+  });
+
+  it('passes a named target through toggle, in both directions', async () => {
+    const el = await render(
+      'TransitionProbe',
+      'data-option-enter-to="on" data-option-enter-keep="true" data-option-leave-to="off" data-option-leave-keep="true"',
+    );
+    const instance = getInstance<TransitionProbe>(el, 'TransitionProbe');
+    const other = document.createElement('div');
+    document.body.append(other);
+
+    await instance.toggle(other);
+    expect(other.classList.contains('on')).toBe(true);
+
+    await instance.toggle(other);
+    expect(other.classList.contains('off')).toBe(true);
+    expect(el.classList.contains('off')).toBe(false);
   });
 
   /**

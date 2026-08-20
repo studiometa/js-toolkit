@@ -20,6 +20,17 @@ async function observed(): Promise<void> {
   }
 }
 
+/** Poll for a transition's kept end state; see `MenuList.spec.ts` for why. */
+async function waitForClass(el: HTMLElement, className: string, timeout = 1000): Promise<void> {
+  const deadline = Date.now() + timeout;
+  while (!el.classList.contains(className)) {
+    if (Date.now() > deadline) {
+      throw new Error(`waitForClass: "${className}" never landed on the element`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+}
+
 // A tiny 1x1 white pixel, distinct from PIXEL, standing in for a placeholder.
 const PLACEHOLDER =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
@@ -76,7 +87,9 @@ describe('Figure (AbstractFigure)', () => {
 
     await observed();
 
-    expect(img.classList.contains('visible')).toBe(true);
+    // Polled, not assumed: `mounted()` fire-and-forgets the transition, and a
+    // kept end state lands a few frames after the image has loaded.
+    await waitForClass(img, 'visible');
     expect(getInstance<Figure>(el, 'Figure').state).toBe('entering');
   });
 });

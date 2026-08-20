@@ -18,6 +18,22 @@ async function observed(): Promise<void> {
   }
 }
 
+/**
+ * `AnchorNav` fire-and-forgets the link's transition, and a kept end state
+ * lands a few frames after that — so the class is polled rather than assumed
+ * present once the observer has delivered. `MenuList`'s spec has the same
+ * helper for the same reason, after this shape flaked under full-suite load.
+ */
+async function waitForClass(el: HTMLElement, className: string, timeout = 1000): Promise<void> {
+  const deadline = Date.now() + timeout;
+  while (!el.classList.contains(className)) {
+    if (Date.now() > deadline) {
+      throw new Error(`waitForClass: "${className}" never landed on the element`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+}
+
 async function render(): Promise<{ root: HTMLElement; target: HTMLElement }> {
   const root = document.createElement('div');
   root.innerHTML = `
@@ -42,7 +58,7 @@ describe('AnchorNav', () => {
     await observed();
 
     expect(link.state).toBe('entering');
-    expect(link.$el.classList.contains('active')).toBe(true);
+    await waitForClass(link.$el, 'active');
   });
 
   it('leaves the matching link once its target scrolls back out of view', async () => {

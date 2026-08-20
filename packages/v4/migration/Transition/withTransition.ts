@@ -20,11 +20,21 @@ export interface TransitionProps {
 }
 
 /**
+ * What a transition runs on: one element, or several transitioning together.
+ *
+ * The list form is v3's and it is load-bearing — a component whose visible
+ * part is a set of refs rather than its own root transitions all of them as
+ * one gesture.
+ */
+export type TransitionTarget = HTMLElement | HTMLElement[];
+
+/**
  * A component that can be entered and left — what `Dialog` fans its
  * open/close out to.
  *
- * The interface is deliberately wider than what `withTransition` provides:
- * `ViewTransition` implements the same three methods over the native View
+ * The interface is deliberately narrower than what `withTransition` provides:
+ * it is the contract a caller needs, and a caller does not choose the target.
+ * `ViewTransition` implements these three methods over the native View
  * Transitions API, sharing the contract and none of the CSS-class
  * implementation.
  */
@@ -37,8 +47,11 @@ export interface Transitionable {
 /** What the mixin adds, beyond {@link Transitionable}. */
 export interface TransitionInterface extends Transitionable {
   state: 'entering' | 'leaving' | null;
-  readonly target: HTMLElement;
+  readonly target: TransitionTarget;
   readonly transitionOptions: TransitionOptions;
+  enter(target?: TransitionTarget): Promise<void>;
+  leave(target?: TransitionTarget): Promise<void>;
+  toggle(target?: TransitionTarget): Promise<void>;
 }
 
 /**
@@ -99,8 +112,12 @@ const applyTransition = (BaseClass: BaseConstructor) => {
 
     state: 'entering' | 'leaving' | null = null;
 
-    /** What the transition runs on. Defaults to the root element. */
-    get target(): HTMLElement {
+    /**
+     * What the transition runs on. Defaults to the root element, and can be
+     * overridden to return one ref (`AbstractFigure` returns its `img`) or
+     * several, which then transition together.
+     */
+    get target(): TransitionTarget {
       // Through `unknown` for the same reason as `transitionOptions` below:
       // the host is a loose `BaseConstructor`, so `$el` is `any` here.
       const el: unknown = this.$el;
@@ -126,24 +143,53 @@ const applyTransition = (BaseClass: BaseConstructor) => {
       return options as TransitionOptions;
     }
 
-    async enter(): Promise<void> {
+    /**
+     * The elements one call acts on: what it was handed, else the getter.
+     *
+     * An explicit argument **replaces** `target` rather than adding to it,
+     * which is v3's rule — the caller who names an element is the one who
+     * knows, so a component that transitions its own root by default can
+     * still be told to transition something else for one call.
+     */
+    #elements(target?: TransitionTarget): HTMLElement[] {
+      return [target ?? this.target].flat();
+    }
+
+    async enter(target?: TransitionTarget): Promise<void> {
       this.state = 'entering';
       this.$emit('transition-enter');
       this.$emit('transition-enter-start');
-      await enterTransition(this.target, this.transitionOptions);
+      await this.#run(enterTransition, target);
       this.$emit('transition-enter-end');
     }
 
-    async leave(): Promise<void> {
+    async leave(target?: TransitionTarget): Promise<void> {
       this.state = 'leaving';
       this.$emit('transition-leave');
       this.$emit('transition-leave-start');
-      await leaveTransition(this.target, this.transitionOptions);
+      await this.#run(leaveTransition, target);
       this.$emit('transition-leave-end');
     }
 
-    toggle(): Promise<void> {
-      return this.state === 'entering' ? this.leave() : this.enter();
+    toggle(target?: TransitionTarget): Promise<void> {
+      return this.state === 'entering' ? this.leave(target) : this.enter(target);
+    }
+
+    /**
+     * Run one direction across every element, together rather than in turn.
+     *
+     * `Promise.all` over a synchronous `map` is what makes them one gesture:
+     * each `enterTransition()` applies its `from` state and clears the other
+     * direction's `to` before it first awaits, so every element is staged
+     * before any of them reaches the next frame — which is the ordering v3
+     * got by passing the whole list to a single `transition()` call.
+     */
+    #run(
+      run: (el: HTMLElement, options: TransitionOptions) => Promise<void>,
+      target?: TransitionTarget,
+    ): Promise<void[]> {
+      const { transitionOptions } = this;
+      return Promise.all(this.#elements(target).map((el) => run(el, transitionOptions)));
     }
   }
 

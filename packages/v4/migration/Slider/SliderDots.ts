@@ -1,26 +1,31 @@
 import { Base, type RefEvent } from '../../src/index.js';
-import {
-  enterTransition,
-  leaveTransition,
-  TRANSITION_OPTIONS,
-  type TransitionOptions,
-} from '../../src/utils/transition.js';
+import { withTransition, type TransitionProps } from '../Transition/index.js';
 import { SliderContext } from './Slider.js';
 
-export interface SliderDotsProps {
+export type SliderDotsProps = TransitionProps & {
   $refs: { dots: HTMLButtonElement[] };
-  $options: TransitionOptions;
-}
+};
 
-/** Pagination dots that transition on state changes and navigate on click. */
-export class SliderDots extends Base<SliderDotsProps> {
+/**
+ * Pagination dots that transition on state changes and navigate on click.
+ *
+ * The canonical consumer of both halves of `withTransition`'s target surface:
+ * `target` returns the whole `dots` ref list, and `update()` names one dot per
+ * call so the outgoing one leaves while the incoming one enters. v3 is
+ * `withTransition(AbstractSliderChild)` and does exactly this.
+ */
+export class SliderDots extends withTransition(Base)<SliderDotsProps> {
   static config = {
     name: 'SliderDots',
     refs: ['dots[]'],
-    options: { ...TRANSITION_OPTIONS },
   };
 
   currentIndex = -1;
+
+  /** Every dot. One call at a time overrides it with a single one. */
+  get target(): HTMLButtonElement[] {
+    return this.$refs.dots;
+  }
 
   async mounted() {
     const { state } = await this.$inject(SliderContext);
@@ -36,11 +41,14 @@ export class SliderDots extends Base<SliderDotsProps> {
     const next = this.$refs.dots[index];
     this.currentIndex = index;
 
+    // Guarded, unlike v3: the first update runs with `currentIndex` at `-1`,
+    // and v3 hands the resulting `undefined` to `Array.from()` inside its
+    // transition util, which throws.
     if (previous) {
-      void leaveTransition(previous, this.$options);
+      void this.leave(previous);
     }
     if (next) {
-      void enterTransition(next, this.$options);
+      void this.enter(next);
     }
   }
 

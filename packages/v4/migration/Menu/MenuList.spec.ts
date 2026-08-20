@@ -7,6 +7,23 @@ registerComponents(MenuList);
 
 afterEach(resetDom);
 
+/**
+ * `open()`/`close()` start their transition and do not return it, and a kept
+ * end state only lands a few frames later — after `nextFrame`, the `from` and
+ * `active` states, and either a `transitionend` or one more frame. A single
+ * `settle()` is usually enough and is not a guarantee: under full-suite load
+ * these assertions failed intermittently. Poll for the class instead.
+ */
+async function waitForClass(el: HTMLElement, className: string, timeout = 1000): Promise<void> {
+  const deadline = Date.now() + timeout;
+  while (!el.classList.contains(className)) {
+    if (Date.now() > deadline) {
+      throw new Error(`waitForClass: "${className}" never landed on the element`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+}
+
 async function render(): Promise<{
   root: HTMLElement;
   outer: MenuList;
@@ -48,11 +65,10 @@ describe('MenuList', () => {
     outer.$el.addEventListener('items-open', () => events.push('items-open'));
 
     outer.open();
-    await settle();
+    await waitForClass(outer.$el, 'open');
 
     expect(outer.isOpen).toBe(true);
     expect(outer.$el.getAttribute('aria-hidden')).toBe('false');
-    expect(outer.$el.classList.contains('open')).toBe(true);
     expect(outerLink.hasAttribute('tabindex')).toBe(false);
     // A nested list's own item is untouched by the outer list's open().
     expect(nestedLink.getAttribute('tabindex')).toBe('-1');
@@ -76,11 +92,10 @@ describe('MenuList', () => {
     });
 
     outer.close();
-    await settle();
+    await waitForClass(outer.$el, 'closed');
 
     expect(outer.isOpen).toBe(false);
     expect(outer.$el.getAttribute('aria-hidden')).toBe('true');
-    expect(outer.$el.classList.contains('closed')).toBe(true);
     expect(outerLink.getAttribute('tabindex')).toBe('-1');
     expect(events).toEqual(['items-close']);
     // Closing the outer list recursively closes the nested one too.
