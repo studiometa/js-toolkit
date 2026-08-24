@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
+import * as subpath from '@studiometa/js-toolkit-v4/test';
 import { Base } from '../Base.js';
 import { getInstances } from '../instances.js';
 import { registerComponent } from '../registry.js';
@@ -26,6 +27,23 @@ class Subject extends Base {
 registerComponent(Subject);
 
 afterEach(resetDom);
+
+describe('the /test subpath', () => {
+  it('serves these five helpers under the package name, and nothing else', () => {
+    expect(Object.keys(subpath).sort()).toEqual([
+      'frames',
+      'mount',
+      'resetDom',
+      'settle',
+      'waitFor',
+    ]);
+    expect(subpath.mount).toBe(mount);
+    expect(subpath.settle).toBe(settle);
+    expect(subpath.frames).toBe(frames);
+    expect(subpath.waitFor).toBe(waitFor);
+    expect(subpath.resetDom).toBe(resetDom);
+  });
+});
 
 describe('mount()', () => {
   it('returns a wrapper whose components are mounted and done writing', async () => {

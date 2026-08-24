@@ -20,6 +20,10 @@ export default defineConfig({
         replacement: `${srcRoot}/utils/index.ts`,
       },
       {
+        find: /^@studiometa\/js-toolkit-v4\/test$/,
+        replacement: `${srcRoot}/test/index.ts`,
+      },
+      {
         find: /^@studiometa\/js-toolkit-v4\/(.+)$/,
         replacement: `${srcRoot}/subpaths/$1.ts`,
       },
