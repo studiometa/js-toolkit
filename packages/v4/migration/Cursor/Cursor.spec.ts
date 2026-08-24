@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { getInstance, registerComponents } from '../../src/index.js';
-import { countRequestedFrames } from '../../src/test-utils.js';
-import { mount, resetDom, settle, waitFor } from '../../src/test/index.js';
+import { countRequestedFrames, mount, resetDom, settle, waitFor } from '../../src/test/index.js';
 import { Cursor } from './Cursor.js';
 
 registerComponents(Cursor);

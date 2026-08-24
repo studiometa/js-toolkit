@@ -7,6 +7,7 @@ import { registerComponent, registerComponents, registerManifest } from '../regi
 import { defaultScheduler } from '../scheduler.js';
 import {
   captureDiagnostics,
+  countRequestedFrames,
   frames,
   mount,
   recordEvents,
@@ -65,9 +66,10 @@ function silenceSink() {
 }
 
 describe('the /test subpath', () => {
-  it('serves these eight helpers under the package name, and nothing else', () => {
+  it('serves these nine helpers under the package name, and nothing else', () => {
     expect(Object.keys(subpath).sort()).toEqual([
       'captureDiagnostics',
+      'countRequestedFrames',
       'frames',
       'mount',
       'recordEvents',
@@ -84,6 +86,49 @@ describe('the /test subpath', () => {
     expect(subpath.captureDiagnostics).toBe(captureDiagnostics);
     expect(subpath.recordEvents).toBe(recordEvents);
     expect(subpath.resetRegistry).toBe(resetRegistry);
+    expect(subpath.countRequestedFrames).toBe(countRequestedFrames);
+  });
+});
+
+describe('countRequestedFrames()', () => {
+  it('counts the frames requested inside the callback', async () => {
+    const requested = await countRequestedFrames(async () => {
+      await frames(2);
+    });
+
+    expect(requested).toBe(2);
+  });
+
+  it('restores requestAnimationFrame, even when the callback throws', async () => {
+    const original = globalThis.requestAnimationFrame;
+
+    await expect(
+      countRequestedFrames(() => {
+        throw new Error('boom');
+      }),
+    ).rejects.toThrow('boom');
+
+    expect(globalThis.requestAnimationFrame).toBe(original);
+  });
+
+  it('leaves the real scheduling in place while it counts', async () => {
+    const original = globalThis.requestAnimationFrame;
+    let ran = false;
+
+    const requested = await countRequestedFrames(
+      () =>
+        new Promise<void>((resolve) => {
+          globalThis.requestAnimationFrame(() => {
+            ran = true;
+            resolve();
+          });
+        }),
+    );
+
+    // The wrapper forwards to the real one, so the callback still runs.
+    expect(requested).toBe(1);
+    expect(ran).toBe(true);
+    expect(globalThis.requestAnimationFrame).toBe(original);
   });
 });
 
