@@ -124,9 +124,21 @@
       "types": "./dist/subpaths/createGroup.d.ts",
       "import": "./dist/subpaths/createGroup.js"
     },
+    "./getInstance": {
+      "types": "./dist/subpaths/getInstance.d.ts",
+      "import": "./dist/subpaths/getInstance.js"
+    },
     "./getInstances": {
       "types": "./dist/subpaths/getInstances.d.ts",
       "import": "./dist/subpaths/getInstances.js"
+    },
+    "./getMountedInstances": {
+      "types": "./dist/subpaths/getMountedInstances.d.ts",
+      "import": "./dist/subpaths/getMountedInstances.js"
+    },
+    "./getUnmountedInstances": {
+      "types": "./dist/subpaths/getUnmountedInstances.d.ts",
+      "import": "./dist/subpaths/getUnmountedInstances.js"
     },
     "./defineManifest": {
       "types": "./dist/subpaths/defineManifest.d.ts",

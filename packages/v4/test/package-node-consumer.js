@@ -59,7 +59,7 @@ assert.equal(createGroup, toolkit.createGroup);
 assert.equal(createGroupDefault, createGroup);
 // Keep in step with the same count in `src/exports.spec.ts`. This one runs
 // under `check:package`, which `npm test` does not cover.
-assert.equal(Object.keys(toolkit).length, 86);
+assert.equal(Object.keys(toolkit).length, 89);
 // The diagnostic channel is reachable by a consumer with no instance to
 // report as, and both halves have to survive packing.
 assert.equal(typeof toolkit.warn, 'function');
