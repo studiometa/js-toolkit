@@ -6,7 +6,7 @@ import { EVENTS } from './events.js';
 import { getInstances } from './instances.js';
 import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent, registerManifest } from './registry.js';
-import { resetDom, settle } from './test/index.js';
+import { resetDom, settle, waitFor } from './test/index.js';
 
 /** Positions used to control viewport strategies. */
 const OFFSCREEN = 'position:absolute;top:300vh;left:0;width:50px;height:50px';
@@ -68,8 +68,12 @@ function instanceOf<T extends Base>(el: Element, name: string): T | undefined {
   return el[INSTANCES]?.get(name) as T | undefined;
 }
 
-/** Wait for observer delivery. */
-async function observed(): Promise<void> {
+/**
+ * A bounded quiet period. Waiting for something to arrive is a poll — see the
+ * `waitFor` calls below — but an assertion that nothing was imported cannot be
+ * polled for, so it keeps a span long enough for the trigger to have fired.
+ */
+async function quiet(): Promise<void> {
   for (let i = 0; i < 6; i += 1) {
     await settle();
   }
@@ -145,13 +149,13 @@ describe('a lazy declaration before its class arrives', () => {
     const { name, load } = defineLazy();
     const el = render(name, {}, OFFSCREEN);
     registerManifest({ [name]: { load, mountStrategy: 'visible' } });
-    await observed();
+    await quiet();
 
     expect(el[INSTANCES]).toBeUndefined();
     expect(getInstances(name)).toEqual([]);
 
     el.setAttribute('style', ONSCREEN);
-    await observed();
+    await waitFor(() => getInstances(name).length > 0);
 
     expect(getInstances(name)).toHaveLength(1);
     expect(instanceOf(el, name)?.$isMounted).toBe(true);
@@ -161,12 +165,12 @@ describe('a lazy declaration before its class arrives', () => {
     const { name, load, importCount } = defineLazy();
     const el = render(name, {}, OFFSCREEN);
     registerManifest({ [name]: { load, mountStrategy: 'visible' } });
-    await observed();
+    await quiet();
 
     el.removeAttribute('data-component');
     await settle();
     el.setAttribute('style', ONSCREEN);
-    await observed();
+    await quiet();
 
     expect(importCount()).toBe(0);
   });
@@ -175,16 +179,16 @@ describe('a lazy declaration before its class arrives', () => {
     const { name, load, importCount } = defineLazy();
     const el = render(name, {}, OFFSCREEN);
     registerManifest({ [name]: { load, mountStrategy: 'visible:200px' } });
-    await observed();
+    await quiet();
 
     el.remove();
     el.setAttribute('style', ONSCREEN);
-    await observed();
+    await quiet();
 
     expect(importCount()).toBe(0);
 
     document.body.append(el);
-    await observed();
+    await waitFor(() => importCount() > 0);
 
     expect(importCount()).toBe(1);
     expect(instanceOf(el, name)?.$isMounted).toBe(true);
@@ -196,12 +200,12 @@ describe('the strategy that triggers the import', () => {
     const { name, load, importCount } = defineLazy();
     const el = render(name, {}, OFFSCREEN);
     registerManifest({ [name]: { load, mountStrategy: 'visible:200px 0px' } });
-    await observed();
+    await quiet();
 
     expect(importCount()).toBe(0);
 
     el.setAttribute('style', ONSCREEN);
-    await observed();
+    await waitFor(() => importCount() > 0);
 
     expect(importCount()).toBe(1);
     expect(instanceOf(el, name)?.$isMounted).toBe(true);
@@ -212,7 +216,7 @@ describe('the strategy that triggers the import', () => {
     // Keep the element away from the pointer because `pointerenter` counts as interaction.
     const el = render(name, { 'data-mount': 'interaction' }, OFFSCREEN);
     registerManifest({ [name]: { load, mountStrategy: 'visible' } });
-    await observed();
+    await quiet();
 
     expect(importCount()).toBe(0);
 
@@ -235,7 +239,7 @@ describe('the strategy that triggers the import', () => {
       diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
     });
     registerManifest({ [name]: load });
-    await observed();
+    await waitFor(() => diagnostics.length > 0);
 
     expect(importCount()).toBe(0);
     expect(el[INSTANCES]?.get(name)).toBeUndefined();
@@ -252,7 +256,7 @@ describe('the strategy that triggers the import', () => {
     const { name, load, importCount } = defineLazy();
     const el = render(name);
     registerManifest({ [name]: { load, mountStrategy: 'media:(min-width: 1px)' } });
-    await observed();
+    await waitFor(() => instanceOf(el, name)?.$isMounted);
 
     expect(importCount()).toBe(1);
     expect(instanceOf(el, name)?.$isMounted).toBe(true);
@@ -262,7 +266,7 @@ describe('the strategy that triggers the import', () => {
     const { name, load, importCount } = defineLazy();
     const el = render(name, { 'data-mount': 'media:(max-width: 1px)' });
     registerManifest({ [name]: load });
-    await observed();
+    await quiet();
 
     expect(importCount()).toBe(0);
     expect(el[INSTANCES]).toBeUndefined();
@@ -272,23 +276,22 @@ describe('the strategy that triggers the import', () => {
     const { name, load, importCount } = defineLazy();
     const el = render(name, { 'data-mount': 'in-view:200px 0px' }, OFFSCREEN);
     registerManifest({ [name]: load });
-    await observed();
+    await quiet();
 
     expect(importCount()).toBe(0);
 
     el.setAttribute('style', ONSCREEN);
-    await observed();
+    const instance = await waitFor(() => instanceOf(el, name));
 
-    const instance = instanceOf(el, name);
     expect(importCount()).toBe(1);
     expect(instance?.$isMounted).toBe(true);
 
     el.setAttribute('style', OFFSCREEN);
-    await observed();
+    await waitFor(() => instance?.$isMounted === false);
 
     expect(instance?.$isMounted).toBe(false);
     el.setAttribute('style', ONSCREEN);
-    await observed();
+    await waitFor(() => instance?.$isMounted === true);
 
     expect(importCount()).toBe(1);
     expect(instance?.$isMounted).toBe(true);
@@ -311,17 +314,17 @@ describe('the strategy that triggers the import', () => {
         return Lazy;
       },
     });
-    await observed();
+    await quiet();
 
     el.setAttribute('style', OFFSCREEN);
-    await observed();
+    await quiet();
     release();
-    await observed();
+    await quiet();
 
     expect(el[INSTANCES]?.get(name)).toBeUndefined();
 
     el.setAttribute('style', ONSCREEN);
-    await observed();
+    await waitFor(() => instanceOf(el, name)?.$isMounted);
 
     expect(instanceOf(el, name)?.$isMounted).toBe(true);
   });
@@ -587,12 +590,12 @@ describe('a dynamic import declared in config.components', () => {
 
     registerComponent(Parent);
     const el = render(child.name, { 'data-mount': 'visible' }, OFFSCREEN);
-    await observed();
+    await quiet();
 
     expect(child.importCount()).toBe(0);
 
     el.setAttribute('style', ONSCREEN);
-    await observed();
+    await waitFor(() => child.importCount() > 0);
 
     expect(child.importCount()).toBe(1);
     expect(instanceOf(el, child.name)?.$isMounted).toBe(true);

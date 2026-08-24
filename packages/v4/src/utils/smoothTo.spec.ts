@@ -1,7 +1,7 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { smoothTo, type SmoothTo } from './smoothTo.js';
 import { countRequestedFrames } from '../test-utils.js';
-import { frames } from '../test/index.js';
+import { frames, waitFor } from '../test/index.js';
 
 describe('smoothTo', () => {
   it('starts at its start value and does not move on its own', async () => {
@@ -192,13 +192,6 @@ describe('smoothTo', () => {
   });
 });
 
-/** Wait for every channel to arrive, bounded so a stuck value fails the test. */
-async function settled(motion: { readonly isMoving: boolean }, max = 300): Promise<void> {
-  for (let index = 0; index < max && motion.isMoving; index += 1) {
-    await frames(1);
-  }
-}
-
 describe('smoothTo — a record of named channels', () => {
   it('narrows to a number or to a record from what it was started with', () => {
     const scalar = smoothTo(0);
@@ -227,7 +220,7 @@ describe('smoothTo — a record of named channels', () => {
     expect(seen[0].y).toBeGreaterThan(0);
     expect(seen[0].scale).toBeGreaterThan(1);
 
-    await settled(motion);
+    await waitFor(() => !motion.isMoving, { timeout: 5000 });
     expect(motion()).toEqual({ x: 100, y: 50, scale: 2 });
     expect(motion.isMoving).toBe(false);
     motion.destroy();
@@ -246,7 +239,7 @@ describe('smoothTo — a record of named channels', () => {
     await frames(1);
     expect(motion().y).toBeGreaterThan(travellingY);
 
-    await settled(motion);
+    await waitFor(() => !motion.isMoving, { timeout: 5000 });
     expect(motion()).toEqual({ x: 0, y: 100 });
     motion.destroy();
   });
@@ -278,7 +271,7 @@ describe('smoothTo — a record of named channels', () => {
     expect(motion().lazy).toBeLessThan(10);
     expect(motion.isMoving).toBe(true);
 
-    await settled(motion);
+    await waitFor(() => !motion.isMoving, { timeout: 5000 });
     expect(motion()).toEqual({ quick: 10, lazy: 10 });
     expect(motion.isMoving).toBe(false);
     motion.destroy();
@@ -339,7 +332,7 @@ describe('smoothTo — a record of named channels', () => {
     expect(motion().x).toBe(0);
     expect(motion.isMoving).toBe(true);
 
-    await settled(motion);
+    await waitFor(() => !motion.isMoving, { timeout: 5000 });
     expect(motion()).toEqual({ x: 0, y: 100 });
     motion.destroy();
   });

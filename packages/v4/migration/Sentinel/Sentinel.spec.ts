@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { registerComponents, type InViewProps } from '../../src/index.js';
-import { resetDom, settle } from '../../src/test/index.js';
+import { resetDom, settle, waitFor } from '../../src/test/index.js';
 import { Sentinel } from './Sentinel.js';
 
 const OFFSCREEN = 'position:absolute;top:300vh;left:0;width:50px;height:50px';
@@ -9,13 +9,6 @@ const ONSCREEN = 'position:absolute;top:0;left:0;width:50px;height:50px';
 registerComponents(Sentinel);
 
 afterEach(resetDom);
-
-/** Give the observer a few frames to deliver. */
-async function observed(): Promise<void> {
-  for (let i = 0; i < 6; i += 1) {
-    await settle();
-  }
-}
 
 function render(style: string): HTMLElement {
   const el = document.createElement('div');
@@ -32,7 +25,9 @@ describe('Sentinel', () => {
     el.addEventListener('intersected', (event) => {
       events.push((event as CustomEvent<InViewProps>).detail);
     });
-    await observed();
+    await waitFor(() => events.length > 0);
+    // One more turn, so an extra delivery would show up in the count below.
+    await settle();
 
     expect(events).toHaveLength(1);
     expect(events[0].isInView).toBe(false);
@@ -44,10 +39,10 @@ describe('Sentinel', () => {
     el.addEventListener('intersected', (event) => {
       events.push((event as CustomEvent<InViewProps>).detail);
     });
-    await observed();
+    await waitFor(() => events.length > 0);
 
     el.setAttribute('style', ONSCREEN);
-    await observed();
+    await waitFor(() => events.at(-1)?.isInView === true);
 
     const last = events.at(-1);
     expect(last?.isInView).toBe(true);
@@ -60,10 +55,10 @@ describe('Sentinel', () => {
     el.addEventListener('intersected', (event) => {
       events.push((event as CustomEvent<InViewProps>).detail);
     });
-    await observed();
+    await waitFor(() => events.at(-1)?.isInView === true);
 
     el.setAttribute('style', OFFSCREEN);
-    await observed();
+    await waitFor(() => events.length > 1 && events.at(-1)?.isInView === false);
 
     const last = events.at(-1);
     expect(last?.isInView).toBe(false);
@@ -80,7 +75,7 @@ describe('Sentinel', () => {
     el.addEventListener('intersected', (event) => {
       lastProps = (event as CustomEvent<InViewProps>).detail;
     });
-    await observed();
+    await waitFor(() => lastProps);
 
     expect(lastProps?.entry).toBeTruthy();
     expect(typeof lastProps?.entry?.boundingClientRect.y).toBe('number');

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { registerComponents } from '../../src/index.js';
 import { getInstance } from '../../src/test-utils.js';
-import { mount, resetDom, settle } from '../../src/test/index.js';
+import { mount, resetDom, settle, waitFor } from '../../src/test/index.js';
 import { Track } from './Track.js';
 import { TrackContext } from './TrackContext.js';
 import { TrackShopify } from './TrackShopify.js';
@@ -35,8 +35,11 @@ beforeEach(() => {
   window.dataLayer = [];
 });
 
-/** Give the observer a few frames to deliver. */
-async function observed(): Promise<void> {
+/**
+ * A bounded quiet period, for the assertions that nothing was pushed. A push
+ * that is expected is polled for instead — see the `waitFor` calls below.
+ */
+async function quiet(): Promise<void> {
   for (let i = 0; i < 6; i += 1) {
     await settle();
   }
@@ -249,7 +252,7 @@ describe('Track — the `mounted` pseudo-event', () => {
     root.innerHTML = `<div data-component="Track" data-track:mounted='{"event": "page_view"}'></div>`;
     document.body.append(root);
     root.innerHTML = '';
-    await observed();
+    await quiet();
 
     expect(pushes()).toHaveLength(0);
   });
@@ -291,11 +294,11 @@ describe('Track — the `view` pseudo-event', () => {
     const root = await mount(
       `<div data-component="Track" style="${OFFSCREEN}" data-track:view='{"event": "impression", "id": "123"}'></div>`,
     );
-    await observed();
+    await quiet();
     expect(pushes()).toHaveLength(0);
 
     (root.firstElementChild as HTMLElement).setAttribute('style', ONSCREEN);
-    await observed();
+    await waitFor(() => pushes().length > 0);
 
     expect(lastPush()).toEqual({ event: 'impression', id: '123' });
   });
@@ -305,12 +308,12 @@ describe('Track — the `view` pseudo-event', () => {
       `<div data-component="Track" style="${ONSCREEN}" data-track:view='{"event": "impression"}'></div>`,
     );
     const el = root.firstElementChild as HTMLElement;
-    await observed();
+    await waitFor(() => pushes().length > 0);
 
     el.setAttribute('style', OFFSCREEN);
-    await observed();
+    await quiet();
     el.setAttribute('style', ONSCREEN);
-    await observed();
+    await waitFor(() => pushes().length > 1);
 
     expect(pushes()).toHaveLength(2);
   });
@@ -320,12 +323,12 @@ describe('Track — the `view` pseudo-event', () => {
       `<div data-component="Track" style="${ONSCREEN}" data-track:view.once='{"event": "impression"}'></div>`,
     );
     const el = root.firstElementChild as HTMLElement;
-    await observed();
+    await waitFor(() => pushes().length > 0);
 
     el.setAttribute('style', OFFSCREEN);
-    await observed();
+    await quiet();
     el.setAttribute('style', ONSCREEN);
-    await observed();
+    await quiet();
 
     expect(pushes()).toHaveLength(1);
   });
@@ -336,7 +339,7 @@ describe('Track — the `view` pseudo-event', () => {
         style="position:absolute;top:0;left:0;width:50px;height:400vh"
         data-track:view='{"event": "impression"}'></div>`,
     );
-    await observed();
+    await waitFor(() => pushes().length > 0);
 
     expect(pushes()).toHaveLength(1);
   });
@@ -348,7 +351,7 @@ describe('Track — the `view` pseudo-event', () => {
         style="position:absolute;top:0;left:0;width:50px;height:400vh"
         data-track:view='{"event": "impression"}'></div>`,
     );
-    await observed();
+    await quiet();
 
     expect(pushes()).toHaveLength(0);
   });
@@ -358,12 +361,12 @@ describe('Track — the `view` pseudo-event', () => {
       `<div data-component="Track" style="${ONSCREEN}" data-track:view.throttle1000='{"event": "impression"}'></div>`,
     );
     const el = root.firstElementChild as HTMLElement;
-    await observed();
+    await waitFor(() => pushes().length > 0);
 
     el.setAttribute('style', OFFSCREEN);
-    await observed();
+    await quiet();
     el.setAttribute('style', ONSCREEN);
-    await observed();
+    await quiet();
 
     expect(pushes()).toHaveLength(1);
   });
@@ -373,12 +376,11 @@ describe('Track — the `view` pseudo-event', () => {
       `<div data-component="Track" style="${OFFSCREEN}" data-track:view='{"event": "impression"}'></div>`,
     );
     const el = root.firstElementChild as HTMLElement;
-    await observed();
+    const track = await waitFor(() => getInstance(el, 'Track'));
 
-    const track = getInstance(el, 'Track');
     track.$unmount();
     el.setAttribute('style', ONSCREEN);
-    await observed();
+    await quiet();
 
     expect(pushes()).toHaveLength(0);
     expect(track.$isMounted).toBe(false);
@@ -542,7 +544,7 @@ describe('the intersection service under load', () => {
 
     const built = await countObservers(async () => {
       await mount(markup);
-      await observed();
+      await waitFor(() => pushes().length === CARDS);
     });
 
     expect(pushes()).toHaveLength(CARDS);
@@ -557,7 +559,7 @@ describe('the intersection service under load', () => {
           data-track:view='{"event": "a"}'
           data-track:view.once='{"event": "b"}'></div>`,
       );
-      await observed();
+      await waitFor(() => pushes().length === 2);
     });
 
     expect(
@@ -574,7 +576,7 @@ describe('the intersection service under load', () => {
         `<div data-component="Track" style="${ONSCREEN}" data-track:view='{"event": "a"}'></div>
          <div data-component="Track" style="${ONSCREEN}" data-option-threshold="0.9" data-track:view='{"event": "b"}'></div>`,
       );
-      await observed();
+      await waitFor(() => pushes().length === 2);
     });
 
     expect(built).toBe(2);
@@ -596,7 +598,7 @@ describe('the intersection service under load', () => {
       useInView(el, { threshold: 0.9 }).subscribe(({ entry }) => {
         secondRatio = entry?.intersectionRatio ?? -1;
       });
-      await observed();
+      await waitFor(() => firstRatio > 0 && secondRatio > 0);
     });
 
     expect(built).toBe(2);
@@ -613,16 +615,16 @@ describe('the intersection service under load', () => {
     ).join('');
 
     const root = await mount(markup);
-    await observed();
+    await waitFor(() => pushes().length === CARDS);
     expect(pushes()).toHaveLength(CARDS);
 
     root.remove();
-    await observed();
+    await quiet();
     window.dataLayer = [];
 
     const built = await countObservers(async () => {
       await mount(markup);
-      await observed();
+      await waitFor(() => pushes().length === CARDS);
     });
     expect(built).toBe(CARDS);
     expect(pushes()).toHaveLength(CARDS);

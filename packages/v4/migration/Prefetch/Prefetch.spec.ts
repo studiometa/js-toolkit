@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { registerComponents } from '../../src/index.js';
 import { getInstance } from '../../src/test-utils.js';
-import { mount, resetDom, settle } from '../../src/test/index.js';
+import { mount, resetDom, settle, waitFor } from '../../src/test/index.js';
 import { AbstractPrefetch } from './AbstractPrefetch.js';
 import { PrefetchOnInteraction } from './PrefetchOnInteraction.js';
 import { PrefetchWhenVisible } from './PrefetchWhenVisible.js';
@@ -40,8 +40,11 @@ afterEach(async () => {
   await resetDom();
 });
 
-/** Give the observer and the link a few frames. */
-async function observed(): Promise<void> {
+/**
+ * A bounded quiet period, for the assertions that no hint was appended and no
+ * component was instantiated. Everything positive is polled for instead.
+ */
+async function quiet(): Promise<void> {
   for (let i = 0; i < 8; i += 1) {
     await settle();
   }
@@ -133,7 +136,7 @@ describe('AbstractPrefetch — the hint', () => {
     );
 
     instance.prefetch();
-    await observed();
+    await waitFor(() => hasPrefetchLink(href));
 
     expect(hasPrefetchLink(href)).toBe(true);
   });
@@ -149,7 +152,7 @@ describe('AbstractPrefetch — the hint', () => {
     );
 
     instance.prefetch();
-    await observed();
+    await quiet();
 
     expect(prefetchLinks()).toHaveLength(before);
   });
@@ -167,7 +170,7 @@ describe('AbstractPrefetch — the hint', () => {
     });
 
     instance.prefetch();
-    await observed();
+    await waitFor(() => detail);
 
     expect(detail?.url.href).toBe(href);
   });
@@ -188,7 +191,7 @@ describe('AbstractPrefetch — the hint', () => {
 
     first.prefetch();
     second.prefetch();
-    await observed();
+    await waitFor(() => hasPrefetchLink(href));
 
     expect(prefetchLinks().filter((link) => link.href === href)).toHaveLength(1);
   });
@@ -215,7 +218,7 @@ describe('AbstractPrefetch — the hint', () => {
     for (const instance of instances) {
       instance.prefetch();
     }
-    await observed();
+    await waitFor(() => count === 2);
 
     expect(count).toBe(2);
   });
@@ -234,7 +237,7 @@ describe('AbstractPrefetch — the hint', () => {
 
     instance.prefetch();
     root.remove();
-    await observed();
+    await quiet();
 
     expect(count).toBe(0);
   });
@@ -246,7 +249,7 @@ describe('PrefetchOnInteraction', () => {
     const root = await mount(`<a data-component="PrefetchOnInteraction" href="${href}"></a>`);
 
     root.firstElementChild?.dispatchEvent(new PointerEvent('pointerenter'));
-    await observed();
+    await waitFor(() => hasPrefetchLink(href));
 
     expect(hasPrefetchLink(href)).toBe(true);
   });
@@ -262,7 +265,7 @@ describe('PrefetchOnInteraction', () => {
 
     tap.dispatchEvent(new PointerEvent('pointerdown'));
     focus.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
-    await observed();
+    await waitFor(() => hasPrefetchLink(tapped) && hasPrefetchLink(focused));
 
     expect(hasPrefetchLink(tapped)).toBe(true);
     expect(hasPrefetchLink(focused)).toBe(true);
@@ -271,7 +274,7 @@ describe('PrefetchOnInteraction', () => {
   it('does not instantiate the component before the intent arrives', async () => {
     const href = uniqueHref();
     const root = await mount(`<a data-component="PrefetchOnInteraction" href="${href}"></a>`);
-    await observed();
+    await quiet();
 
     expect(
       getInstance<PrefetchOnInteraction>(
@@ -289,7 +292,7 @@ describe('PrefetchOnInteraction', () => {
     );
 
     root.firstElementChild?.dispatchEvent(new PointerEvent('pointerenter'));
-    await observed();
+    await quiet();
 
     expect(hasPrefetchLink(href)).toBe(false);
   });
@@ -301,7 +304,7 @@ describe('PrefetchWhenVisible', () => {
     const root = await mount(
       `<a data-component="PrefetchWhenVisible" href="${href}" style="${OFFSCREEN}"></a>`,
     );
-    await observed();
+    await quiet();
 
     expect(
       getInstance<PrefetchWhenVisible>(
@@ -315,7 +318,7 @@ describe('PrefetchWhenVisible', () => {
   it('prefetches the first time the link is seen', async () => {
     const href = uniqueHref();
     await mount(`<a data-component="PrefetchWhenVisible" href="${href}" style="${ONSCREEN}"></a>`);
-    await observed();
+    await waitFor(() => hasPrefetchLink(href));
 
     expect(hasPrefetchLink(href)).toBe(true);
   });
@@ -330,13 +333,14 @@ describe('PrefetchWhenVisible', () => {
     const root = await mount(
       `<a data-component="PrefetchWhenVisible" href="${href}" style="${ONSCREEN}"></a>`,
     );
-    await observed();
     const el = root.firstElementChild as HTMLElement;
-    const instance = getInstance<PrefetchWhenVisible>(el, 'PrefetchWhenVisible');
+    const instance = await waitFor(() =>
+      getInstance<PrefetchWhenVisible>(el, 'PrefetchWhenVisible'),
+    );
     expect(instance?.$isMounted).toBe(true);
 
     el.setAttribute('style', OFFSCREEN);
-    await observed();
+    await quiet();
 
     expect(getInstance<PrefetchWhenVisible>(el, 'PrefetchWhenVisible')?.$isMounted).toBe(true);
   });
@@ -346,13 +350,13 @@ describe('PrefetchWhenVisible', () => {
     const root = await mount(
       `<a data-component="PrefetchWhenVisible" href="${href}" style="${ONSCREEN}"></a>`,
     );
-    await observed();
+    await waitFor(() => hasPrefetchLink(href));
     const el = root.firstElementChild as HTMLElement;
 
     el.setAttribute('style', OFFSCREEN);
-    await observed();
+    await quiet();
     el.setAttribute('style', ONSCREEN);
-    await observed();
+    await quiet();
 
     expect(prefetchLinks().filter((link) => link.href === href)).toHaveLength(1);
   });

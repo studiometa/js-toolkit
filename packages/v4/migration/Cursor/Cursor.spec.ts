@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { registerComponents } from '../../src/index.js';
 import { countRequestedFrames, getInstance } from '../../src/test-utils.js';
-import { mount, resetDom, settle } from '../../src/test/index.js';
+import { mount, resetDom, settle, waitFor } from '../../src/test/index.js';
 import { Cursor } from './Cursor.js';
 
 registerComponents(Cursor);
@@ -34,8 +34,8 @@ function movePointer(target: EventTarget, x: number, y: number, buttons = 0): vo
   );
 }
 
-/** Let the frame loop run for a few frames. */
-async function ticked(count = 12): Promise<void> {
+/** A bounded quiet period, for the assertion that no frame was requested. */
+async function quiet(count = 12): Promise<void> {
   for (let i = 0; i < count; i += 1) {
     await settle();
   }
@@ -68,7 +68,7 @@ describe('Cursor', () => {
     expect(instance.motion().x).toBeGreaterThan(0);
     expect(instance.motion().x).toBeLessThan(200);
 
-    await ticked();
+    await waitFor(() => !instance.motion.isMoving);
 
     expect(instance.motion().x).toBe(200);
     expect(instance.motion().y).toBe(100);
@@ -142,7 +142,7 @@ describe('Cursor', () => {
     await settle();
     expect(instance.motion.isMoving).toBe(true);
 
-    await ticked();
+    await waitFor(() => !instance.motion.isMoving);
 
     expect(instance.motion.isMoving).toBe(false);
   });
@@ -151,7 +151,7 @@ describe('Cursor', () => {
     await mountCursor();
 
     const requested = await countRequestedFrames(async () => {
-      await ticked(4);
+      await quiet(4);
     });
 
     expect(requested).toBe(0);
@@ -174,7 +174,7 @@ describe('Cursor', () => {
     const { instance } = await mountCursor('data-option-scale="1"');
 
     movePointer(document, 50, 25);
-    await ticked();
+    await waitFor(() => instance.$el.style.transform.includes('matrix(1, 0, 0, 1, 50, 25)'));
 
     expect(instance.$el.style.transform).toContain('matrix(1, 0, 0, 1, 50, 25)');
   });
@@ -182,7 +182,7 @@ describe('Cursor', () => {
   it('resets its state when the component mounts again', async () => {
     const { root, instance } = await mountCursor();
     movePointer(document, 90, 90);
-    await ticked();
+    await waitFor(() => instance.motion().x === 90);
     expect(instance.motion().x).toBe(90);
 
     const other = document.createElement('section');

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { registerComponents } from '../../src/index.js';
 import { getInstance } from '../../src/test-utils.js';
-import { resetDom, settle } from '../../src/test/index.js';
+import { resetDom, settle, waitFor } from '../../src/test/index.js';
 import { Carousel } from './Carousel.js';
 import { CarouselBtn } from './CarouselBtn.js';
 import { CarouselDrag } from './CarouselDrag.js';
@@ -54,8 +54,12 @@ async function render({
   };
 }
 
-/** Let the scheduler, the frame loop and the smooth scroll settle. */
-async function settled(count = 10): Promise<void> {
+/**
+ * A bounded quiet period, for the states this file asserts are *unchanged* —
+ * a button still enabled, a scroll that never moved, a frame loop that never
+ * started. Everything positive is polled for with `waitFor` instead.
+ */
+async function quiet(count = 10): Promise<void> {
   for (let i = 0; i < count; i += 1) {
     await settle();
   }
@@ -165,7 +169,7 @@ describe('Carousel — the index', () => {
 describe('Carousel — the controls', () => {
   it('marks the first slide active on mount, with no navigation at all', async () => {
     const { el } = await render({ count: 3 });
-    await settled();
+    await waitFor(() => activeFlags(el)[0] === '1');
 
     expect(activeFlags(el)).toEqual(['1', '0', '0']);
   });
@@ -174,7 +178,7 @@ describe('Carousel — the controls', () => {
     const { el, carousel } = await render({ count: 3 });
 
     await carousel.goTo(2);
-    await settled();
+    await waitFor(() => activeFlags(el)[2] === '1');
 
     expect(activeFlags(el)).toEqual(['0', '0', '1']);
   });
@@ -186,13 +190,12 @@ describe('Carousel — the controls', () => {
         <button data-component="CarouselBtn" data-option-action="prev"></button>
         <button data-component="CarouselBtn" data-option-action="next"></button>`,
     });
-    await settled();
-
     const [prev, next] = [...el.querySelectorAll('button')];
+    await waitFor(() => prev.disabled);
     expect([prev.disabled, next.disabled]).toEqual([true, false]);
 
     await carousel.goTo(2);
-    await settled();
+    await waitFor(() => next.disabled);
 
     expect([prev.disabled, next.disabled]).toEqual([false, true]);
   });
@@ -203,7 +206,7 @@ describe('Carousel — the controls', () => {
       attributes: 'data-option-boundary="loop"',
       buttons: `<button data-component="CarouselBtn" data-option-action="prev"></button>`,
     });
-    await settled();
+    await quiet();
 
     expect(el.querySelector('button')?.disabled).toBe(false);
   });
@@ -213,7 +216,7 @@ describe('Carousel — the controls', () => {
       count: 3,
       buttons: `<button data-component="CarouselBtn" data-option-action="next"></button>`,
     });
-    await settled();
+    await waitFor(() => el.querySelector('button'));
 
     el.querySelector('button')?.click();
 
@@ -225,7 +228,7 @@ describe('Carousel — the controls', () => {
       count: 4,
       buttons: `<button data-component="CarouselBtn" data-option-action="2"></button>`,
     });
-    await settled();
+    await waitFor(() => el.querySelector('button'));
 
     el.querySelector('button')?.click();
 
@@ -244,7 +247,7 @@ describe('Carousel — the controls', () => {
         <button data-component="CarouselBtn" data-option-action="prev"></button>
       </div>`;
     document.body.append(root);
-    await settled();
+    await quiet();
 
     const button = root.querySelector('button') as HTMLButtonElement;
     expect(button.disabled).toBe(false);
@@ -256,7 +259,7 @@ describe('Carousel — the controls', () => {
       'afterbegin',
       `<div data-component="CarouselWrapper" style="${WRAPPER_STYLE}">${slides(3)}</div>`,
     );
-    await settled();
+    await waitFor(() => button.disabled);
 
     expect(button.disabled).toBe(true);
   });
@@ -266,13 +269,12 @@ describe('Carousel — the controls', () => {
       count: 3,
       buttons: `<button data-component="CarouselBtn" data-option-action="next"></button>`,
     });
-    await settled();
-    const button = el.querySelector('button') as HTMLButtonElement;
+    const button = await waitFor(() => el.querySelector('button'));
 
     button.remove();
-    await settled();
+    await settle();
     await carousel.goTo(2);
-    await settled();
+    await quiet();
 
     // Still the state it had when it left, rather than a post-teardown write.
     expect(button.disabled).toBe(false);
@@ -282,14 +284,14 @@ describe('Carousel — the controls', () => {
 describe('Carousel — live slides', () => {
   it('picks up a slide added after mount', async () => {
     const { el, carousel, wrapper } = await render({ count: 2 });
-    await settled();
+    await waitFor(() => carousel.length === 2);
     expect(carousel.length).toBe(2);
 
     wrapper.insertAdjacentHTML(
       'beforeend',
       `<div data-component="CarouselItem" style="${ITEM_STYLE}"></div>`,
     );
-    await settled();
+    await waitFor(() => carousel.length === 3);
 
     expect(carousel.length).toBe(3);
     expect(activeFlags(el)).toEqual(['1', '0', '0']);
@@ -298,11 +300,11 @@ describe('Carousel — live slides', () => {
   it('re-normalises the index when the slide it points at is removed', async () => {
     const { carousel, wrapper } = await render({ count: 3 });
     await carousel.goTo(2);
-    await settled();
+    await waitFor(() => carousel.currentIndex === 2);
     expect(carousel.currentIndex).toBe(2);
 
     wrapper.lastElementChild?.remove();
-    await settled();
+    await waitFor(() => carousel.length === 2);
 
     expect(carousel.length).toBe(2);
     expect(carousel.currentIndex).toBe(1);
@@ -314,29 +316,29 @@ describe('Carousel — live slides', () => {
       buttons: `<button data-component="CarouselBtn" data-option-action="next"></button>`,
     });
     await carousel.goTo(1);
-    await settled();
     const next = el.querySelector('button') as HTMLButtonElement;
+    await waitFor(() => next.disabled);
     expect(next.disabled).toBe(true);
 
     wrapper.insertAdjacentHTML(
       'beforeend',
       `<div data-component="CarouselItem" style="${ITEM_STYLE}"></div>`,
     );
-    await settled();
+    await waitFor(() => !next.disabled);
 
     expect(next.disabled).toBe(false);
   });
 
   it('re-measures the slide positions when the list changes', async () => {
     const { carousel, wrapper } = await render({ count: 2 });
-    await settled();
+    await waitFor(() => carousel.positions.length === 2);
     expect(carousel.positions).toHaveLength(2);
 
     wrapper.insertAdjacentHTML(
       'beforeend',
       `<div data-component="CarouselItem" style="${ITEM_STYLE}"></div>`,
     );
-    await settled();
+    await waitFor(() => carousel.positions.length === 3);
 
     expect(carousel.positions.map(({ left }) => left)).toEqual([0, 200, 400]);
   });
@@ -347,17 +349,17 @@ describe('Carousel — the wrapper', () => {
     const { carousel, wrapper } = await render({ count: 3 });
 
     await carousel.goTo(2);
-    await settled(20);
+    await waitFor(() => wrapper.scrollLeft === 400, { timeout: 2000 });
 
     expect(wrapper.scrollLeft).toBe(400);
   });
 
   it('reports the closest slide on a scroll, without scrolling back', async () => {
     const { carousel, wrapper } = await render({ count: 3 });
-    await settled();
+    await waitFor(() => carousel.positions.length === 3);
 
     wrapper.scrollTo({ left: 400, behavior: 'instant' });
-    await settled();
+    await waitFor(() => carousel.currentIndex === 2);
 
     expect(carousel.currentIndex).toBe(2);
     expect(wrapper.scrollLeft).toBe(400);
@@ -365,11 +367,13 @@ describe('Carousel — the wrapper', () => {
 
   it('publishes its progress from 0 to 1', async () => {
     const { el, carousel, wrapper } = await render({ count: 3 });
-    await settled();
+    await waitFor(() => carousel.positions.length === 3);
     expect(carousel.progress).toBe(0);
 
     wrapper.scrollTo({ left: 400, behavior: 'instant' });
-    await settled();
+    // The custom property is written a lane after the value it mirrors, so it
+    // is the later of the two and the one worth polling for.
+    await waitFor(() => el.style.getPropertyValue('--carousel-progress') === '1');
 
     expect(carousel.progress).toBe(1);
     expect(el.style.getPropertyValue('--carousel-progress')).toBe('1');
@@ -377,14 +381,14 @@ describe('Carousel — the wrapper', () => {
 
   it('emits `progress` while it changes and stops the loop once it settles', async () => {
     const { el, carousel, wrapper } = await render({ count: 3 });
-    await settled();
+    await waitFor(() => carousel.positions.length === 3);
     const seen: number[] = [];
     el.addEventListener('progress', (event) => {
       seen.push((event as unknown as CustomEvent<{ progress: number }>).detail.progress);
     });
 
     wrapper.scrollTo({ left: 200, behavior: 'instant' });
-    await settled();
+    await waitFor(() => seen.length > 0 && !carousel.$services.ticked.isActive);
 
     expect(seen.at(-1)).toBeCloseTo(0.5, 5);
     expect(carousel.$services.ticked.isActive).toBe(false);
@@ -392,17 +396,17 @@ describe('Carousel — the wrapper', () => {
 
   it('holds no frame loop once the progress has settled', async () => {
     const { carousel } = await render({ count: 3 });
-    await settled();
+    await quiet();
 
     expect(carousel.$services.ticked.isActive).toBe(false);
   });
 
   it('does nothing on `scrollToIndex` for a slide that does not exist', async () => {
     const { carousel, wrapper } = await render({ count: 2 });
-    await settled();
+    await waitFor(() => carousel.wrapper);
 
     carousel.wrapper?.scrollToIndex(9);
-    await settled();
+    await quiet();
 
     expect(wrapper.scrollLeft).toBe(0);
   });
@@ -425,7 +429,7 @@ describe('Carousel — the drag track', () => {
         <div data-component="CarouselWrapper CarouselDrag" style="${WRAPPER_STYLE}">${slides(3)}</div>
       </div>`;
     document.body.append(root);
-    await settled();
+    await quiet();
 
     const track = root.querySelector('[data-component~="CarouselDrag"]') as HTMLElement;
     const matches = window.matchMedia('(pointer: fine)').matches;
@@ -449,10 +453,11 @@ describe('Carousel — orientation', () => {
 
   it('hands the orientation to its children through the context', async () => {
     const { el } = await render({ count: 3, attributes: 'data-option-axis="y"' });
-    await settled();
-    const wrapper = getInstance<CarouselWrapper>(
-      el.querySelector('[data-component~="CarouselWrapper"]') as HTMLElement,
-      'CarouselWrapper',
+    const wrapper = await waitFor(() =>
+      getInstance<CarouselWrapper>(
+        el.querySelector('[data-component~="CarouselWrapper"]') as HTMLElement,
+        'CarouselWrapper',
+      ),
     );
 
     expect(wrapper.isVertical).toBe(true);
@@ -462,11 +467,8 @@ describe('Carousel — orientation', () => {
     const root = document.createElement('div');
     root.innerHTML = `<div data-component="CarouselWrapper" style="${WRAPPER_STYLE}"></div>`;
     document.body.append(root);
-    await settled();
-
-    const wrapper = getInstance<CarouselWrapper>(
-      root.firstElementChild as HTMLElement,
-      'CarouselWrapper',
+    const wrapper = await waitFor(() =>
+      getInstance<CarouselWrapper>(root.firstElementChild as HTMLElement, 'CarouselWrapper'),
     );
     expect(wrapper.isHorizontal).toBe(true);
     expect(wrapper.carousel).toBeUndefined();

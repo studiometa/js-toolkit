@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { registerComponents } from '../../src/index.js';
 import { getInstance } from '../../src/test-utils.js';
-import { resetDom, settle } from '../../src/test/index.js';
+import { resetDom, settle, waitFor } from '../../src/test/index.js';
 import { FigureVideo } from './FigureVideo.js';
 
 registerComponents(FigureVideo);
@@ -15,7 +15,8 @@ const ONSCREEN = 'position:absolute;top:0;left:0;width:50px;height:50px';
 const PIXEL =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 
-async function observed(): Promise<void> {
+/** A bounded quiet period, for the assertions that nothing has loaded. */
+async function quiet(): Promise<void> {
   for (let i = 0; i < 6; i += 1) {
     await settle();
   }
@@ -53,14 +54,14 @@ describe('FigureVideo', () => {
     const events: unknown[] = [];
     el.addEventListener('load', () => events.push(1));
 
-    await observed();
+    await quiet();
     expect(events).toEqual([]);
     expect(video.querySelector('source')?.src).toBe('');
 
     el.setAttribute('style', ONSCREEN);
     await settle();
     fireLoadedData(video);
-    await observed();
+    await waitFor(() => events.length > 0);
 
     expect(events).toEqual([1]);
     expect(video.querySelector('source')?.src).toBe(PIXEL);
@@ -72,9 +73,9 @@ describe('FigureVideo', () => {
     const events: unknown[] = [];
     el.addEventListener('load', () => events.push(1));
 
-    await observed();
+    await quiet();
     fireLoadedData(video);
-    await observed();
+    await quiet();
 
     expect(events).toEqual([]);
   });
@@ -83,9 +84,11 @@ describe('FigureVideo', () => {
     const { el, video } = render(ONSCREEN);
     await settle();
     fireLoadedData(video);
-    await observed();
-
-    const instance = getInstance<FigureVideo>(el, 'FigureVideo');
+    const instance = await waitFor(() =>
+      getInstance<FigureVideo>(el, 'FigureVideo')?.hasLoaded
+        ? getInstance<FigureVideo>(el, 'FigureVideo')
+        : null,
+    );
     const spy = vi.spyOn(instance, 'load');
 
     // A later mount cycle on the same instance — the in-view strategy can
@@ -109,7 +112,7 @@ describe('FigureVideo', () => {
     // v3 waits on `loadeddata` alone, so this never settled and `mounted()`
     // never returned.
     video.dispatchEvent(new Event('error'));
-    await observed();
+    await waitFor(() => details.length > 0);
 
     expect(details.map((detail) => detail.code)).toContain('figure-video.load-failed');
     // Left un-loaded, so a later mount cycle can retry.
@@ -124,7 +127,7 @@ describe('FigureVideo', () => {
     document.body.append(root);
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-    await expect(observed()).resolves.toBeUndefined();
+    await expect(quiet()).resolves.toBeUndefined();
 
     expect(warnSpy).toHaveBeenCalled();
     warnSpy.mockRestore();
