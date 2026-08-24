@@ -124,12 +124,14 @@ assert.deepEqual(Object.keys(testHelpers).sort(), [
   'captureDiagnostics',
   'frames',
   'mount',
+  'recordEvents',
   'resetDom',
   'settle',
   'waitFor',
 ]);
 assert.equal(toolkit.waitFor, undefined);
 assert.equal(toolkit.captureDiagnostics, undefined);
+assert.equal(toolkit.recordEvents, undefined);
 assert.equal(await testHelpers.waitFor(() => 'now'), 'now');
 await assert.rejects(
   testHelpers.waitFor(() => false, { timeout: 0, message: 'never landed' }),

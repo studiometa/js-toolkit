@@ -3,9 +3,17 @@ import * as subpath from '@studiometa/js-toolkit-v4/test';
 import { Base } from '../Base.js';
 import { warn } from '../diagnostics.js';
 import { getInstances } from '../instances.js';
-import { registerComponent } from '../registry.js';
+import { registerComponent, registerComponents } from '../registry.js';
 import { defaultScheduler } from '../scheduler.js';
-import { captureDiagnostics, frames, mount, resetDom, settle, waitFor } from './index.js';
+import {
+  captureDiagnostics,
+  frames,
+  mount,
+  recordEvents,
+  resetDom,
+  settle,
+  waitFor,
+} from './index.js';
 
 /**
  * The subject writes from a scheduled task rather than from `mounted()`
@@ -25,7 +33,23 @@ class Subject extends Base {
   }
 }
 
-registerComponent(Subject);
+/** Emits on demand and on a scheduled write, to cover both delivery timings. */
+class Emitter extends Base<{ $emits: { ping: { count: number }; pong: void } }> {
+  static config = { name: 'TestHelpersEmitter' };
+
+  ping(count: number): void {
+    this.$emit('ping', { count });
+  }
+
+  pingLater(count: number): void {
+    defaultScheduler.write(() => {
+      this.$emit('ping', { count });
+      this.$emit('pong');
+    });
+  }
+}
+
+registerComponents(Subject, Emitter);
 
 afterEach(resetDom);
 // Restored here rather than inline: `mockRestore()` also clears the call
@@ -40,11 +64,12 @@ function silenceSink() {
 }
 
 describe('the /test subpath', () => {
-  it('serves these six helpers under the package name, and nothing else', () => {
+  it('serves these seven helpers under the package name, and nothing else', () => {
     expect(Object.keys(subpath).sort()).toEqual([
       'captureDiagnostics',
       'frames',
       'mount',
+      'recordEvents',
       'resetDom',
       'settle',
       'waitFor',
@@ -55,6 +80,7 @@ describe('the /test subpath', () => {
     expect(subpath.waitFor).toBe(waitFor);
     expect(subpath.resetDom).toBe(resetDom);
     expect(subpath.captureDiagnostics).toBe(captureDiagnostics);
+    expect(subpath.recordEvents).toBe(recordEvents);
   });
 });
 
@@ -241,5 +267,50 @@ describe('captureDiagnostics()', () => {
 
     expect(log.codes).toEqual([]);
     expect(sink).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('recordEvents()', () => {
+  it("captures a component's emit, with its detail", async () => {
+    const root = await mount('<div data-component="TestHelpersEmitter"></div>');
+    const [emitter] = getInstances<Emitter>('TestHelpersEmitter', root);
+    const log = recordEvents(root, 'ping');
+
+    emitter.ping(2);
+    emitter.ping(3);
+    log.stop();
+
+    expect(log.events).toEqual([
+      { type: 'ping', detail: { count: 2 } },
+      { type: 'ping', detail: { count: 3 } },
+    ]);
+  });
+
+  it('keeps several types in one array, in delivery order', async () => {
+    const root = await mount('<div data-component="TestHelpersEmitter"></div>');
+    const [emitter] = getInstances<Emitter>('TestHelpersEmitter', root);
+    const log = recordEvents(root, 'ping', 'pong');
+
+    emitter.pingLater(1);
+    await waitFor(() => log.events.length === 2);
+    log.stop();
+
+    expect(log.events).toEqual([
+      { type: 'ping', detail: { count: 1 } },
+      { type: 'pong', detail: null },
+    ]);
+  });
+
+  it('ignores a type it was not asked for, and stops when stopped', async () => {
+    const root = await mount('<div data-component="TestHelpersEmitter"></div>');
+    const [emitter] = getInstances<Emitter>('TestHelpersEmitter', root);
+    const log = recordEvents(root, 'ping');
+
+    emitter.$emit('pong');
+    emitter.ping(1);
+    log.stop();
+    emitter.ping(2);
+
+    expect(log.events).toEqual([{ type: 'ping', detail: { count: 1 } }]);
   });
 });

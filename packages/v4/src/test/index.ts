@@ -16,7 +16,8 @@
  *
  * The rest answer the questions whose right answer is not the obvious one.
  * {@link captureDiagnostics} reads the diagnostic channel instead of the
- * console sink it happens to write to.
+ * console sink it happens to write to, and {@link recordEvents} keeps the order
+ * and the payloads a call-counting spy throws away.
  */
 
 import { type ToolkitDiagnosticDetail } from '../diagnostic-contract.js';
@@ -203,6 +204,78 @@ export function captureDiagnostics(target: EventTarget = document): DiagnosticCa
     entries,
     stop() {
       target.removeEventListener(EVENTS.diagnostic, listener);
+    },
+  };
+}
+
+/** One event {@link recordEvents} saw. */
+export interface RecordedEvent {
+  type: string;
+  /** The `detail` of a `CustomEvent`; `undefined` for a platform event. */
+  detail: unknown;
+}
+
+/** What {@link recordEvents} hands back. */
+export interface EventRecording {
+  /** Every matching event seen, in delivery order. */
+  events: RecordedEvent[];
+  /** Detach every listener. */
+  stop(): void;
+}
+
+/**
+ * Record the named events reaching a target, with the payload each carried.
+ *
+ * The order and the payloads are the assertion a component's contract is made
+ * of — that `open` came before `opened`, and that the second one carried the
+ * height it measured — and neither survives a spy that only counts calls:
+ *
+ * ```ts
+ * const log = recordEvents(root, 'open', 'opened');
+ * await instance.open();
+ * expect(log.events).toEqual([
+ *   { type: 'open', detail: null },
+ *   { type: 'opened', detail: { height: 120 } },
+ * ]);
+ * log.stop();
+ * ```
+ *
+ * Recording types rather than one type keeps a sequence spanning several names
+ * in one array, which is the only place their relative order is visible. A
+ * caller that wants the names alone maps over the result; the reverse is not
+ * possible, so the richer shape is the one that ships.
+ *
+ * `$emit` itself dispatches synchronously, but almost nothing calls it
+ * synchronously: the emit follows a mount, a scheduled write or a transition,
+ * and the call that started that chain has already returned. So **wait for the
+ * count rather than reading it**, with {@link waitFor}:
+ *
+ * ```ts
+ * const log = recordEvents(root, 'ping');
+ * instance.start();
+ * await waitFor(() => log.events.length === 2);
+ * ```
+ *
+ * Because component events bubble, the target is usually the wrapper
+ * {@link mount} returned rather than the component's own element — which is
+ * also how a test sees the events of a child it never looked up.
+ */
+export function recordEvents(target: EventTarget, ...types: string[]): EventRecording {
+  const events: RecordedEvent[] = [];
+  const listener = (event: Event) => {
+    events.push({ type: event.type, detail: (event as CustomEvent<unknown>).detail });
+  };
+
+  for (const type of types) {
+    target.addEventListener(type, listener);
+  }
+
+  return {
+    events,
+    stop() {
+      for (const type of types) {
+        target.removeEventListener(type, listener);
+      }
     },
   };
 }
