@@ -292,6 +292,56 @@ export function registerManifest(entries: ComponentManifest): void {
   }
 }
 
+/**
+ * Drop every registration, so the names a test used are free again.
+ *
+ * `registerComponent()` has no inverse by design: a page registers once and
+ * keeps the registration for as long as it lives. A test suite is the one
+ * caller for which that is wrong — the registry is page-wide and it survives
+ * `resetDom()`, so a name registered by one spec is still taken in the next
+ * one, and the workaround is a counter that mints `Widget-1`, `Widget-2` and
+ * tells the reader nothing. This is the escape hatch, re-exported from
+ * `@studiometa/js-toolkit-v4/test`; it is not part of a page's vocabulary.
+ *
+ * **It is coarse on purpose.** A targeted `unregisterComponent(name)` would
+ * have to find the elements holding that name's live triggers, and the map
+ * from element to controller is a `WeakMap`: it cannot be enumerated, so
+ * nothing can walk it to dispose them, and a `querySelectorAll()` sweep would
+ * still miss every detached element. Clearing the whole registry works because
+ * the mutation-observer path already disposes a controller as its element
+ * leaves the DOM — which is why the call belongs *after* `resetDom()`.
+ *
+ * Two things it therefore does not do. It cannot clear that `WeakMap`, so a
+ * controller whose element is still connected keeps its trigger; empty the DOM
+ * first. And it does not narrow the attribute filter the shared observer built
+ * from the options of everything ever registered — an extra watched attribute
+ * costs a reconciliation pass that finds no owner, and nothing more.
+ *
+ * **Where the call belongs.** Spec files register at module top level, so
+ * this in an `afterEach` silently unregisters everything for every later test
+ * in the file. Put it in an `afterAll`, or call it and register again straight
+ * away:
+ *
+ * ```ts
+ * afterEach(async () => {
+ *   await resetDom();
+ *   resetRegistry();
+ *   registerComponents(Subject, Emitter);
+ * });
+ * ```
+ */
+export function resetRegistry(): void {
+  registry.clear();
+  manifest.clear();
+  imports.clear();
+  responsiveElements.clear();
+  registryState.pendingResponsiveElements.clear();
+  registryState.responsiveTask?.cancel();
+  registryState.responsiveTask = null;
+  registryState.unwatchBreakpoints?.();
+  registryState.unwatchBreakpoints = null;
+}
+
 /** Import and register a lazy entry once per name. Failed imports are not retried. */
 function importComponent(name: string, target?: Element): Promise<void> {
   const pending = imports.get(name);
