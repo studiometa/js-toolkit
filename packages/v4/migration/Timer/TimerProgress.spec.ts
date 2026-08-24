@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { resetDom, settle } from '../../src/test/index.js';
 import { TimerProgress } from './TimerProgress.js';
 
@@ -18,7 +17,7 @@ async function render(attributes = ''): Promise<{ el: HTMLElement; instance: Tim
   document.body.append(root);
   await settle();
   const el = root.firstElementChild as HTMLElement;
-  return { el, instance: getInstance<TimerProgress>(el, 'TimerProgress') };
+  return { el, instance: getInstance<TimerProgress>(el, 'TimerProgress')! };
 }
 
 function recordProgress(el: HTMLElement): number[] {

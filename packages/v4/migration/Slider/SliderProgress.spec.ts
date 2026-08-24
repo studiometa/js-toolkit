@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { frames, resetDom, settle } from '../../src/test/index.js';
 import { Slider } from './Slider.js';
 import { SliderProgress } from './SliderProgress.js';
@@ -35,7 +34,7 @@ async function ready(root: HTMLElement) {
   await settle();
   await frames(4);
   return {
-    slider: getInstance<Slider>(root, 'Slider'),
+    slider: getInstance<Slider>(root, 'Slider')!,
     bar: root.querySelector('[data-ref="progress"]') as HTMLElement,
   };
 }

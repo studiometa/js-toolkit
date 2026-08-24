@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponent } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponent } from '../../src/index.js';
 import { frames, resetDom, settle } from '../../src/test/index.js';
 import { ScrollAnimationTarget } from './ScrollAnimationTarget.js';
 import { ScrollAnimationTimeline } from './ScrollAnimationTimeline.js';
@@ -72,7 +71,7 @@ describe('ScrollAnimationTimeline', () => {
     const el = render({ targets: 2 });
     await settle();
 
-    const timeline = getInstance<ScrollAnimationTimeline>(el, 'ScrollAnimationTimeline');
+    const timeline = getInstance<ScrollAnimationTimeline>(el, 'ScrollAnimationTimeline')!;
     expect(timeline.targets.size).toBe(2);
 
     const added = document.createElement('div');
@@ -155,7 +154,7 @@ describe('ScrollAnimationTimeline', () => {
     await scrollTo(start + (end - start) * 0.8);
     expect(Number(target.style.opacity)).toBeGreaterThan(0.5);
 
-    getInstance<ScrollAnimationTarget>(target, 'ScrollAnimationTarget').$unmount();
+    getInstance<ScrollAnimationTarget>(target, 'ScrollAnimationTarget')!.$unmount();
     await frames(4);
     expect(target.style.opacity).toBe('1');
   });
@@ -163,7 +162,7 @@ describe('ScrollAnimationTimeline', () => {
   it('stops the frame subscription once the damped value settled', async () => {
     const el = render();
     await settle();
-    const timeline = getInstance<ScrollAnimationTimeline>(el, 'ScrollAnimationTimeline');
+    const timeline = getInstance<ScrollAnimationTimeline>(el, 'ScrollAnimationTimeline')!;
 
     await scrollTo(bounds().end);
     expect((timeline as unknown as { __unsubscribeFrame: unknown }).__unsubscribeFrame).toBeNull();

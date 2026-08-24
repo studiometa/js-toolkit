@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { recordEvents, resetDom, settle, waitFor } from '../../src/test/index.js';
 import { Draggable } from './Draggable.js';
 
@@ -32,7 +31,7 @@ async function render(attributes = ''): Promise<{
     root,
     el,
     target: el.querySelector('[data-ref="target"]') as HTMLElement,
-    instance: getInstance<Draggable>(el, 'Draggable'),
+    instance: getInstance<Draggable>(el, 'Draggable')!,
   };
 }
 
@@ -151,7 +150,7 @@ describe('Draggable — geometry', () => {
     other.append(el);
     await waitFor(() => getInstance<Draggable>(el, 'Draggable')?.bounds.xMax === 200);
 
-    expect(getInstance<Draggable>(el, 'Draggable').bounds.xMax).toBe(200);
+    expect(getInstance<Draggable>(el, 'Draggable')!.bounds.xMax).toBe(200);
   });
 });
 

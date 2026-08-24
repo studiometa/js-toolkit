@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { registerComponent } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponent } from '../../src/index.js';
 import { resetDom, settle } from '../../src/test/index.js';
 import { Transition } from '../Transition/Transition.js';
 import { Dialog } from './Dialog.js';
@@ -36,7 +35,7 @@ describe('Dialog', () => {
   it('opens and closes the native dialog', async () => {
     const el = render();
     await settle();
-    const dialog = getInstance<Dialog>(el, 'Dialog');
+    const dialog = getInstance<Dialog>(el, 'Dialog')!;
 
     await dialog.open();
     expect(el.open).toBe(true);
@@ -50,7 +49,7 @@ describe('Dialog', () => {
   it('is a no-op when already in the requested state', async () => {
     const el = render();
     await settle();
-    const dialog = getInstance<Dialog>(el, 'Dialog');
+    const dialog = getInstance<Dialog>(el, 'Dialog')!;
 
     await dialog.close();
     expect(el.open).toBe(false);
@@ -62,11 +61,11 @@ describe('Dialog', () => {
   it('runs the transition children on open and close', async () => {
     const el = render();
     await settle();
-    const dialog = getInstance<Dialog>(el, 'Dialog');
+    const dialog = getInstance<Dialog>(el, 'Dialog')!;
     const panel = el.querySelector('[data-component="Transition"]') as HTMLElement;
 
     expect(dialog.transitions).toHaveLength(1);
-    expect(getInstance(panel, 'Transition')).toBeInstanceOf(Transition);
+    expect(getInstance(panel, 'Transition')!).toBeInstanceOf(Transition);
 
     await dialog.open();
     expect(panel.classList.contains('is-open')).toBe(true);
@@ -79,7 +78,7 @@ describe('Dialog', () => {
   it('picks up a transition child inserted after mount', async () => {
     const el = render({ withTransition: false });
     await settle();
-    const dialog = getInstance<Dialog>(el, 'Dialog');
+    const dialog = getInstance<Dialog>(el, 'Dialog')!;
     expect(dialog.transitions).toHaveLength(0);
 
     const added = document.createElement('div');
@@ -97,7 +96,7 @@ describe('Dialog', () => {
   it('closes through the component when Escape cancels the native dialog', async () => {
     const el = render();
     await settle();
-    const dialog = getInstance<Dialog>(el, 'Dialog');
+    const dialog = getInstance<Dialog>(el, 'Dialog')!;
     const panel = el.querySelector('[data-component="Transition"]') as HTMLElement;
 
     await dialog.open();
@@ -116,7 +115,7 @@ describe('Dialog', () => {
   it('traps the tab key on the non-modal path only', async () => {
     const el = render({ modal: false, withTransition: false });
     await settle();
-    const dialog = getInstance<Dialog>(el, 'Dialog');
+    const dialog = getInstance<Dialog>(el, 'Dialog')!;
     await dialog.open();
 
     const last = el.querySelector('#last') as HTMLButtonElement;
@@ -131,7 +130,7 @@ describe('Dialog', () => {
   it('releases the keydown listener on unmount', async () => {
     const el = render({ modal: false, withTransition: false });
     await settle();
-    const dialog = getInstance<Dialog>(el, 'Dialog');
+    const dialog = getInstance<Dialog>(el, 'Dialog')!;
     await dialog.open();
 
     const last = el.querySelector('#last') as HTMLButtonElement;
@@ -149,23 +148,23 @@ describe('Dialog — the page scroll', () => {
     const second = render({ withTransition: false });
     await settle();
 
-    await getInstance<Dialog>(first, 'Dialog').open();
-    await getInstance<Dialog>(second, 'Dialog').open();
+    await getInstance<Dialog>(first, 'Dialog')!.open();
+    await getInstance<Dialog>(second, 'Dialog')!.open();
     expect(document.documentElement.style.overflow).toBe('hidden');
 
-    await getInstance<Dialog>(second, 'Dialog').close();
+    await getInstance<Dialog>(second, 'Dialog')!.close();
 
     // The first one is still open: the page is not its to give back.
     expect(document.documentElement.style.overflow).toBe('hidden');
 
-    await getInstance<Dialog>(first, 'Dialog').close();
+    await getInstance<Dialog>(first, 'Dialog')!.close();
     expect(document.documentElement.style.overflow).toBe('');
   });
 
   it('gives the scroll back when a dialog is unmounted while open', async () => {
     const el = render({ withTransition: false });
     await settle();
-    await getInstance<Dialog>(el, 'Dialog').open();
+    await getInstance<Dialog>(el, 'Dialog')!.open();
     expect(document.documentElement.style.overflow).toBe('hidden');
 
     el.remove();

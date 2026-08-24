@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { captureDiagnostics, mount, resetDom } from '../../src/test/index.js';
 import { parseEventDefinition } from '../event-modifiers.js';
 import { Track } from './Track.js';
@@ -75,7 +74,7 @@ describe('parseEventDefinition', () => {
 
   it('applies the family default through the bound declaration', async () => {
     const el = await render('<div data-component="Track" data-track:click.debounce></div>');
-    const [trackEvent] = getInstance<Track>(el, 'Track').trackEvents;
+    const [trackEvent] = getInstance<Track>(el, 'Track')!.trackEvents;
     expect(trackEvent.debounceDelay).toBe(300);
     expect(trackEvent.throttleDelay).toBe(16);
   });

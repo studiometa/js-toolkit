@@ -11,9 +11,9 @@ import {
 } from './Base.js';
 import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
 import { EVENTS } from './events.js';
+import { getInstance } from './instances.js';
 import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent } from './registry.js';
-import { getInstance } from './test-utils.js';
 import { renderTodoList, TodoCount, TodoItem, TodoList } from './todo.fixtures.js';
 import { captureDiagnostics, resetDom, settle } from './test/index.js';
 
@@ -61,7 +61,7 @@ describe('$emit and delegation', () => {
     const root = renderTodoList();
     await settle();
 
-    const list = getInstance<TodoList>(root, 'TodoList');
+    const list = getInstance<TodoList>(root, 'TodoList')!;
     root.querySelector<HTMLElement>('[data-ref="remove"]')?.click();
     await settle();
 
@@ -76,7 +76,7 @@ describe('$emit and delegation', () => {
     await settle();
 
     const li = root.querySelector('[data-component="TodoItem"]');
-    const instance = getInstance(li, 'TodoItem');
+    const instance = getInstance(li!, 'TodoItem')!;
     const seen: unknown[] = [];
     root.addEventListener('ping', (event) => {
       seen.push((event as CustomEvent).detail);
@@ -93,7 +93,7 @@ describe('$emit and delegation', () => {
     await settle();
 
     const li = root.querySelector('[data-component="TodoItem"]');
-    const instance = getInstance(li, 'TodoItem');
+    const instance = getInstance(li!, 'TodoItem')!;
     const seen: unknown[] = [];
     root.addEventListener('ping', (event) => seen.push((event as CustomEvent).detail));
 
@@ -106,7 +106,7 @@ describe('$emit and delegation', () => {
     await settle();
 
     const li = root.querySelector('[data-component="TodoItem"]');
-    const instance = getInstance(li, 'TodoItem');
+    const instance = getInstance(li!, 'TodoItem')!;
     const log = captureDiagnostics();
     const seen: unknown[] = [];
     root.addEventListener('ping', (event) => seen.push((event as CustomEvent).detail));
@@ -521,7 +521,7 @@ describe('$options', () => {
         events.every((event) => event.detail.code === DIAGNOSTICS.component.lifecycleFailed),
       ).toBe(true);
       expect(events.every((event) => event.detail.component === 'ResilientOptions')).toBe(true);
-      expect(getInstance<ReentrantOption>(reentrant, 'ReentrantOption').$isMounted).toBe(false);
+      expect(getInstance<ReentrantOption>(reentrant, 'ReentrantOption')!.$isMounted).toBe(false);
     } finally {
       document.querySelectorAll('[data-component="ResilientOptions"]').forEach((el) => el.remove());
     }
@@ -797,7 +797,7 @@ describe('$refs', () => {
     expect(owner.$refs.item).toBe(root.querySelector('[data-ref="item"]'));
 
     await settle();
-    expect(getInstance(root.lastElementChild, 'RefReadInserted').$isMounted).toBe(true);
+    expect(getInstance(root.lastElementChild!, 'RefReadInserted')!.$isMounted).toBe(true);
   });
 });
 
@@ -1249,7 +1249,7 @@ describe('$query and $closest', () => {
     const root = renderTodoList();
     await settle();
 
-    const list = getInstance<TodoList>(root, 'TodoList');
+    const list = getInstance<TodoList>(root, 'TodoList')!;
     const items = list.$query<TodoItem>('TodoItem');
     expect(items).toHaveLength(2);
     expect(items[0].$closest('TodoList')).toBe(list);
@@ -1264,24 +1264,24 @@ describe('$watchChildren', () => {
     orphan.innerHTML = 'orphan <button data-ref="remove">×</button>';
     document.body.append(orphan);
     await settle();
-    expect(getInstance(orphan, 'TodoItem').$isMounted).toBe(true);
+    expect(getInstance(orphan, 'TodoItem')!.$isMounted).toBe(true);
 
     const root = renderTodoList({ items: [] });
     await settle();
-    const list = getInstance<TodoList>(root, 'TodoList');
+    const list = getInstance<TodoList>(root, 'TodoList')!;
     expect(list.items.size).toBe(0);
 
     root.querySelector('[data-ref="list"]')?.append(orphan);
     await settle();
     expect(list.items.size).toBe(1);
-    expect(list.items.items[0]).toBe(getInstance(orphan, 'TodoItem'));
+    expect(list.items.items[0]).toBe(getInstance(orphan, 'TodoItem')!);
   });
 
   it('keeps the collection in DOM order', async () => {
     const root = renderTodoList({ items: ['a', 'b', 'c'] });
     await settle();
 
-    const list = getInstance<TodoList>(root, 'TodoList');
+    const list = getInstance<TodoList>(root, 'TodoList')!;
     expect(list.items.items.map((item) => item.$el.textContent?.trim().charAt(0))).toEqual([
       'a',
       'b',
@@ -1626,9 +1626,9 @@ describe('lifecycle', () => {
     await settle();
 
     const countInstance = getInstance<TodoCount>(
-      root.querySelector('[data-component="TodoCount"]'),
+      root.querySelector('[data-component="TodoCount"]')!,
       'TodoCount',
-    );
+    )!;
     expect(countInstance.cleanupCalls).toBe(0);
 
     root.remove();

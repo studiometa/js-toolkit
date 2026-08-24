@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponents, type InViewProps, type ScrollProps } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import {
+  getInstance,
+  registerComponents,
+  type InViewProps,
+  type ScrollProps,
+} from '../../src/index.js';
 import { mount, resetDom, settle } from '../../src/test/index.js';
 import { Sentinel } from '../Sentinel/index.js';
 import { Sticky } from './Sticky.js';
@@ -50,8 +54,8 @@ describe('Sticky', () => {
   it('sizes its sentinel from the earlier instances sharing its relative ancestor', async () => {
     const root = await mount(`<div style="position:relative">${sticky()}${sticky()}</div>`);
     const [first, second] = root.querySelectorAll('[data-component="Sticky"]');
-    const firstInstance = getInstance<Sticky>(first, 'Sticky');
-    const secondInstance = getInstance<Sticky>(second, 'Sticky');
+    const firstInstance = getInstance<Sticky>(first, 'Sticky')!;
+    const secondInstance = getInstance<Sticky>(second, 'Sticky')!;
 
     expect(firstInstance.sentinel?.$el.style.height).toBe('1px');
     expect((first as HTMLElement).style.top).toBe('0px');
@@ -66,7 +70,7 @@ describe('Sticky', () => {
     const root = await mount(sticky());
     const el = root.querySelector('[data-component="Sticky"]') as HTMLElement;
     const sentinelEl = root.querySelector('[data-component="Sentinel"]') as HTMLElement;
-    const instance = getInstance<Sticky>(el, 'Sticky');
+    const instance = getInstance<Sticky>(el, 'Sticky')!;
     const inner = el.querySelector('[data-ref="inner"]') as HTMLElement;
 
     dispatchIntersected(sentinelEl, true, -5);
@@ -81,7 +85,7 @@ describe('Sticky', () => {
     const root = await mount(sticky());
     const sentinelEl = root.querySelector('[data-component="Sentinel"]') as HTMLElement;
     const el = root.querySelector('[data-component="Sticky"]') as HTMLElement;
-    const instance = getInstance<Sticky>(el, 'Sticky');
+    const instance = getInstance<Sticky>(el, 'Sticky')!;
 
     // Still fully visible, entering from below: `y` is positive.
     dispatchIntersected(sentinelEl, true, 5);
@@ -96,8 +100,8 @@ describe('Sticky', () => {
     const [firstSentinel, secondSentinel] = [
       ...root.querySelectorAll('[data-component="Sentinel"]'),
     ] as HTMLElement[];
-    const first = getInstance<Sticky>(firstEl, 'Sticky');
-    const second = getInstance<Sticky>(secondEl, 'Sticky');
+    const first = getInstance<Sticky>(firstEl, 'Sticky')!;
+    const second = getInstance<Sticky>(secondEl, 'Sticky')!;
     const secondInner = secondEl.querySelector('[data-ref="inner"]') as HTMLElement;
 
     dispatchIntersected(firstSentinel, true, -5);
@@ -128,7 +132,7 @@ describe('Sticky', () => {
       </div>`);
     const el = root.querySelector('[data-component="Sticky"]') as HTMLElement;
     const sentinelEl = root.querySelector('[data-component="Sentinel"]') as HTMLElement;
-    const instance = getInstance<Sticky>(el, 'Sticky');
+    const instance = getInstance<Sticky>(el, 'Sticky')!;
 
     dispatchIntersected(sentinelEl, true, -5);
     expect(instance.isSticky).toBe(true);
@@ -144,7 +148,7 @@ describe('Sticky', () => {
     const root = await mount(sticky());
     const el = root.querySelector('[data-component="Sticky"]') as HTMLElement;
     const sentinelEl = root.querySelector('[data-component="Sentinel"]') as HTMLElement;
-    const instance = getInstance<Sticky>(el, 'Sticky');
+    const instance = getInstance<Sticky>(el, 'Sticky')!;
 
     dispatchIntersected(sentinelEl, true, -5);
     instance.scrolled({ ...BASE_SCROLL_PROPS, deltaY: 0, directionY: 0 });

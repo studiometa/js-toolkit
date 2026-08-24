@@ -1,7 +1,7 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { Base, type BaseProps } from './Base.js';
+import { getInstance } from './instances.js';
 import { registerComponent } from './registry.js';
-import { getInstance } from './test-utils.js';
 import { resetDom, settle } from './test/index.js';
 
 /**
@@ -174,7 +174,7 @@ describe('a component declared with a props type parameter', () => {
       </form>`;
     await settle();
 
-    const instance = getInstance<Extensible>(document.querySelector('form'), 'Extensible');
+    const instance = getInstance<Extensible>(document.querySelector('form')!, 'Extensible')!;
     expect(instance.$options.target).toBe('here');
     expect(instance.$refs.btn).toBeInstanceOf(HTMLButtonElement);
     expect(instance.$refs.items).toHaveLength(2);
@@ -189,7 +189,7 @@ describe('a component declared with a props type parameter', () => {
     await settle();
 
     const el = document.querySelector('form') as HTMLFormElement;
-    const instance = getInstance<Extensible>(el, 'Extensible');
+    const instance = getInstance<Extensible>(el, 'Extensible')!;
     const seen: unknown[] = [];
     el.addEventListener('go', (event) => seen.push((event as CustomEvent).detail));
     instance.$emit('go', { at: 3 });

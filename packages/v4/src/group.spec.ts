@@ -3,8 +3,8 @@ import { Base, type BaseConfig, type BaseProps, type MountedReturn } from './Bas
 import { createContext, type Signal } from './context.js';
 import { subscribeContext } from './context-subscription.js';
 import { createGroup, type Group } from './group.js';
+import { getInstance } from './instances.js';
 import { registerComponents } from './registry.js';
-import { getInstance } from './test-utils.js';
 import { mount, resetDom, settle } from './test/index.js';
 
 afterEach(resetDom);
@@ -211,11 +211,11 @@ function disclosureMarkup(id: string, open = false): string {
 }
 
 function disclosure(root: ParentNode, id: string): Disclosure {
-  return getInstance<Disclosure>(root.querySelector(`#${id}`), 'Disclosure');
+  return getInstance<Disclosure>(root.querySelector(`#${id}`)!, 'Disclosure')!;
 }
 
 function group(root: ParentNode, id: string): DisclosureGroup {
-  return getInstance<DisclosureGroup>(root.querySelector(`#${id}`), 'DisclosureGroup');
+  return getInstance<DisclosureGroup>(root.querySelector(`#${id}`)!, 'DisclosureGroup')!;
 }
 
 describe('a group of disclosures', () => {

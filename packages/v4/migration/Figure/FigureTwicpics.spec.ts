@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { resetDom, settle } from '../../src/test/index.js';
 import { FigureTwicpics } from './FigureTwicpics.js';
 
@@ -21,7 +20,7 @@ async function render(
     </div>`;
   document.body.append(root);
   await settle();
-  return getInstance<FigureTwicpics>(root.firstElementChild, 'FigureTwicpics');
+  return getInstance<FigureTwicpics>(root.firstElementChild!, 'FigureTwicpics')!;
 }
 
 describe('FigureTwicpics', () => {

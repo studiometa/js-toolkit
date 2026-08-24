@@ -9,8 +9,8 @@ import {
   type ModuleRecord,
   type WebpackContextLike,
 } from './manifest.js';
+import { getInstance } from './instances.js';
 import { registerManifest } from './registry.js';
-import { getInstance } from './test-utils.js';
 import { captureDiagnostics, resetDom, settle } from './test/index.js';
 
 class Widget {}
@@ -200,7 +200,7 @@ describe('defineManifest with registerManifest', () => {
     document.body.append(named, fallback);
     await settle();
 
-    expect(getInstance(named, 'ManifestNamed')).toBeInstanceOf(ManifestNamed);
-    expect(getInstance(fallback, 'ManifestDefault')).toBeInstanceOf(ManifestDefault);
+    expect(getInstance(named, 'ManifestNamed')!).toBeInstanceOf(ManifestNamed);
+    expect(getInstance(fallback, 'ManifestDefault')!).toBeInstanceOf(ManifestDefault);
   });
 });

@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { Base, registerComponents, type BaseConfig } from '../../src/index.js';
+import { Base, getInstance, registerComponents, type BaseConfig } from '../../src/index.js';
 import { resolveConfig } from '../../src/Base.js';
-import { getInstance } from '../../src/test-utils.js';
 import { mount, resetDom, settle } from '../../src/test/index.js';
 import { Transition } from './Transition.js';
 import { withTransition } from './withTransition.js';
@@ -56,7 +55,7 @@ describe('withTransition config merging', () => {
     ]);
 
     const el = await render('TransitionProbe', 'data-option-enter-to="on"');
-    expect(getInstance<TransitionProbe>(el, 'TransitionProbe').$options.enterTo).toBe('on');
+    expect(getInstance<TransitionProbe>(el, 'TransitionProbe')!.$options.enterTo).toBe('on');
   });
 
   /**
@@ -76,7 +75,7 @@ describe('withTransition behaviour', () => {
       'TransitionProbe',
       'data-option-enter-to="visible" data-option-enter-keep="true"',
     );
-    const instance = getInstance<TransitionProbe>(el, 'TransitionProbe');
+    const instance = getInstance<TransitionProbe>(el, 'TransitionProbe')!;
 
     await instance.enter();
 
@@ -89,7 +88,7 @@ describe('withTransition behaviour', () => {
       'TransitionProbe',
       'data-option-enter-to="visible" data-option-enter-keep="true" data-option-leave-to="gone" data-option-leave-keep="true"',
     );
-    const instance = getInstance<TransitionProbe>(el, 'TransitionProbe');
+    const instance = getInstance<TransitionProbe>(el, 'TransitionProbe')!;
 
     await instance.toggle();
     expect(el.classList.contains('visible')).toBe(true);
@@ -110,7 +109,7 @@ describe('withTransition behaviour', () => {
     document.body.append(root);
     await settle();
     const el = root.firstElementChild as HTMLElement;
-    const instance = getInstance<MultiProbe>(el, 'MultiProbe');
+    const instance = getInstance<MultiProbe>(el, 'MultiProbe')!;
     const items = [...el.querySelectorAll('[data-ref="item[]"]')];
 
     await instance.enter();
@@ -126,7 +125,7 @@ describe('withTransition behaviour', () => {
       'TransitionProbe',
       'data-option-enter-to="on" data-option-enter-keep="true"',
     );
-    const instance = getInstance<TransitionProbe>(el, 'TransitionProbe');
+    const instance = getInstance<TransitionProbe>(el, 'TransitionProbe')!;
     const other = document.createElement('div');
     document.body.append(other);
 
@@ -142,7 +141,7 @@ describe('withTransition behaviour', () => {
       'TransitionProbe',
       'data-option-enter-to="on" data-option-enter-keep="true" data-option-leave-to="off" data-option-leave-keep="true"',
     );
-    const instance = getInstance<TransitionProbe>(el, 'TransitionProbe');
+    const instance = getInstance<TransitionProbe>(el, 'TransitionProbe')!;
     const other = document.createElement('div');
     document.body.append(other);
 
@@ -160,7 +159,7 @@ describe('withTransition behaviour', () => {
    */
   it('lets a consumer force an option the markup did not ask for', async () => {
     const el = await render('ForcedProbe', 'data-option-enter-to="visible"');
-    const instance = getInstance<ForcedProbe>(el, 'ForcedProbe');
+    const instance = getInstance<ForcedProbe>(el, 'ForcedProbe')!;
 
     expect(instance.$options.enterKeep).toBe(false);
     expect(instance.transitionOptions.enterKeep).toBe(true);

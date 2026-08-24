@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { resetDom, settle } from '../../src/test/index.js';
 import { FigureVideoTwicpics } from './FigureVideoTwicpics.js';
 
@@ -21,7 +20,7 @@ async function render(attributes = ''): Promise<FigureVideoTwicpics> {
     </div>`;
   document.body.append(root);
   await settle();
-  return getInstance<FigureVideoTwicpics>(root.firstElementChild, 'FigureVideoTwicpics');
+  return getInstance<FigureVideoTwicpics>(root.firstElementChild!, 'FigureVideoTwicpics')!;
 }
 
 describe('FigureVideoTwicpics — the loadSources override', () => {
@@ -52,7 +51,7 @@ describe('FigureVideoTwicpics — the loadSources override', () => {
     }
 
     expect(details.map((detail) => detail.code)).toContain('figure-video.load-failed');
-    expect(getInstance<FigureVideoTwicpics>(el, 'FigureVideoTwicpics').hasLoaded).toBe(false);
+    expect(getInstance<FigureVideoTwicpics>(el, 'FigureVideoTwicpics')!.hasLoaded).toBe(false);
 
     document.removeEventListener('js-toolkit:diagnostic', listener);
   });

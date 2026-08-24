@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { frames, resetDom, settle } from '../../src/test/index.js';
 import { Slider } from './Slider.js';
 import { SliderBtn } from './SliderBtn.js';
@@ -38,7 +37,7 @@ function render({ items = 3, options = '' } = {}): HTMLElement {
 function get(root: HTMLElement) {
   const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-component="SliderBtn"]')];
   return {
-    slider: getInstance<Slider>(root, 'Slider'),
+    slider: getInstance<Slider>(root, 'Slider')!,
     prev: buttons[0],
     next: buttons[1],
     current: root.querySelector('[data-ref="current"]') as HTMLElement,

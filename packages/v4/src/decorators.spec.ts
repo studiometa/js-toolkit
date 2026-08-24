@@ -14,9 +14,9 @@ import { isBaseConstructor } from './component-brand.js';
 import { DIAGNOSTICS } from './diagnostic-contract.js';
 import { createContext, signal, type Signal } from './context.js';
 import { children, component, inject, on, provide, read, write } from './decorators.js';
+import { getInstance } from './instances.js';
 import { registerComponent, registerComponents } from './registry.js';
 import { defaultScheduler } from './scheduler.js';
-import { getInstance } from './test-utils.js';
 import { TodoItem } from './todo.fixtures.js';
 import { captureDiagnostics, resetDom, settle } from './test/index.js';
 
@@ -374,7 +374,7 @@ describe('@component', () => {
 
     const root = render();
     await settle();
-    expect(getInstance(root, 'DecoParent').$isMounted).toBe(true);
+    expect(getInstance(root, 'DecoParent')!.$isMounted).toBe(true);
   });
 
   /**
@@ -592,7 +592,7 @@ describe('@component', () => {
     });
 
     await settle();
-    const instance = getInstance<ImmediateRegistration>(el, 'ImmediateRegistration');
+    const instance = getInstance<ImmediateRegistration>(el, 'ImmediateRegistration')!;
     expect(instance.$isMounted).toBe(true);
     expect(instance.$options.tone).toBe('loud');
     expect(instance.$refs.label).toBe(el.querySelector('span'));
@@ -642,11 +642,11 @@ describe('@on', () => {
     const root = render();
     await settle();
 
-    const parent = getInstance<DecoParent>(root, 'DecoParent');
+    const parent = getInstance<DecoParent>(root, 'DecoParent')!;
     const child = getInstance<DecoChild>(
-      root.querySelector('[data-component="DecoChild"]'),
+      root.querySelector('[data-component="DecoChild"]')!,
       'DecoChild',
-    );
+    )!;
 
     child.ping();
     expect(parent.received).toHaveLength(1);
@@ -658,11 +658,11 @@ describe('@on', () => {
     const root = render();
     await settle();
 
-    const parent = getInstance<DecoParent>(root, 'DecoParent');
+    const parent = getInstance<DecoParent>(root, 'DecoParent')!;
     const child = getInstance<DecoChild>(
-      root.querySelector('[data-component="DecoChild"]'),
+      root.querySelector('[data-component="DecoChild"]')!,
       'DecoChild',
-    );
+    )!;
 
     child.ping();
     child.$emit('pong');
@@ -674,7 +674,7 @@ describe('@on', () => {
     const root = render();
     await settle();
 
-    const parent = getInstance<DecoParent>(root, 'DecoParent');
+    const parent = getInstance<DecoParent>(root, 'DecoParent')!;
     root.click();
     expect(parent.clicks).toBe(1);
   });
@@ -705,7 +705,7 @@ describe('@on', () => {
     document.body.append(root);
     await settle();
 
-    const instance = getInstance<OwnTypes>(root, name);
+    const instance = getInstance<OwnTypes>(root, name)!;
     root.click();
     instance.$emit('picked', { id: 'a' });
 
@@ -716,11 +716,11 @@ describe('@on', () => {
     const root = render();
     await settle();
 
-    const parent = getInstance<DecoParent>(root, 'DecoParent');
+    const parent = getInstance<DecoParent>(root, 'DecoParent')!;
     const child = getInstance<DecoChild>(
-      root.querySelector('[data-component="DecoChild"]'),
+      root.querySelector('[data-component="DecoChild"]')!,
       'DecoChild',
-    );
+    )!;
 
     child.ping();
     expect(parent.byClass).toHaveLength(1);
@@ -733,7 +733,7 @@ describe('@on', () => {
     const root = render();
     await settle();
 
-    const parent = getInstance<DecoParent>(root, 'DecoParent');
+    const parent = getInstance<DecoParent>(root, 'DecoParent')!;
 
     window.dispatchEvent(new Event('load'));
     expect(parent.windowLoads).toHaveLength(1);
@@ -749,7 +749,7 @@ describe('@on', () => {
     const root = render();
     await settle();
 
-    const parent = getInstance<DecoParent>(root, 'DecoParent');
+    const parent = getInstance<DecoParent>(root, 'DecoParent')!;
     root.remove();
     await settle();
     window.dispatchEvent(new Event('load'));
@@ -768,9 +768,9 @@ describe('@on', () => {
     document.body.append(root);
     await settle();
 
-    const parent = getInstance<GlobalNames>(root, 'GlobalNames');
+    const parent = getInstance<GlobalNames>(root, 'GlobalNames')!;
     const childEl = root.querySelector('[data-component="Window"]') as HTMLElement;
-    const child = getInstance<WindowChild>(childEl, 'Window');
+    const child = getInstance<WindowChild>(childEl, 'Window')!;
 
     window.dispatchEvent(new Event('resize'));
     expect(parent.globalResizes).toHaveLength(1);
@@ -789,7 +789,7 @@ describe('@on', () => {
     document.body.append(root);
     await settle();
 
-    const instance = getInstance<DotList>(root, 'DotList');
+    const instance = getInstance<DotList>(root, 'DotList')!;
     (root.querySelectorAll('i')[1] as HTMLElement).click();
     expect(instance.clicked).toEqual([1]);
     expect(instance.magic).toEqual([1]);
@@ -812,7 +812,7 @@ describe('@on', () => {
     const log = captureDiagnostics();
     await settle();
 
-    const instance = getInstance<NsDots>(root, 'NsDots');
+    const instance = getInstance<NsDots>(root, 'NsDots')!;
     (root.querySelectorAll('i')[1] as HTMLElement).click();
     expect(instance.clicked).toEqual([1]);
 
@@ -831,7 +831,7 @@ describe('@on', () => {
     const log = captureDiagnostics();
     await settle();
 
-    const instance = getInstance<DotMismatch>(root, 'DotMismatch');
+    const instance = getInstance<DotMismatch>(root, 'DotMismatch')!;
     (root.querySelectorAll('i')[1] as HTMLElement).click();
     expect(instance.clicked).toEqual([]);
 
@@ -848,12 +848,12 @@ describe('@on', () => {
     document.body.append(root);
     await settle();
 
-    const parent = getInstance<SubTargetParent>(root, 'SubTargetParent');
-    const sub = getInstance<SubKind>(root.querySelector('[data-component="SubKind"]'), 'SubKind');
+    const parent = getInstance<SubTargetParent>(root, 'SubTargetParent')!;
+    const sub = getInstance<SubKind>(root.querySelector('[data-component="SubKind"]')!, 'SubKind')!;
     const base = getInstance<BaseKind>(
-      root.querySelector('[data-component="BaseKind"]'),
+      root.querySelector('[data-component="BaseKind"]')!,
       'BaseKind',
-    );
+    )!;
 
     sub.$emit('ping');
     expect(parent.seen).toHaveLength(1);
@@ -882,7 +882,7 @@ describe('@on', () => {
     const root = render();
     await settle();
 
-    const parent = getInstance<DecoParent>(root, 'DecoParent');
+    const parent = getInstance<DecoParent>(root, 'DecoParent')!;
     root.remove();
     await settle();
     root.click();
@@ -900,7 +900,7 @@ describe('@children', () => {
     const root = render(2);
     await settle();
 
-    const parent = getInstance<DecoParent>(root, 'DecoParent');
+    const parent = getInstance<DecoParent>(root, 'DecoParent')!;
     expect(parent.kids.size).toBe(2);
 
     root.querySelector('[data-component="DecoChild"]')?.remove();
@@ -1041,11 +1041,11 @@ describe('@on stacked with @read / @write', () => {
     const root = renderPhased();
     await settle();
 
-    const instance = getInstance<PhasedHandlers>(root, 'PhasedHandlers');
+    const instance = getInstance<PhasedHandlers>(root, 'PhasedHandlers')!;
     const child = getInstance<PhasedChild>(
-      root.querySelector('[data-component="PhasedChild"]'),
+      root.querySelector('[data-component="PhasedChild"]')!,
       'PhasedChild',
-    );
+    )!;
 
     window.dispatchEvent(new Event('resize'));
     window.dispatchEvent(new Event('scroll'));
@@ -1074,7 +1074,7 @@ describe('@on stacked with @read / @write', () => {
     document.body.append(root);
     await settle();
 
-    const instance = getInstance<SinglyDecorated>(root, 'SinglyDecorated');
+    const instance = getInstance<SinglyDecorated>(root, 'SinglyDecorated')!;
     window.dispatchEvent(new Event('resize'));
     expect(instance.resizes).toBe(1);
   });
@@ -1085,7 +1085,7 @@ describe('@on stacked with @read / @write', () => {
     document.body.append(root);
     await settle();
 
-    const instance = getInstance<SinglyDecorated>(root, 'SinglyDecorated');
+    const instance = getInstance<SinglyDecorated>(root, 'SinglyDecorated')!;
     window.dispatchEvent(new Event('scroll'));
     expect(instance.scrolls).toBe(0);
 
@@ -1099,11 +1099,11 @@ describe('@provide / @inject', () => {
     const root = render(2);
     await settle();
 
-    const parent = getInstance<DecoParent>(root, 'DecoParent');
+    const parent = getInstance<DecoParent>(root, 'DecoParent')!;
     const child = getInstance<DecoChild>(
-      root.querySelector('[data-component="DecoChild"]'),
+      root.querySelector('[data-component="DecoChild"]')!,
       'DecoChild',
-    );
+    )!;
 
     expect(parent.total.value).toBe(2);
     expect(child.total).toBe(parent.total);

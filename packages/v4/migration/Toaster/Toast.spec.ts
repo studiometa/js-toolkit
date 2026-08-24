@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { resetDom, settle } from '../../src/test/index.js';
 import { Toast } from './Toast.js';
 
@@ -43,7 +42,7 @@ function renderUnmounted(attributes = ''): HTMLElement {
 async function render(attributes = ''): Promise<{ el: HTMLElement; instance: Toast }> {
   const el = renderUnmounted(attributes);
   await settle();
-  return { el, instance: getInstance<Toast>(el, 'Toast') };
+  return { el, instance: getInstance<Toast>(el, 'Toast')! };
 }
 
 describe('Toast', () => {

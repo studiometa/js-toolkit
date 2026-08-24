@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Base, registerComponents, swap, SWAP_MODES, type BaseConfig } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import {
+  Base,
+  getInstance,
+  registerComponents,
+  swap,
+  SWAP_MODES,
+  type BaseConfig,
+} from '../../src/index.js';
 import { mount, resetDom, settle } from '../../src/test/index.js';
 import { Dialog } from '../Dialog/Dialog.js';
 import { Action } from './Action.js';
@@ -37,7 +43,7 @@ registerComponents(Action, Target, Foo, Bar, Dialog, MountProbe);
 afterEach(resetDom);
 
 function at<T extends Base>(root: ParentNode, selector: string, name: string): T {
-  return getInstance<T>(root.querySelector(selector), name);
+  return getInstance<T>(root.querySelector(selector)!, name)!;
 }
 
 function click(el: Element): Event {

@@ -11,8 +11,8 @@ import {
 } from './context.js';
 import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
 import { EVENTS } from './events.js';
+import { getInstance } from './instances.js';
 import { registerComponent } from './registry.js';
-import { getInstance } from './test-utils.js';
 import { renderTodoList } from './todo.fixtures.js';
 import { resetDom, settle } from './test/index.js';
 
@@ -443,9 +443,9 @@ describe('provide/inject', () => {
     document.body.append(root);
     await settle();
 
-    const counter = getInstance<Counter>(root, 'Counter');
+    const counter = getInstance<Counter>(root, 'Counter')!;
     const button = root.querySelector('button');
-    const control = getInstance<CounterBtn>(button, 'CounterBtn');
+    const control = getInstance<CounterBtn>(button!, 'CounterBtn')!;
 
     button?.click();
     button?.click();

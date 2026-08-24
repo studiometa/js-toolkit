@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { mount, resetDom, settle, waitFor } from '../../src/test/index.js';
 import { MenuList } from './MenuList.js';
 
@@ -26,8 +25,8 @@ async function render(): Promise<{
     </ul>`);
   return {
     root,
-    outer: getInstance<MenuList>(root.querySelector('#outer-list'), 'MenuList'),
-    nested: getInstance<MenuList>(root.querySelector('#nested-list'), 'MenuList'),
+    outer: getInstance<MenuList>(root.querySelector('#outer-list')!, 'MenuList')!,
+    nested: getInstance<MenuList>(root.querySelector('#nested-list')!, 'MenuList')!,
     outerLink: root.querySelector('#outer-link') as HTMLElement,
     nestedLink: root.querySelector('#nested-link') as HTMLElement,
   };

@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { mount, resetDom, settle } from '../../src/test/index.js';
 import { DataBind } from './DataBind.js';
 import { DataComputed } from './DataComputed.js';
@@ -28,7 +27,7 @@ function uniqueGroup(name: string): string {
 }
 
 function at<T>(root: HTMLElement, selector: string, name: string): T {
-  return getInstance<never>(root.querySelector(selector), name) as T;
+  return getInstance<never>(root.querySelector(selector)!, name)! as T;
 }
 
 function el<T extends HTMLElement = HTMLElement>(root: HTMLElement, selector: string): T {
@@ -307,8 +306,8 @@ describe('DataScope', () => {
     scope.append(el(root, '#bind'));
     await settle();
 
-    const scopeInstance = getInstance<DataScope>(scope, 'DataScope');
-    const rebound = getInstance<DataBind>(el(root, '#bind'), 'DataBind');
+    const scopeInstance = getInstance<DataScope>(scope, 'DataScope')!;
+    const rebound = getInstance<DataBind>(el(root, '#bind'), 'DataBind')!;
     expect(rebound.dataRegistry).toBe(scopeInstance.registry);
     expect(rebound.group).toBe(group);
     expect(rebound.dataKey).toBe('first');

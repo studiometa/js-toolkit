@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { mount, resetDom, settle, waitFor } from '../../src/test/index.js';
 import { AnchorNav } from './AnchorNav.js';
 import { AnchorNavLink } from './AnchorNavLink.js';
@@ -26,9 +25,9 @@ describe('AnchorNav', () => {
   it('enters the matching link once its target scrolls into view', async () => {
     const { root, target } = await render();
     const link = getInstance<AnchorNavLink>(
-      root.querySelector('[data-component="AnchorNavLink"]'),
+      root.querySelector('[data-component="AnchorNavLink"]')!,
       'AnchorNavLink',
-    );
+    )!;
 
     target.setAttribute('style', ONSCREEN);
     await waitFor(() => link.state === 'entering');
@@ -42,9 +41,9 @@ describe('AnchorNav', () => {
   it('leaves the matching link once its target scrolls back out of view', async () => {
     const { root, target } = await render();
     const link = getInstance<AnchorNavLink>(
-      root.querySelector('[data-component="AnchorNavLink"]'),
+      root.querySelector('[data-component="AnchorNavLink"]')!,
       'AnchorNavLink',
-    );
+    )!;
 
     target.setAttribute('style', ONSCREEN);
     await waitFor(() => link.state === 'entering');
@@ -67,9 +66,9 @@ describe('AnchorNav', () => {
     document.body.append(root);
     await settle();
     const link = getInstance<AnchorNavLink>(
-      root.querySelector('[data-component="AnchorNavLink"]'),
+      root.querySelector('[data-component="AnchorNavLink"]')!,
       'AnchorNavLink',
-    );
+    )!;
     const target = root.querySelector('#one') as HTMLElement;
 
     target.setAttribute('style', ONSCREEN);

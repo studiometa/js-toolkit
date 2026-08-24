@@ -14,8 +14,8 @@ import { afterEach, describe, expect, expectTypeOf, it } from 'vitest';
 import { Base, type BaseConfig, type BaseProps } from './Base.js';
 import { component } from './decorators.js';
 import { DIAGNOSTICS } from './diagnostic-contract.js';
+import { getInstance } from './instances.js';
 import { registerComponent } from './registry.js';
-import { getInstance } from './test-utils.js';
 import { TodoItem } from './todo.fixtures.js';
 import { captureDiagnostics, resetDom, settle } from './test/index.js';
 
@@ -71,7 +71,7 @@ describe('extending a component with extra config', () => {
     const el = render('NavControl', { 'data-option-show-compass': '' });
     await settle();
 
-    const instance = getInstance<NavControl>(el, 'NavControl');
+    const instance = getInstance<NavControl>(el, 'NavControl')!;
     expect(instance.$config.name).toBe('NavControl');
     expect(Object.keys(instance.$config.options ?? {})).toEqual([
       'position',
@@ -100,7 +100,7 @@ describe('extending a component with extra config', () => {
     el.innerHTML = '<button data-ref="handle"></button>';
     await settle();
 
-    const instance = getInstance<FullscreenControl>(el, 'FullscreenControl');
+    const instance = getInstance<FullscreenControl>(el, 'FullscreenControl')!;
     expect(instance.$config.name).toBe('FullscreenControl');
     expect(instance.$options.position).toBe('bottom-left');
     expect(instance.$refs.handle).toBe(el.firstElementChild);
@@ -126,8 +126,8 @@ describe('extending a component with extra config', () => {
 
     // A restated option replaces the parent definition whole; it does not
     // merge into it, so the derived default wins with nothing left behind.
-    expect(getInstance(left, 'LeftControl').$options.position).toBe('top-left');
-    expect(getInstance(right, 'RightControl').$options.position).toBe('top-right');
+    expect(getInstance(left, 'LeftControl')!.$options.position).toBe('top-left');
+    expect(getInstance(right, 'RightControl')!.$options.position).toBe('top-right');
   });
 
   it('extends a class it cannot edit, in expression position', async () => {
@@ -144,7 +144,7 @@ describe('extending a component with extra config', () => {
     const el = render('CompactVendor', { 'data-option-compact': '' });
     await settle();
 
-    const instance = getInstance(el, 'CompactVendor');
+    const instance = getInstance(el, 'CompactVendor')!;
     expect(instance).toBeInstanceOf(Vendor);
     expect(instance.$options.compact).toBe(true);
     expect(Object.keys(instance.$config.options ?? {})).toEqual(['size', 'compact']);
@@ -157,7 +157,7 @@ describe('extending a component with extra config', () => {
     const el = render('DecoratedControl');
     await settle();
 
-    const instance = getInstance<DecoratedControl>(el, 'DecoratedControl');
+    const instance = getInstance<DecoratedControl>(el, 'DecoratedControl')!;
     expect(instance).toBeInstanceOf(AbstractControl);
     expect(instance.$config.name).toBe('DecoratedControl');
     expect(Object.keys(instance.$config.options ?? {})).toEqual(['position', 'showZoom']);
@@ -191,7 +191,7 @@ describe('what v3 did and v4 does not', () => {
         message: '"Widget" is already registered; the incoming declaration was ignored.',
       },
     ]);
-    expect(getInstance(el, 'Widget')).not.toBeInstanceOf(UnnamedWidget);
+    expect(getInstance(el, 'Widget')!).not.toBeInstanceOf(UnnamedWidget);
     log.stop();
   });
 

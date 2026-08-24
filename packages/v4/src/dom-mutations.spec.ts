@@ -12,10 +12,10 @@ import {
   type AttributeChange,
 } from './dom-mutations.js';
 import { EVENTS } from './events.js';
+import { getInstance } from './instances.js';
 import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent } from './registry.js';
 import { SWAP_MODES, swap } from './swap.js';
-import { getInstance } from './test-utils.js';
 import { resetDom } from './test/index.js';
 
 let counter = 0;
@@ -310,7 +310,7 @@ describe('watchAttributes', () => {
     el.setAttribute(VIRTUAL_ATTRIBUTE, 'open()');
     document.body.append(el);
     await whenDOMSettled();
-    const instance = getInstance<WithdrawnAttribute>(el, name);
+    const instance = getInstance<WithdrawnAttribute>(el, name)!;
 
     el.setAttribute('data-component', '');
     el.setAttribute(VIRTUAL_ATTRIBUTE, 'close()');
