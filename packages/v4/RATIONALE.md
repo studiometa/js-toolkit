@@ -830,3 +830,35 @@ The `create<Area>Storage` presets are a different case and stay, because each re
 ### Why the adapters are tested against the platform
 
 `providers.spec.ts` drives each adapter through the six methods for real — the actual storage areas, the actual `location` and `history` — including the paths that only the platform has. To test `createStorage()` over the memory provider proves the storage. It proves nothing about the four adapters that touch the platform, which are the part that can fail.
+
+## 13. Testing
+
+### Why the helpers are a shipped module and not a documented snippet
+
+The recipe encodes two internals — how late a `MutationObserver` delivers, and in what order the scheduler drains its lanes — and a consumer has no way to derive either. A snippet in the documentation makes every consumer copy a number they cannot maintain; when a lane is added, their copy is silently wrong. The subpath makes the copy the framework's own, and the framework's own version is the one the framework's specs prove.
+
+The evidence is that the copying already happened inside the package: an identical seven-line `mount` in twelve spec files, the same settle loop in eleven, and three hand-copied `waitForClass` bodies. A helper duplicated by the people who wrote the scheduler will be duplicated worse by anyone else.
+
+### Why it depends on no test framework
+
+A helper that imports `vitest` is a helper only Vitest users can have, and it drags a runner into the dependency graph of a package that has none. Nothing here needs one: `settle()` awaits a timer and the scheduler, `mount()` writes to `document.body`, and `waitFor()` throws a plain `Error`. The three things a runner is genuinely needed for — spies, assertions and fixtures — are the three things the module refuses to ship.
+
+### Why it is a barrel and not one subpath per symbol
+
+Every other subpath in this package exists to keep one imported symbol from dragging a barrel's graph onto a page. A test file is not a page: it loads several of these helpers at once, it is never served to a browser as production code, and the whole module is smaller than the graph any splitting would save. `./utils` is split because a component imports one easing function; `./test` is not, for the same reason read the other way.
+
+### Why `waitFor()` returns its value
+
+The two questions a test asks about deferred DOM work are "is it true yet" and "what is it now", and they are the same poll. Returning the truthy value collapses them into one helper instead of a predicate version and a query version, and it removes the second lookup a guard-only version forces on the caller — a lookup which can observe a _different_ element from the one the guard passed on.
+
+### Why polling replaced `settle()` for transitions, and only in one direction
+
+This is the record of a defect. Three specs asserted a kept transition class after `settle()`, passed six-for-six in isolation, and failed roughly one run in three under full-suite load. Nothing was racing inside the components: `open()` and `close()` start a transition and do not return it, a kept end state lands several deferred steps later, and `settle()` is generous rather than deterministic. Reading a deferred write at a moment nothing promised is a flake even when everything it reads is correct.
+
+The asymmetry is what makes it a rule rather than a habit. `leaveTransition()` clears the other direction's `to` class synchronously, before its first await, so "the class is gone" is already true when nothing has happened yet — polling for an absence passes for the wrong reason, and would pass against a component that does nothing at all. An absence is asserted directly, after the awaited call which causes it.
+
+### What was refused
+
+`getInstance(el, name)` — the public `getInstances()` answers it, and a second spelling of a lookup is a second thing to keep true. A frame counter that patches `requestAnimationFrame` — one caller, and a global patch is a poor thing to hand out. Fetch stubs, pointer-event sequences and event recorders — `vi.fn()` and `@vitest/browser`'s `userEvent` do all three better, and each was shaped by the one spec that grew it.
+
+A re-export shim in `test-utils.ts` was refused too. The old file keeps the fixtures and the two helpers that stay source-only, and the specs move onto the new module in one pass; a shim would be both a compatibility layer and a temporary solution meant to be replaced.

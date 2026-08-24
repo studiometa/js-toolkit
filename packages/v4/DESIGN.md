@@ -1066,6 +1066,19 @@ See [RATIONALE.md — 11. Autoload](./RATIONALE.md#11-autoload).
 
 See [RATIONALE.md — 12. Storage](./RATIONALE.md#12-storage).
 
+## 13. Testing — the `/test` subpath
+
+`@studiometa/js-toolkit-v4/test` ships the five helpers a test of a component cannot write for itself: `mount(html)`, `settle()`, `frames(count?)`, `waitFor(predicate, options?)` and `resetDom()`.
+
+- **The subpath exists because the timing recipe is not derivable.** "Has this component mounted and finished its writes?" is answered by five rounds of a 10ms timer followed by `defaultScheduler.whenIdle()`, and those two numbers encode the mount observer's delivery latency and the scheduler's lane order. Neither half works alone: `whenIdle()` can resolve before the observer has reported the element, and a timer can return between two lanes. `defaultScheduler` and `nextFrame` were already public, so the pieces shipped and the recipe did not.
+- **It depends on no test framework.** Nothing in the module imports a runner, an assertion library or a spy; it reads the DOM and the scheduler only, so it runs under Vitest, under Playwright and on a plain browser page. That is also why it is not on the root barrel: a page has no use for it, and the root export count stays what it was.
+- **`mount()` returns the wrapper `div` it created**, never the markup's own root, so a fragment of several siblings works and `querySelector()` has a stable handle. `.firstElementChild` is one property away.
+- **`waitFor()` returns the predicate's truthy value**, which makes the same call a guard (`() => el.classList.contains('is-open')`) or a query (`() => root.querySelector('.panel')`). It polls on a 10ms cadence and drains the scheduler between attempts, and on timeout it throws — with the caller's `message`, or one naming the timeout.
+- **A transition's end state is asserted by polling, never by `settle()`.** A method that starts a transition does not hand it back, and a kept end state lands only after `nextFrame()`, the `from` and `active` states, and either a `transitionend` or one more frame. `settle()` is generous rather than deterministic, which is a flake that passes alone and fails under load. **Polling for an _absence_ is wrong** for the mirror-image reason: `leaveTransition()` clears the other direction's `to` synchronously, so the poll passes before anything has happened.
+- **What is deliberately not in it**: an instance lookup (`getInstances()` already answers it), frame counters, fetch stubs, pointer sequences and event recorders. Each is either specific to one spec or already served by `vi.fn()` and `@vitest/browser`'s `userEvent`.
+
+See [RATIONALE.md — 13. Testing](./RATIONALE.md#13-testing).
+
 ## Status for #694
 
 - `LoadService` is removed. `KeyService` is ported, with a target and a fixed repeat counter (§8). Mutation handling is internal to the registry. See §8.
