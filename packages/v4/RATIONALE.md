@@ -857,8 +857,26 @@ This is the record of a defect. Three specs asserted a kept transition class aft
 
 The asymmetry is what makes it a rule rather than a habit. `leaveTransition()` clears the other direction's `to` class synchronously, before its first await, so "the class is gone" is already true when nothing has happened yet — polling for an absence passes for the wrong reason, and would pass against a component that does nothing at all. An absence is asserted directly, after the awaited call which causes it.
 
+### Why a diagnostic is asserted on the channel and not on the console
+
+`vi.spyOn(console, 'warn')` appears forty times across the suite and twenty-six spec files touch diagnostics, several of them twice over: once to silence the console and once, separately, to add a listener that cancels the event. That the second call is what silences the first is the whole point, and it is not guessable from outside — a consumer would have to know the channel name, the detail shape, and that cancelling a cancelable diagnostic is what suppresses its default sink. `captureDiagnostics()` collapses the two into one call whose result is the thing worth asserting on.
+
+The spy is not merely redundant, it is the weaker assertion. It reads a formatted string, so it cannot tell `registry.conflict` from `registry.lazy-name-mismatch`, cannot see the severity or the reporting component, and breaks when the sink's wording changes — while a diagnostic reported with the wrong code passes it. Most of those forty sites therefore test the sink and believe they are testing the framework. The channel is public and stable precisely so that it, not the console, is what a test reads.
+
+One trap this uncovered, worth recording because it silently inverts an assertion: `mockRestore()` also clears the call history, so a spy restored before its own `expect` always looks unused. The module's own spec restores in an `afterEach` for that reason.
+
+### Why `resetRegistry()` is coarse, and why it is not `unregisterComponent(name)`
+
+The targeted form cannot be written correctly. Disposing one name's live triggers means finding the elements that hold them, and the element→controller map is a `WeakMap` by design: it cannot be enumerated, so nothing can walk it, and a `querySelectorAll()` sweep for the name would still miss every detached element still carrying a controller. A per-name inverse would be an API that looks precise and is not.
+
+The coarse form is correct for a reason outside itself: the mutation-observer path already disposes a controller as its element leaves the DOM, so once the DOM is empty there are no live triggers left to find. That is why the ordering — `resetDom()`, then `resetRegistry()` — is part of the contract rather than advice, and why the doc comment says outright that the `WeakMap` is not cleared instead of implying a clean slate.
+
+Its footgun is stated in the same place because the shape of a spec file guarantees someone will hit it: registrations happen at module top level, so `resetRegistry()` in an `afterEach` unregisters them for every later test in the file, and the failure appears in a test that looks unrelated. `resetDom()` deliberately does not call it.
+
 ### What was refused
 
-`getInstance(el, name)` — the public `getInstances()` answers it, and a second spelling of a lookup is a second thing to keep true. A frame counter that patches `requestAnimationFrame` — one caller, and a global patch is a poor thing to hand out. Fetch stubs, pointer-event sequences and event recorders — `vi.fn()` and `@vitest/browser`'s `userEvent` do all three better, and each was shaped by the one spec that grew it.
+`getInstance(el, name)` — the public `getInstances()` answers it, and a second spelling of a lookup is a second thing to keep true. A frame counter that patches `requestAnimationFrame` — one caller, and a global patch is a poor thing to hand out. Fetch stubs and pointer-event sequences — `vi.fn()` and `@vitest/browser`'s `userEvent` do both better, and each was shaped by the one spec that grew it.
+
+An event recorder was refused on that same list and then shipped as `recordEvents()`, which is worth recording as a reversal rather than quietly correcting. The refusal was right about `vi.fn()` replacing a _counter_ and wrong about what the seven spec files hand-rolling one were actually doing: they were recording `{ type, detail }` across several event names into one array, because the assertion is the sequence and its payloads, and that is the one thing a per-listener spy cannot express. Two shapes existed in the wild — `type` only, and `{ type, detail }` — and the richer one ships because mapping down is free and mapping up is impossible.
 
 A re-export shim in `test-utils.ts` was refused too. The old file keeps the fixtures and the two helpers that stay source-only, and the specs move onto the new module in one pass; a shim would be both a compatibility layer and a temporary solution meant to be replaced.
