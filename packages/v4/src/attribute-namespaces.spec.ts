@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { watchAttributeNamespace } from './attribute-namespaces.js';
 import { EVENTS } from './events.js';
-import { resetDom, settle } from './test-utils.js';
+import { resetDom, settle } from './test/index.js';
 import type { ToolkitDiagnosticDetail } from './diagnostic-contract.js';
 
 const cleanups = new Set<() => void>();

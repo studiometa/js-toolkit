@@ -1,6 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { registerComponents } from '../../src/index.js';
-import { getInstance, resetDom, settle } from '../../src/test-utils.js';
+import { getInstance } from '../../src/test-utils.js';
+import { captureDiagnostics, mount, resetDom } from '../../src/test/index.js';
 import { parseEventDefinition } from '../event-modifiers.js';
 import { Track } from './Track.js';
 import { resolveDetailPlaceholders } from './TrackEvent.js';
@@ -13,12 +14,12 @@ beforeEach(() => {
   window.dataLayer = [];
 });
 
+/**
+ * Every assertion here dispatches at the `Track` element itself, so the wrapper
+ * `mount()` returns is not what the tests want — hence the one-line unwrap.
+ */
 async function render(html: string): Promise<HTMLElement> {
-  const root = document.createElement('div');
-  root.innerHTML = html;
-  document.body.append(root);
-  await settle();
-  return root.firstElementChild as HTMLElement;
+  return (await mount(html)).firstElementChild as HTMLElement;
 }
 
 function pushes(): Record<string, unknown>[] {
@@ -49,27 +50,27 @@ describe('parseEventDefinition', () => {
   });
 
   it('warns for a modifier that names nothing instead of binding it', () => {
-    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     const { event, modifiers } = parseEventDefinition('click.prevnet.stop');
     expect(event).toBe('click');
     // The typo is dropped; the modifiers that parsed still apply.
     expect([...modifiers]).toEqual(['stop']);
-    expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy.mock.calls[0].join(' ')).toContain('prevnet');
-    spy.mockRestore();
+    expect(log.codes).toEqual(['event-modifiers.unknown-modifier']);
+    expect(log.entries[0].message).toContain('prevnet');
+    log.stop();
   });
 
   it('rejects a malformed timed delay instead of parsing it to NaN', () => {
     // `debounceoops` used to match on the `debounce` prefix alone, so its
     // suffix went through `Number.parseInt` and produced `NaN` — a timeout
     // browsers run immediately rather than warn about.
-    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     const { modifiers, delay } = parseEventDefinition('click.debounceoops');
     expect([...modifiers]).toEqual([]);
     expect(delay('debounce')).toBeUndefined();
-    expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy.mock.calls[0].join(' ')).toContain('debounceoops');
-    spy.mockRestore();
+    expect(log.codes).toEqual(['event-modifiers.unknown-modifier']);
+    expect(log.entries[0].message).toContain('debounceoops');
+    log.stop();
   });
 
   it('applies the family default through the bound declaration', async () => {

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { Base } from '../Base.js';
-import { frames, resetDom } from '../test-utils.js';
+import { frames, resetDom } from '../test/index.js';
 import { useRaf } from './raf.js';
 import { toggle } from './toggle.js';
 import type { MountedReturn } from '../Base.js';

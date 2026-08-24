@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { Base, registerComponents, type BaseConfig } from '../../src/index.js';
 import { resolveConfig } from '../../src/Base.js';
-import { getInstance, resetDom, settle } from '../../src/test-utils.js';
+import { getInstance } from '../../src/test-utils.js';
+import { mount, resetDom, settle } from '../../src/test/index.js';
 import { Transition } from './Transition.js';
 import { withTransition } from './withTransition.js';
 
@@ -35,11 +36,9 @@ registerComponents(Transition, TransitionProbe, ForcedProbe, MultiProbe);
 
 afterEach(resetDom);
 
+/** The probes are asserted on directly, so the wrapper is unwrapped here. */
 async function render(name: string, attributes = ''): Promise<HTMLElement> {
-  const root = document.createElement('div');
-  root.innerHTML = `<div data-component="${name}" ${attributes}></div>`;
-  document.body.append(root);
-  await settle();
+  const root = await mount(`<div data-component="${name}" ${attributes}></div>`);
   return root.firstElementChild as HTMLElement;
 }
 

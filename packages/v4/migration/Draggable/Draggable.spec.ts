@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { registerComponents } from '../../src/index.js';
-import { getInstance, resetDom, settle } from '../../src/test-utils.js';
-import { Draggable, type DraggablePosition } from './Draggable.js';
+import { getInstance } from '../../src/test-utils.js';
+import { recordEvents, resetDom, settle, waitFor } from '../../src/test/index.js';
+import { Draggable } from './Draggable.js';
 
 registerComponents(Draggable);
 
@@ -63,31 +64,23 @@ function release(): void {
   window.dispatchEvent(new PointerEvent('pointerup'));
 }
 
-/** Let the drag service, the frame loop and the scheduler lanes run. */
-async function settled(count = 12): Promise<void> {
+/** A bounded quiet period, for the states that are asserted as unchanged. */
+async function quiet(count = 12): Promise<void> {
   for (let i = 0; i < count; i += 1) {
     await settle();
   }
 }
 
-/** Collect the drag lifecycle events the component emits. */
-function record(root: EventTarget): Array<{ type: string; detail: DraggablePosition }> {
-  const events: Array<{ type: string; detail: DraggablePosition }> = [];
-  for (const type of [
-    'drag-start',
-    'drag-drag',
-    'drag-drop',
-    'drag-inertia',
-    'drag-stop',
-    'drag-fit',
-    'drag-render',
-  ]) {
-    root.addEventListener(type, (event) => {
-      events.push({ type, detail: { ...(event as CustomEvent<DraggablePosition>).detail } });
-    });
-  }
-  return events;
-}
+/** The drag lifecycle the component emits, in no particular order. */
+const DRAG_EVENTS = [
+  'drag-start',
+  'drag-drag',
+  'drag-drop',
+  'drag-inertia',
+  'drag-stop',
+  'drag-fit',
+  'drag-render',
+];
 
 describe('Draggable — geometry', () => {
   it('reads a single margin value into all four sides', async () => {
@@ -156,7 +149,7 @@ describe('Draggable — geometry', () => {
     const other = document.createElement('div');
     document.body.append(other);
     other.append(el);
-    await settled();
+    await waitFor(() => getInstance<Draggable>(el, 'Draggable')?.bounds.xMax === 200);
 
     expect(getInstance<Draggable>(el, 'Draggable').bounds.xMax).toBe(200);
   });
@@ -165,12 +158,12 @@ describe('Draggable — geometry', () => {
 describe('Draggable — the drag', () => {
   it('emits the drag lifecycle, never the idle mode', async () => {
     const { el, target } = await render();
-    const events = record(el);
+    const { events } = recordEvents(el, ...DRAG_EVENTS);
 
     grab(target, 10, 10);
     move(60, 40);
     release();
-    await settled();
+    await waitFor(() => events.some(({ type }) => type === 'drag-drop'));
 
     const types = events.map(({ type }) => type);
     expect(types).toContain('drag-start');
@@ -184,7 +177,7 @@ describe('Draggable — the drag', () => {
 
     grab(target, 10, 10);
     move(90, 60);
-    await settled();
+    await waitFor(() => instance.props.x === 80);
 
     expect(instance.props.x).toBe(80);
     expect(instance.props.y).toBe(50);
@@ -197,12 +190,12 @@ describe('Draggable — the drag', () => {
     grab(target, 10, 10);
     move(60, 10);
     release();
-    await settled();
+    await waitFor(() => instance.props.x === 50);
     const afterFirst = instance.props.x;
 
     grab(target, 0, 0);
     move(20, 0);
-    await settled();
+    await waitFor(() => instance.props.x === afterFirst + 20);
 
     expect(instance.props.x).toBe(afterFirst + 20);
     release();
@@ -213,7 +206,9 @@ describe('Draggable — the drag', () => {
 
     grab(target, 10, 10);
     move(110, 10);
-    await settled();
+    // The damped value lands a lane before the DOM write it feeds, so the
+    // written transform is the state worth polling for.
+    await waitFor(() => target.style.transform.includes('translate3d('));
 
     expect(target.style.transform).toContain('translate3d(');
     expect(instance.props.dampedX).toBeGreaterThan(0);
@@ -225,7 +220,7 @@ describe('Draggable — the drag', () => {
 
     grab(target, 10, 10);
     move(110, 110);
-    await settled();
+    await quiet();
 
     expect(target.style.transform).toContain('0px, 0px)');
     release();
@@ -236,7 +231,7 @@ describe('Draggable — the drag', () => {
 
     grab(target, 0, 0);
     move(150, 125);
-    await settled();
+    await waitFor(() => instance.props.progressX > 0);
 
     expect(instance.props.progressX).toBeCloseTo(0.5, 5);
     expect(instance.props.progressY).toBeCloseTo(0.5, 5);
@@ -250,7 +245,7 @@ describe('Draggable — the bounds', () => {
 
     grab(target, 0, 0);
     move(900, 900);
-    await settled();
+    await waitFor(() => instance.props.x === 300);
 
     expect(instance.props.x).toBe(300);
     expect(instance.props.y).toBe(250);
@@ -262,7 +257,7 @@ describe('Draggable — the bounds', () => {
 
     grab(target, 0, 0);
     move(900, 0);
-    await settled();
+    await waitFor(() => instance.props.x === 900);
 
     expect(instance.props.x).toBe(900);
     release();
@@ -274,12 +269,12 @@ describe('Draggable — the bounds', () => {
    */
   it('animates back inside the bounds on drop with `fitBounds`', async () => {
     const { el, target, instance } = await render('data-option-fit-bounds');
-    const events = record(el);
+    const { events } = recordEvents(el, ...DRAG_EVENTS);
 
     grab(target, 0, 0);
     move(900, 0);
     release();
-    await settled(40);
+    await waitFor(() => !instance.$services.ticked.isActive, { timeout: 2000 });
 
     expect(instance.props.x).toBe(300);
     expect(instance.props.dampedX).toBe(300);
@@ -304,7 +299,7 @@ describe('Draggable — the bounds', () => {
     expect(instance.$services.ticked.isActive).toBe(true);
 
     root.remove();
-    await settled();
+    await waitFor(() => !instance.$services.ticked.isActive);
 
     expect(instance.$services.ticked.isActive).toBe(false);
   });

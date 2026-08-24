@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
+import { afterEach, describe, expect, expectTypeOf, it } from 'vitest';
 import {
   Base,
   type BaseConfig,
@@ -11,11 +11,14 @@ import {
   resolveConfig,
 } from './Base.js';
 import { isBaseConstructor } from './component-brand.js';
+import { DIAGNOSTICS } from './diagnostic-contract.js';
 import { createContext, signal, type Signal } from './context.js';
 import { children, component, inject, on, provide, read, write } from './decorators.js';
 import { registerComponent, registerComponents } from './registry.js';
 import { defaultScheduler } from './scheduler.js';
-import { getInstance, resetDom, settle, TodoItem } from './test-utils.js';
+import { getInstance } from './test-utils.js';
+import { TodoItem } from './todo.fixtures.js';
+import { captureDiagnostics, resetDom, settle } from './test/index.js';
 
 const DecoContext = createContext<Signal<number>>('deco-context');
 
@@ -426,11 +429,11 @@ describe('@component', () => {
 
     // Registering under the inherited name collides with the parent, which is
     // the loud first-wins path and not what this spec is about.
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     // @ts-expect-error `name` is missing, as it is in untyped sources.
     @component({ options: { extra: Boolean } })
     class BrandChild extends BrandParent {}
-    warn.mockRestore();
+    log.stop();
 
     expect(BrandChild.config.name).toBe('BrandParent');
     // Consumed by `config.components` entries, `@on(Class, type)` and the lazy
@@ -447,14 +450,14 @@ describe('@component', () => {
     @component({ name: 'BrandFieldParent' })
     class BrandFieldParent extends Base {}
 
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     // @ts-expect-error `name` is missing on both sides, as it is in untyped sources.
     @component({ refs: ['handle'] })
     class BrandFieldChild extends BrandFieldParent {
       // @ts-expect-error `name` is missing.
       static config: BaseConfig = { options: { extra: Boolean } };
     }
-    warn.mockRestore();
+    log.stop();
 
     expect(BrandFieldChild.config.name).toBe('BrandFieldParent');
     expect(BrandFieldChild.config.refs).toEqual(['handle']);
@@ -490,13 +493,12 @@ describe('@component', () => {
    * already applies to a chain, with the decorator last.
    */
   it('merges a static config field on the same class instead of dropping one', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
 
     @component({ name: 'BothSides', refs: ['btn'] })
     class BothSides extends Base {
       static config: BaseConfig = { name: 'BothSides', options: { open: Boolean } };
     }
-    warn.mockRestore();
 
     expect(BothSides.config).toEqual({
       name: 'BothSides',
@@ -510,7 +512,8 @@ describe('@component', () => {
     });
     // Declaring the same name on both sides is not a conflict, and disjoint
     // keys need no precedence rule, so nothing is reported.
-    expect(warn).not.toHaveBeenCalled();
+    expect(log.codes).toEqual([]);
+    log.stop();
   });
 
   /**
@@ -519,7 +522,7 @@ describe('@component', () => {
    * mistake, not a declaration the merge can honour.
    */
   it('keeps the decorator value and reports a key declared differently on both sides', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
 
     @component({
       name: 'ConflictingConfig',
@@ -539,26 +542,25 @@ describe('@component', () => {
       mountStrategy: 'visible',
       options: { open: Boolean, extra: String },
     });
-    expect(warn).toHaveBeenCalledOnce();
-    expect(warn.mock.calls[0][0]).toContain('[js-toolkit:component.config-conflict]');
-    expect(warn.mock.calls[0][0]).toContain('name, mountStrategy, options.open');
-    warn.mockRestore();
+    expect(log.codes).toEqual([DIAGNOSTICS.component.configConflict]);
+    expect(log.entries[0].message).toContain('name, mountStrategy, options.open');
+    log.stop();
   });
 
   /** Refs union, so declaring one on both sides loses nothing to report. */
   it('unions refs declared on both sides', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
 
     @component({ name: 'RefUnion', refs: ['handle'] })
     class RefUnion extends Base {
       static config: BaseConfig = { name: 'RefUnion', refs: ['label', 'handle'] };
     }
-    warn.mockRestore();
 
     // The field's refs come first because the decorator merges onto them; refs
     // are looked up by name, so the order carries nothing.
     expect(RefUnion.config.refs).toEqual(['label', 'handle']);
-    expect(warn).not.toHaveBeenCalled();
+    expect(log.codes).toEqual([]);
+    log.stop();
   });
 
   /**
@@ -598,7 +600,7 @@ describe('@component', () => {
 
   /** Each class merges its own two declarations; the chain merges the rest. */
   it('merges both declarations on a decorated subclass of a decorated class', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
 
     @component({ name: 'MixParent', refs: ['handle'] })
     class MixParent extends Base {
@@ -614,7 +616,6 @@ describe('@component', () => {
     class MixGrandChild extends MixChild {
       static config: BaseConfig = { name: 'MixGrandChild', refs: ['last'] };
     }
-    warn.mockRestore();
 
     expect(MixParent.config).toEqual({
       name: 'MixParent',
@@ -631,7 +632,8 @@ describe('@component', () => {
       refs: ['handle', 'extra', 'last'],
       options: { open: Boolean, size: Number },
     });
-    expect(warn).not.toHaveBeenCalled();
+    expect(log.codes).toEqual([]);
+    log.stop();
   });
 });
 
@@ -807,7 +809,7 @@ describe('@on', () => {
       </div>
     `;
     document.body.append(root);
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     await settle();
 
     const instance = getInstance<NsDots>(root, 'NsDots');
@@ -817,8 +819,8 @@ describe('@on', () => {
     (root.querySelector('h2') as HTMLElement).click();
     expect(instance.titles).toEqual(['H2']);
 
-    expect(warn).not.toHaveBeenCalled();
-    warn.mockRestore();
+    expect(log.codes).toEqual([]);
+    log.stop();
   });
 
   it('warns instead of binding silently when @on drops a list ref suffix', async () => {
@@ -826,17 +828,17 @@ describe('@on', () => {
     root.setAttribute('data-component', 'DotMismatch');
     root.innerHTML = '<i data-ref="dots[]"></i><i data-ref="dots[]"></i>';
     document.body.append(root);
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     await settle();
 
     const instance = getInstance<DotMismatch>(root, 'DotMismatch');
     (root.querySelectorAll('i')[1] as HTMLElement).click();
     expect(instance.clicked).toEqual([]);
 
-    expect(warn).toHaveBeenCalledOnce();
-    expect(warn.mock.calls[0][0]).toContain('DotMismatch');
-    expect(warn.mock.calls[0][0]).toContain("@on('dots[]', …)");
-    warn.mockRestore();
+    expect(log.codes).toEqual([DIAGNOSTICS.ref.mismatch]);
+    expect(log.entries[0].component).toBe('DotMismatch');
+    expect(log.entries[0].message).toContain("@on('dots[]', …)");
+    log.stop();
   });
 
   it('resolves a subclass to the name it mounts under, not to its parent', async () => {

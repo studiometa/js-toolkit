@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { Base, registerComponents, type BaseConfig } from '../../src/index.js';
 import { INSTANCES } from '../../src/protocol-symbols.js';
-import { resetDom, settle } from '../../src/test-utils.js';
+import { recordEvents, resetDom, settle, waitFor } from '../../src/test/index.js';
 import { InView } from './InView.js';
 import { InViewOnce } from './InViewOnce.js';
 
@@ -17,8 +17,13 @@ registerComponents(InView, InViewOnce, InViewSubclass);
 
 afterEach(resetDom);
 
-/** Give the observer a few frames to deliver. */
-async function observed(): Promise<void> {
+/**
+ * A bounded quiet period. Every *positive* wait in this file polls for the
+ * event it expects, but an absence cannot be polled for — so the assertions
+ * that nothing was emitted, and that nothing was instantiated, still need a
+ * span long enough for the observer to have spoken if it were going to.
+ */
+async function quiet(): Promise<void> {
   for (let i = 0; i < 6; i += 1) {
     await settle();
   }
@@ -35,25 +40,14 @@ function render(name: string, style: string, attributes: Record<string, string> 
   return el;
 }
 
-/** Record events on `document` because the component may not exist before entry. */
-function record(): { events: string[]; stop: () => void } {
-  const events: string[] = [];
-  const listener = (event: Event) => events.push(event.type);
-  document.addEventListener('in-view', listener);
-  document.addEventListener('out-of-view', listener);
-  return {
-    events,
-    stop() {
-      document.removeEventListener('in-view', listener);
-      document.removeEventListener('out-of-view', listener);
-    },
-  };
-}
+// Recorded on `document`, because the component may not exist before entry.
+let log: ReturnType<typeof recordEvents>;
 
-let log: ReturnType<typeof record>;
+/** Only the order of the names is asserted here, so the payloads drop out. */
+const types = () => log.events.map(({ type }) => type);
 
 beforeEach(() => {
-  log = record();
+  log = recordEvents(document, 'in-view', 'out-of-view');
 });
 
 afterEach(() => {
@@ -63,42 +57,42 @@ afterEach(() => {
 describe('InView', () => {
   it('emits `in-view` when the element enters the viewport', async () => {
     const el = render('InView', OFFSCREEN);
-    await observed();
-    expect(log.events).toEqual([]);
+    await quiet();
+    expect(types()).toEqual([]);
 
     el.setAttribute('style', ONSCREEN);
-    await observed();
+    await waitFor(() => log.events.length > 0);
 
-    expect(log.events).toEqual(['in-view']);
+    expect(types()).toEqual(['in-view']);
   });
 
   it('emits `out-of-view` when the element leaves the viewport', async () => {
     const el = render('InView', ONSCREEN);
-    await observed();
+    await waitFor(() => log.events.length > 0);
 
     el.setAttribute('style', OFFSCREEN);
-    await observed();
+    await waitFor(() => log.events.length > 1);
 
-    expect(log.events).toEqual(['in-view', 'out-of-view']);
+    expect(types()).toEqual(['in-view', 'out-of-view']);
   });
 
   it('re-emits `in-view` on each re-entry, from the same instance', async () => {
     const el = render('InView', ONSCREEN);
-    await observed();
+    await waitFor(() => log.events.length > 0);
     const instance = el[INSTANCES]?.get('InView');
 
     el.setAttribute('style', OFFSCREEN);
-    await observed();
+    await waitFor(() => log.events.length > 1);
     el.setAttribute('style', ONSCREEN);
-    await observed();
+    await waitFor(() => log.events.length > 2);
 
-    expect(log.events).toEqual(['in-view', 'out-of-view', 'in-view']);
+    expect(types()).toEqual(['in-view', 'out-of-view', 'in-view']);
     expect(el[INSTANCES]?.get('InView')).toBe(instance);
   });
 
   it('does not instantiate the component until it is first seen', async () => {
     const el = render('InView', OFFSCREEN);
-    await observed();
+    await quiet();
 
     expect(el[INSTANCES]?.get('InView')).toBeUndefined();
   });
@@ -107,45 +101,44 @@ describe('InView', () => {
 describe('InViewOnce', () => {
   it('emits `in-view` when the element enters the viewport', async () => {
     const el = render('InViewOnce', OFFSCREEN);
-    await observed();
+    await quiet();
 
     el.setAttribute('style', ONSCREEN);
-    await observed();
+    await waitFor(() => log.events.length > 0);
 
-    expect(log.events).toEqual(['in-view']);
+    expect(types()).toEqual(['in-view']);
   });
 
   it('never emits `out-of-view`, and does not re-emit on a later entry', async () => {
     const el = render('InViewOnce', ONSCREEN);
-    await observed();
+    await waitFor(() => log.events.length > 0);
 
     el.setAttribute('style', OFFSCREEN);
-    await observed();
+    await quiet();
     el.setAttribute('style', ONSCREEN);
-    await observed();
+    await quiet();
 
-    expect(log.events).toEqual(['in-view']);
+    expect(types()).toEqual(['in-view']);
   });
 
   it('stays mounted after leaving the viewport, where v3 terminated', async () => {
     const el = render('InViewOnce', ONSCREEN);
-    await observed();
-    const instance = el[INSTANCES]?.get('InViewOnce');
+    const instance = await waitFor(() => el[INSTANCES]?.get('InViewOnce'));
 
     el.setAttribute('style', OFFSCREEN);
-    await observed();
+    await quiet();
 
     expect(instance?.$isMounted).toBe(true);
   });
 
   it('still emits `out-of-view` never, when the element is removed from the DOM', async () => {
     const el = render('InViewOnce', ONSCREEN);
-    await observed();
+    await waitFor(() => log.events.length > 0);
 
     el.remove();
-    await observed();
+    await quiet();
 
-    expect(log.events).toEqual(['in-view']);
+    expect(types()).toEqual(['in-view']);
   });
 });
 
@@ -153,20 +146,20 @@ describe('mount strategy gaps found by the port', () => {
   /** The root margin is part of the strategy string used before instantiation. */
   it('accepts a rootMargin in the per-element strategy', async () => {
     const el = render('InView', OFFSCREEN, { 'data-mount': 'in-view:400px' });
-    await observed();
-    expect(log.events).toEqual([]);
+    await quiet();
+    expect(types()).toEqual([]);
 
     el.setAttribute('style', ONSCREEN);
-    await observed();
+    await waitFor(() => log.events.length > 0);
 
-    expect(log.events).toEqual(['in-view']);
+    expect(types()).toEqual(['in-view']);
     expect(el[INSTANCES]?.get('InView')?.$isMounted).toBe(true);
   });
 
   /** Subclasses must inherit the resolved mount strategy. */
   it('inherits the mount strategy in a subclass that declares its own config', async () => {
     const el = render('InViewSubclass', OFFSCREEN);
-    await observed();
+    await quiet();
 
     expect(el[INSTANCES]?.get('InViewSubclass')).toBeUndefined();
   });
@@ -184,19 +177,19 @@ describe('the strategy is per element, which the decorator never was', () => {
 
   it('lets `data-mount` override the class default on one element', async () => {
     const el = render('InView', OFFSCREEN, { 'data-mount': 'eager' });
-    await observed();
+    await waitFor(() => el[INSTANCES]?.get('InView')?.$isMounted);
 
     expect(el[INSTANCES]?.get('InView')?.$isMounted).toBe(true);
-    expect(log.events).toEqual(['in-view']);
+    expect(types()).toEqual(['in-view']);
   });
 
   it('lets `data-mount="in-view"` give the strategy to a component that never asked', async () => {
     const el = render('InViewEagerProbe', OFFSCREEN, { 'data-mount': 'in-view' });
-    await observed();
+    await quiet();
     expect(el[INSTANCES]?.get('InViewEagerProbe')).toBeUndefined();
 
     el.setAttribute('style', ONSCREEN);
-    await observed();
+    await waitFor(() => el[INSTANCES]?.get('InViewEagerProbe'));
     expect((el[INSTANCES]?.get('InViewEagerProbe') as Eager | undefined)?.mounts).toBe(1);
   });
 });

@@ -10,12 +10,14 @@
  * v3 behaviours v4 deliberately dropped: the auto-rename on collision and the
  * deep merge of the config.
  */
-import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
+import { afterEach, describe, expect, expectTypeOf, it } from 'vitest';
 import { Base, type BaseConfig, type BaseProps } from './Base.js';
 import { component } from './decorators.js';
 import { DIAGNOSTICS } from './diagnostic-contract.js';
 import { registerComponent } from './registry.js';
-import { getInstance, resetDom, settle, TodoItem } from './test-utils.js';
+import { getInstance } from './test-utils.js';
+import { TodoItem } from './todo.fixtures.js';
+import { captureDiagnostics, resetDom, settle } from './test/index.js';
 
 afterEach(resetDom);
 
@@ -177,16 +179,20 @@ describe('what v3 did and v4 does not', () => {
     }
 
     registerComponent(Widget);
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     registerComponent(UnnamedWidget);
     const el = render('Widget');
     await settle();
 
-    expect(warn).toHaveBeenCalledWith(
-      `[js-toolkit:${DIAGNOSTICS.registry.conflict}] "Widget" is already registered; the incoming declaration was ignored.`,
-    );
+    expect(log.entries).toMatchObject([
+      {
+        severity: 'warning',
+        code: DIAGNOSTICS.registry.conflict,
+        message: '"Widget" is already registered; the incoming declaration was ignored.',
+      },
+    ]);
     expect(getInstance(el, 'Widget')).not.toBeInstanceOf(UnnamedWidget);
-    warn.mockRestore();
+    log.stop();
   });
 
   it('does not deep merge an option definition it restates', () => {

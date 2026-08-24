@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { userEvent } from '@vitest/browser/context';
-import { countRequestedFrames, frames } from '../test-utils.js';
+import { countRequestedFrames } from '../test-utils.js';
+import { frames } from '../test/index.js';
 import { DRAG_MODES, useDrag, type DragMode, type DragProps } from './drag.js';
 
 function render(): HTMLElement {

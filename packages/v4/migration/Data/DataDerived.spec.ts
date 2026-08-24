@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { registerComponents } from '../../src/index.js';
-import { getInstance, resetDom, settle } from '../../src/test-utils.js';
+import { getInstance } from '../../src/test-utils.js';
+import { mount, resetDom } from '../../src/test/index.js';
 import { DataBind } from './DataBind.js';
 import { DataComputed } from './DataComputed.js';
 import { DataEffect } from './DataEffect.js';
@@ -11,18 +12,18 @@ registerComponents(DataScope, DataBind, DataModel, DataComputed, DataEffect);
 
 afterEach(resetDom);
 
+/**
+ * Isolate tests from one another. The registry that survives `resetDom()` here
+ * is the page-wide `DataRegistry` — the one `resolveDataRegistry()` provides on
+ * the root context — and its group records keep their values and their latest
+ * payload after the elements are gone. `resetRegistry()` clears the *component*
+ * registry and does not touch it, so a unique group name per test is what keeps
+ * these apart.
+ */
 let counter = 0;
 function uniqueGroup(name: string): string {
   counter += 1;
   return `${name}-${counter}`;
-}
-
-async function render(html: string): Promise<HTMLElement> {
-  const root = document.createElement('div');
-  root.innerHTML = html;
-  document.body.append(root);
-  await settle();
-  return root;
 }
 
 function el<T extends HTMLElement = HTMLElement>(root: HTMLElement, selector: string): T {
@@ -36,7 +37,7 @@ function at<T>(root: HTMLElement, selector: string, name: string): T {
 describe('DataModel', () => {
   it('publishes what the user types to every peer', async () => {
     const group = uniqueGroup('model');
-    const root = await render(`
+    const root = await mount(`
       <input id="a" value="foo" data-component="DataModel" data-option-group="${group}">
       <input id="b" value="foo" data-component="DataModel" data-option-group="${group}">
     `);
@@ -54,7 +55,7 @@ describe('DataModel', () => {
 
   it('keeps grouped checkboxes in sync by value, not by element', async () => {
     const group = `${uniqueGroup('check')}[]`;
-    const root = await render(`
+    const root = await mount(`
       <input id="a1" type="checkbox" value="a" data-component="DataModel" data-option-group="${group}">
       <input id="a2" type="checkbox" value="a" data-component="DataModel" data-option-group="${group}">
       <input id="b1" type="checkbox" value="b" data-component="DataModel" data-option-group="${group}">
@@ -84,7 +85,7 @@ describe('DataModel', () => {
 
 describe('DataComputed', () => {
   it('sets the value returned by the compute expression', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="c" data-component="DataComputed" data-option-group="${uniqueGroup('c')}"
            data-option-compute="value.length"></div>
     `);
@@ -95,7 +96,7 @@ describe('DataComputed', () => {
 
   it('fails quietly and keeps the incoming value when the expression throws', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const root = await render(`
+    const root = await mount(`
       <div id="c" data-component="DataComputed" data-option-group="${uniqueGroup('c')}"
            data-option-compute="valuee.length"></div>
     `);
@@ -110,7 +111,7 @@ describe('DataComputed', () => {
 
 describe('DataEffect', () => {
   it('runs the expression and writes nothing back', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="e" data-component="DataEffect" data-option-group="${uniqueGroup('e')}"
            data-option-effect="target.setAttribute('title', value)"></div>
     `);
@@ -122,7 +123,7 @@ describe('DataEffect', () => {
 
   it('fails quietly when the expression throws', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const root = await render(`
+    const root = await mount(`
       <div id="e" data-component="DataEffect" data-option-group="${uniqueGroup('e')}"
            data-option-effect="targett.setAttribute('id', value)"></div>
     `);

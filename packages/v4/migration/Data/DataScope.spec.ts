@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { registerComponents } from '../../src/index.js';
-import { getInstance, resetDom, settle } from '../../src/test-utils.js';
+import { getInstance } from '../../src/test-utils.js';
+import { mount, resetDom, settle } from '../../src/test/index.js';
 import { DataBind } from './DataBind.js';
 import { DataComputed } from './DataComputed.js';
 import { DataEffect } from './DataEffect.js';
@@ -12,19 +13,18 @@ registerComponents(DataScope, DataBind, DataModel, DataComputed, DataEffect);
 
 afterEach(resetDom);
 
-/** Isolate tests because the page-wide registry survives `resetDom()`. */
+/**
+ * Isolate tests from one another. The registry that survives `resetDom()` here
+ * is the page-wide `DataRegistry` — the one `resolveDataRegistry()` provides on
+ * the root context — and its group records keep their values and their latest
+ * payload after the elements are gone. `resetRegistry()` clears the *component*
+ * registry and does not touch it, so a unique group name per test is what keeps
+ * these apart.
+ */
 let counter = 0;
 function uniqueGroup(name: string): string {
   counter += 1;
   return `${name}-${counter}`;
-}
-
-async function render(html: string): Promise<HTMLElement> {
-  const root = document.createElement('div');
-  root.innerHTML = html;
-  document.body.append(root);
-  await settle();
-  return root;
 }
 
 function at<T>(root: HTMLElement, selector: string, name: string): T {
@@ -38,7 +38,7 @@ function el<T extends HTMLElement = HTMLElement>(root: HTMLElement, selector: st
 describe('DataScope', () => {
   it('gives descendants its group and lets one override it', async () => {
     const group = uniqueGroup('scoped');
-    const root = await render(`
+    const root = await mount(`
       <div data-component="DataScope" data-option-group="${group}">
         <div id="a" data-component="DataBind"></div>
         <div id="b" data-component="DataBind"></div>
@@ -60,7 +60,7 @@ describe('DataScope', () => {
 
   it('isolates sibling scopes and resolves the nearest nested one', async () => {
     const group = uniqueGroup('shared');
-    const root = await render(`
+    const root = await mount(`
       <div id="outer" data-component="DataScope" data-option-group="${group}">
         <div id="outer-bind" data-component="DataBind"></div>
         <div id="nested" data-component="DataScope" data-option-group="${group}">
@@ -88,7 +88,7 @@ describe('DataScope', () => {
 
   it('keeps keyed values independent and synchronizes equal keys', async () => {
     const group = uniqueGroup('person');
-    const root = await render(`
+    const root = await mount(`
       <div data-component="DataScope" data-option-group="${group}">
         <input id="first" data-component="DataModel" name="first" value="Ada">
         <input id="last" data-component="DataModel" name="last" value="Lovelace">
@@ -113,9 +113,7 @@ describe('DataScope', () => {
 
   it('clones and freezes mutable snapshot values', async () => {
     const group = uniqueGroup('values');
-    const root = await render(
-      `<div data-component="DataScope" data-option-group="${group}"></div>`,
-    );
+    const root = await mount(`<div data-component="DataScope" data-option-group="${group}"></div>`);
     const scope = at<DataScope>(root, '[data-component="DataScope"]', 'DataScope');
 
     const items = ['one'];
@@ -144,7 +142,7 @@ describe('DataScope', () => {
 
   it('hydrates every immediate source before notifying subscribers', async () => {
     const group = uniqueGroup('person');
-    const root = await render(`
+    const root = await mount(`
       <div data-component="DataScope" data-option-group="${group}">
         <input data-component="DataModel" name="first" value="Ada" data-option-immediate>
         <input data-component="DataModel" name="last" value="Lovelace" data-option-immediate>
@@ -170,7 +168,7 @@ describe('DataScope', () => {
 
   it('notifies once when several immediate sources share a key', async () => {
     const group = uniqueGroup('person');
-    const root = await render(`
+    const root = await mount(`
       <div data-component="DataScope" data-option-group="${group}">
         <input data-component="DataModel" name="first" value="Ada" data-option-immediate>
         <input data-component="DataModel" name="first" value="Ada" data-option-immediate>
@@ -188,7 +186,7 @@ describe('DataScope', () => {
 
   it('drops a keyed value when its last source leaves the document', async () => {
     const group = uniqueGroup('person');
-    const root = await render(`
+    const root = await mount(`
       <div data-component="DataScope" data-option-group="${group}">
         <input id="input" data-component="DataModel" name="first" value="Ada" data-option-immediate>
         <div id="computed" data-component="DataComputed"
@@ -210,7 +208,7 @@ describe('DataScope', () => {
 
   it('recomputes a [] group when one of its checkbox sources is removed', async () => {
     const group = uniqueGroup('choices');
-    const root = await render(`
+    const root = await mount(`
       <div data-component="DataScope" data-option-group="${group}[]">
         <input id="one" data-component="DataModel" type="checkbox" name="items" value="first" checked data-option-immediate>
         <input id="two" data-component="DataModel" type="checkbox" name="items" value="second" checked data-option-immediate>
@@ -231,7 +229,7 @@ describe('DataScope', () => {
 
   it('hydrates and tracks only the checked radio', async () => {
     const group = uniqueGroup('tabs');
-    const root = await render(`
+    const root = await mount(`
       <div data-component="DataScope" data-option-group="${group}">
         <input id="overview" data-component="DataModel" type="radio" name="tab" value="overview" checked data-option-immediate>
         <input id="details" data-component="DataModel" type="radio" name="tab" value="details" data-option-immediate>
@@ -249,7 +247,7 @@ describe('DataScope', () => {
 
   it('notifies subscribers again when the same value is written twice', async () => {
     const group = uniqueGroup('person');
-    const root = await render(`
+    const root = await mount(`
       <div data-component="DataScope" data-option-group="${group}">
         <input id="input" data-component="DataModel" name="first">
         <div id="out" data-component="DataBind" data-option-key="first"></div>
@@ -276,7 +274,7 @@ describe('DataScope', () => {
 
   it('recomputes unkeyed subscribers on every keyed update', async () => {
     const group = uniqueGroup('values');
-    const root = await render(`
+    const root = await mount(`
       <div data-component="DataScope" data-option-group="${group}">
         <input id="first" data-component="DataModel" name="first" value="A" data-option-immediate>
         <input data-component="DataModel" name="last" value="B" data-option-immediate>
@@ -296,7 +294,7 @@ describe('DataScope', () => {
 
   it('rebinds descendants when a scope is wrapped around existing content', async () => {
     const group = uniqueGroup('wrapped');
-    const root = await render(`
+    const root = await mount(`
       <div id="bind" data-component="DataBind" data-option-key="first"></div>
     `);
     const bind = at<DataBind>(root, '#bind', 'DataBind');
@@ -318,7 +316,7 @@ describe('DataScope', () => {
 
   it('reclaims descendants when the scope mounts around content that already resolved', async () => {
     const group = uniqueGroup('late');
-    const root = await render(`
+    const root = await mount(`
       <div id="scope" data-option-group="${group}">
         <div id="bind" data-component="DataBind" data-option-key="first"></div>
       </div>
@@ -341,7 +339,7 @@ describe('DataScope', () => {
   it('leaves nested members with their nearest scope when an outer one arrives late', async () => {
     const outerGroup = uniqueGroup('outer');
     const innerGroup = uniqueGroup('inner');
-    const root = await render(`
+    const root = await mount(`
       <div id="outer" data-option-group="${outerGroup}">
         <div id="inner" data-component="DataScope" data-option-group="${innerGroup}">
           <div id="bind" data-component="DataBind"></div>

@@ -13,15 +13,9 @@ import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract
 import { EVENTS } from './events.js';
 import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent } from './registry.js';
-import {
-  getInstance,
-  renderTodoList,
-  resetDom,
-  settle,
-  TodoCount,
-  TodoItem,
-  TodoList,
-} from './test-utils.js';
+import { getInstance } from './test-utils.js';
+import { renderTodoList, TodoCount, TodoItem, TodoList } from './todo.fixtures.js';
+import { captureDiagnostics, resetDom, settle } from './test/index.js';
 
 afterEach(resetDom);
 
@@ -113,7 +107,7 @@ describe('$emit and delegation', () => {
 
     const li = root.querySelector('[data-component="TodoItem"]');
     const instance = getInstance(li, 'TodoItem');
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     const seen: unknown[] = [];
     root.addEventListener('ping', (event) => seen.push((event as CustomEvent).detail));
 
@@ -121,10 +115,13 @@ describe('$emit and delegation', () => {
     (instance.$emit as (type: string, payload?: unknown) => void)('ping', 2);
     (instance.$emit as (type: string, payload?: unknown) => void)('pong', 3);
 
-    expect(warn).toHaveBeenCalledTimes(2);
-    expect(warn.mock.calls[0][0]).toContain('one payload object');
+    expect(log.codes).toEqual([
+      DIAGNOSTICS.event.invalidEmitPayload,
+      DIAGNOSTICS.event.invalidEmitPayload,
+    ]);
+    expect(log.entries[0].message).toContain('one payload object');
     expect(seen).toEqual([1, 2]);
-    warn.mockRestore();
+    log.stop();
   });
 });
 
@@ -335,7 +332,7 @@ describe('$options', () => {
   });
 
   it('warns about a literal default instead of repairing it', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
 
     class LiteralDefault extends Base<{ $options: { tween: Record<string, unknown> } }> {
       static config = {
@@ -347,13 +344,13 @@ describe('$options', () => {
     const first = new LiteralDefault(document.createElement('div'));
     const second = new LiteralDefault(document.createElement('div'));
 
-    expect(warn).toHaveBeenCalledOnce();
-    expect(warn.mock.calls[0][0]).toContain('LiteralDefault');
-    expect(warn.mock.calls[0][0]).toContain('tween');
-    expect(warn.mock.calls[0][0]).toContain('default: () => (…)');
+    expect(log.codes).toEqual([DIAGNOSTICS.option.literalDefault]);
+    expect(log.entries[0].component).toBe('LiteralDefault');
+    expect(log.entries[0].message).toContain('tween');
+    expect(log.entries[0].message).toContain('default: () => (…)');
 
     expect(first.$options.tween).toBe(second.$options.tween);
-    warn.mockRestore();
+    log.stop();
   });
 
   it('memoises the default, so a mutation of it persists on that instance', () => {
@@ -627,23 +624,23 @@ describe('$refs', () => {
     const el = document.createElement('div');
     el.innerHTML = '<i data-ref="dots"></i><i data-ref="dots"></i>';
     document.body.append(el);
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     const instance = new Dropped(el).$mount();
 
     expect(instance.$refs.dots).toEqual([]);
-    expect(warn).toHaveBeenCalledOnce();
-    expect(warn.mock.calls[0][0]).toContain('data-ref="dots[]"');
-    expect(warn.mock.calls[0][0]).toContain('Dropped');
+    expect(log.codes).toEqual([DIAGNOSTICS.ref.mismatch]);
+    expect(log.entries[0].message).toContain('data-ref="dots[]"');
+    expect(log.entries[0].component).toBe('Dropped');
 
     void instance.$refs.dots;
     void instance.$refs.dots;
     instance.$unmount().$mount();
     void instance.$refs.dots;
-    expect(warn).toHaveBeenCalledOnce();
+    expect(log.codes).toHaveLength(1);
 
     expect(instance.$refs.title).toEqual([]);
-    expect(warn).toHaveBeenCalledOnce();
-    warn.mockRestore();
+    expect(log.codes).toHaveLength(1);
+    log.stop();
   });
 
   it('resolves a namespaced ref across an intervening component', () => {
@@ -1772,6 +1769,11 @@ describe('$warn and $error', () => {
     return new Reporter(el).$mount();
   }
 
+  /**
+   * `captureDiagnostics()` covers every other test here. This one asserts the
+   * element the event *started on*, which the shipped helper does not expose,
+   * so it keeps its own listener.
+   */
   function record(): {
     details: ToolkitDiagnosticDetail[];
     targets: EventTarget[];
@@ -1830,14 +1832,12 @@ describe('$warn and $error', () => {
 
   it('carries the original value on $error, which a reporter needs', () => {
     const instance = mount();
-    const log = record();
-    const cancel = (event: Event) => event.preventDefault();
-    document.addEventListener('js-toolkit:diagnostic', cancel);
+    const log = captureDiagnostics();
     const cause = new Error('the cause');
 
     instance.$error('reporter.load-failed', 'Loading failed.', cause);
 
-    expect(log.details).toEqual([
+    expect(log.entries).toEqual([
       {
         severity: 'error',
         code: 'reporter.load-failed',
@@ -1847,20 +1847,17 @@ describe('$warn and $error', () => {
       },
     ]);
 
-    document.removeEventListener('js-toolkit:diagnostic', cancel);
     log.stop();
   });
 
   it('accepts a code from the enumerated core set too', () => {
     const instance = mount();
-    const log = record();
-    const sink = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
 
     instance.$warn(DIAGNOSTICS.ref.mismatch, 'A declared ref is missing.');
 
-    expect(log.details[0].code).toBe('ref.mismatch');
+    expect(log.codes).toEqual(['ref.mismatch']);
 
-    sink.mockRestore();
     log.stop();
   });
 });

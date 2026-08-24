@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { settle } from '../test-utils.js';
+import { settle } from '../test/index.js';
 import { BREAKPOINTS, getBreakpoints, setBreakpoints, useBreakpoint } from './breakpoint.js';
 
 afterEach(() => {

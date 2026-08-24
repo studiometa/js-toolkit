@@ -1,9 +1,11 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { Base, type OptionChange } from './Base.js';
+import { DIAGNOSTICS } from './diagnostic-contract.js';
 import { EVENTS } from './events.js';
 import { registerComponent, registerManifest } from './registry.js';
 import { BREAKPOINTS, setBreakpoints } from './services/breakpoint.js';
-import { getInstance, resetDom, settle } from './test-utils.js';
+import { getInstance } from './test-utils.js';
+import { captureDiagnostics, resetDom, settle } from './test/index.js';
 
 /** Select test breakpoints without changing the viewport. */
 function atSmall(): void {
@@ -449,7 +451,7 @@ describe('responsive options', () => {
   });
 
   it('reports a suffix that names no breakpoint, which is what v3 markup is', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     atSmall();
     render(
       // A combined suffix is one unknown breakpoint name.
@@ -457,10 +459,9 @@ describe('responsive options', () => {
     );
     await settle();
 
-    expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining('`data-option-label:small:large` names no breakpoint'),
-    );
-    warn.mockRestore();
+    expect(log.codes).toEqual([DIAGNOSTICS.responsive.unknownBreakpoint]);
+    expect(log.entries[0].message).toContain('`data-option-label:small:large` names no breakpoint');
+    log.stop();
   });
 });
 

@@ -4,7 +4,8 @@ import { createContext, type Signal } from './context.js';
 import { subscribeContext } from './context-subscription.js';
 import { createGroup, type Group } from './group.js';
 import { registerComponents } from './registry.js';
-import { getInstance, resetDom, settle } from './test-utils.js';
+import { getInstance } from './test-utils.js';
+import { mount, resetDom, settle } from './test/index.js';
 
 afterEach(resetDom);
 
@@ -209,14 +210,6 @@ function disclosureMarkup(id: string, open = false): string {
   `;
 }
 
-async function render(html: string): Promise<HTMLElement> {
-  const root = document.createElement('div');
-  root.innerHTML = html;
-  document.body.append(root);
-  await settle();
-  return root;
-}
-
 function disclosure(root: ParentNode, id: string): Disclosure {
   return getInstance<Disclosure>(root.querySelector(`#${id}`), 'Disclosure');
 }
@@ -227,7 +220,7 @@ function group(root: ParentNode, id: string): DisclosureGroup {
 
 describe('a group of disclosures', () => {
   it('collects its members in document order', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="grp" data-component="DisclosureGroup">
         ${disclosureMarkup('a')}
         ${disclosureMarkup('b')}
@@ -239,7 +232,7 @@ describe('a group of disclosures', () => {
   });
 
   it('keeps one open at a time', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="grp" data-component="DisclosureGroup">
         ${disclosureMarkup('a')}
         ${disclosureMarkup('b')}
@@ -255,7 +248,7 @@ describe('a group of disclosures', () => {
   });
 
   it('works with no group above it', async () => {
-    const root = await render(disclosureMarkup('lonely'));
+    const root = await mount(disclosureMarkup('lonely'));
     const lonely = disclosure(root, 'lonely');
 
     expect(lonely.group).toBeUndefined();
@@ -264,7 +257,7 @@ describe('a group of disclosures', () => {
   });
 
   it('lets an open peer that mounts later lose to the one before it in the DOM', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="grp" data-component="DisclosureGroup">
         ${disclosureMarkup('a', true)}
       </div>
@@ -282,7 +275,7 @@ describe('a group of disclosures', () => {
   });
 
   it('lets an open peer that mounts later win when it precedes the others', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="grp" data-component="DisclosureGroup">
         ${disclosureMarkup('b', true)}
       </div>
@@ -300,7 +293,7 @@ describe('a group of disclosures', () => {
   });
 
   it('joins a group that mounts after its members', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="grp">
         ${disclosureMarkup('a')}
         ${disclosureMarkup('b')}
@@ -317,7 +310,7 @@ describe('a group of disclosures', () => {
   });
 
   it('gives a nested group its own members', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="outer" data-component="DisclosureGroup">
         ${disclosureMarkup('o', true)}
         <div id="inner" data-component="DisclosureGroup">
@@ -339,7 +332,7 @@ describe('a group of disclosures', () => {
   });
 
   it('hands a member over to a nearer group inserted later', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="outer" data-component="DisclosureGroup">
         ${disclosureMarkup('a')}
         ${disclosureMarkup('b')}
@@ -364,7 +357,7 @@ describe('a group of disclosures', () => {
   });
 
   it('drops a member whose element leaves the DOM', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="grp" data-component="DisclosureGroup">
         ${disclosureMarkup('a')}
         ${disclosureMarkup('b')}

@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { registerComponents } from '../../src/index.js';
-import { getInstance, resetDom, settle } from '../../src/test-utils.js';
+import { getInstance } from '../../src/test-utils.js';
+import { mount, recordEvents, resetDom, settle } from '../../src/test/index.js';
 import { Fetch, FETCH_EVENTS, type FetchEmits } from './Fetch.js';
 import { FetchShopifySection } from './FetchShopifySection.js';
 
@@ -34,20 +35,12 @@ afterEach(async () => {
   await resetDom();
 });
 
-async function render(html: string): Promise<HTMLElement> {
-  const root = document.createElement('div');
-  root.innerHTML = html;
-  document.body.append(root);
-  await settle();
-  return root;
-}
-
 /** Mount one `Fetch` (or subclass) from markup and hand back the instance. */
 async function mountFetch<T extends Fetch = Fetch>(
   html: string,
   name = 'Fetch',
 ): Promise<{ root: HTMLElement; instance: T }> {
-  const root = await render(html);
+  const root = await mount(html);
   const el = root.firstElementChild as HTMLElement;
   return { root, instance: getInstance<T>(el, name) };
 }
@@ -67,15 +60,6 @@ function stubClient(
 }
 
 /** Collect every `Fetch` event dispatched under `root`, in order. */
-function recordEvents(root: EventTarget): Array<{ type: string; detail: unknown }> {
-  const events: Array<{ type: string; detail: unknown }> = [];
-  for (const type of Object.values(FETCH_EVENTS)) {
-    root.addEventListener(type, (event) => {
-      events.push({ type, detail: (event as CustomEvent).detail });
-    });
-  }
-  return events;
-}
 
 /** Take over `document.startViewTransition` and count the calls. */
 function stubViewTransition(): { spy: ReturnType<typeof vi.fn>; restore: () => void } {
@@ -381,7 +365,7 @@ describe('Fetch — the request', () => {
     const { root, instance } = await mountFetch(
       `<a data-component="Fetch" href="#a" data-option-no-view-transition></a>`,
     );
-    const events = recordEvents(root);
+    const { events } = recordEvents(root, ...Object.values(FETCH_EVENTS));
 
     await instance.fetch();
     await settle();
@@ -436,7 +420,7 @@ describe('Fetch — the request', () => {
         }),
     );
     const { root, instance } = await mountFetch(`<a data-component="Fetch" href="#a"></a>`);
-    const events = recordEvents(root);
+    const { events } = recordEvents(root, ...Object.values(FETCH_EVENTS));
 
     void instance.fetch();
     await settle();
@@ -450,7 +434,7 @@ describe('Fetch — the request', () => {
   it('emits `fetch-abort` when `abort()` is called', async () => {
     stubClient(async () => new Promise<Response>(() => {}));
     const { root, instance } = await mountFetch(`<a data-component="Fetch" href="#a"></a>`);
-    const events = recordEvents(root);
+    const { events } = recordEvents(root, ...Object.values(FETCH_EVENTS));
 
     void instance.fetch();
     instance.abort('because');
@@ -462,7 +446,7 @@ describe('Fetch — the request', () => {
 
   it('evaluates the `response` option to extract the content', async () => {
     stubClient(async () => new Response(JSON.stringify({ html: '<div id="target">json</div>' })));
-    await render(`<div id="target">old</div>`);
+    await mount(`<div id="target">old</div>`);
     const { instance } = await mountFetch(
       `<a data-component="Fetch" href="#a" data-option-no-view-transition
         data-option-response="response.json().then((data) => data.html)"></a>`,
@@ -477,7 +461,7 @@ describe('Fetch — the request', () => {
   it('emits `fetch-error` when the response is not ok', async () => {
     stubClient(async () => new Response('nope', { status: 500 }));
     const { root, instance } = await mountFetch(`<a data-component="Fetch" href="#a"></a>`);
-    const events = recordEvents(root);
+    const { events } = recordEvents(root, ...Object.values(FETCH_EVENTS));
 
     await instance.fetch();
 
@@ -490,7 +474,7 @@ describe('Fetch — the request', () => {
       throw new Error('network down');
     });
     const { root, instance } = await mountFetch(`<a data-component="Fetch" href="#a"></a>`);
-    const events = recordEvents(root);
+    const { events } = recordEvents(root, ...Object.values(FETCH_EVENTS));
 
     await instance.fetch();
 
@@ -501,7 +485,7 @@ describe('Fetch — the request', () => {
 
 describe('Fetch — the DOM update', () => {
   it('replaces the matching element and leaves the rest alone', async () => {
-    await render(`<div id="target">old</div><div id="untouched">keep</div>`);
+    await mount(`<div id="target">old</div><div id="untouched">keep</div>`);
     const { instance } = await mountFetch(`<a data-component="Fetch" href="#a"></a>`);
 
     await instance.update(
@@ -516,7 +500,7 @@ describe('Fetch — the DOM update', () => {
   });
 
   it('honours the `selector` option', async () => {
-    await render(`<div id="target">old</div><section id="section">old</section>`);
+    await mount(`<div id="target">old</div><section id="section">old</section>`);
     const { instance } = await mountFetch(
       `<a data-component="Fetch" href="#a" data-option-selector="section[id]"></a>`,
     );
@@ -532,7 +516,7 @@ describe('Fetch — the DOM update', () => {
   });
 
   it('appends in `append` mode', async () => {
-    await render(`<div id="target">old</div>`);
+    await mount(`<div id="target">old</div>`);
     const { instance } = await mountFetch(
       `<a data-component="Fetch" href="#a" data-option-mode="append"></a>`,
     );
@@ -543,7 +527,7 @@ describe('Fetch — the DOM update', () => {
   });
 
   it('prepends in `prepend` mode', async () => {
-    await render(`<div id="target">old</div>`);
+    await mount(`<div id="target">old</div>`);
     const { instance } = await mountFetch(
       `<a data-component="Fetch" href="#a" data-option-mode="prepend"></a>`,
     );
@@ -558,7 +542,7 @@ describe('Fetch — the DOM update', () => {
    * with `childrenOnly`, which is why this port keeps its own update path.
    */
   it('keeps the node and updates its attributes in `morph` mode', async () => {
-    await render(`<div id="target" class="old">old</div>`);
+    await mount(`<div id="target" class="old">old</div>`);
     const before = document.getElementById('target');
     const { instance } = await mountFetch(
       `<a data-component="Fetch" href="#a" data-option-mode="morph"></a>`,
@@ -576,7 +560,7 @@ describe('Fetch — the DOM update', () => {
   });
 
   it('replaces the element itself in `replace` mode, attributes included', async () => {
-    await render(`<div id="target" class="old">old</div>`);
+    await mount(`<div id="target" class="old">old</div>`);
     const before = document.getElementById('target');
     const { instance } = await mountFetch(`<a data-component="Fetch" href="#a"></a>`);
 
@@ -592,7 +576,7 @@ describe('Fetch — the DOM update', () => {
 
   it('runs an injected script exactly once and leaves the surviving ones alone', async () => {
     window.__fetchScriptRuns = 0;
-    await render(
+    await mount(
       `<div id="target"><script id="kept">window.__fetchScriptRuns = (window.__fetchScriptRuns ?? 0) + 1;</script></div>`,
     );
     const runsAfterInitialParse = window.__fetchScriptRuns;
@@ -611,7 +595,7 @@ describe('Fetch — the DOM update', () => {
   });
 
   it('pushes history and adopts the response title when `history` is enabled', async () => {
-    await render(`<div id="target">old</div>`);
+    await mount(`<div id="target">old</div>`);
     const { instance } = await mountFetch(
       `<a data-component="Fetch" href="#a" data-option-history></a>`,
     );
@@ -629,7 +613,7 @@ describe('Fetch — the DOM update', () => {
   });
 
   it('does not push history for an update triggered by popstate', async () => {
-    await render(`<div id="target">old</div>`);
+    await mount(`<div id="target">old</div>`);
     const { instance } = await mountFetch(
       `<a data-component="Fetch" href="#a" data-option-history></a>`,
     );
@@ -645,7 +629,7 @@ describe('Fetch — the DOM update', () => {
   });
 
   it('mounts a component that arrives in the fetched content, with no `$update()`', async () => {
-    await render(`<div id="target"></div>`);
+    await mount(`<div id="target"></div>`);
     const { instance } = await mountFetch(`<a data-component="Fetch" href="#a"></a>`);
 
     await instance.update(
@@ -663,7 +647,7 @@ describe('Fetch — the DOM update', () => {
 describe('Fetch — the dom-update negotiation', () => {
   it('runs the update inside a view transition by default', async () => {
     const { spy, restore } = stubViewTransition();
-    await render(`<div id="target">old</div>`);
+    await mount(`<div id="target">old</div>`);
     const { instance } = await mountFetch(`<a data-component="Fetch" href="#a"></a>`);
 
     await instance.update(new URL('https://example.com'), {}, '<div id="target">new</div>');
@@ -675,7 +659,7 @@ describe('Fetch — the dom-update negotiation', () => {
 
   it('skips the view transition when the option is off', async () => {
     const { spy, restore } = stubViewTransition();
-    await render(`<div id="target">old</div>`);
+    await mount(`<div id="target">old</div>`);
     const { instance } = await mountFetch(
       `<a data-component="Fetch" href="#a" data-option-no-view-transition></a>`,
     );
@@ -689,7 +673,7 @@ describe('Fetch — the dom-update negotiation', () => {
 
   it('batches two simultaneous updates into one view transition', async () => {
     const { spy, restore } = stubViewTransition();
-    await render(`<div id="one">old</div><div id="two">old</div>`);
+    await mount(`<div id="one">old</div><div id="two">old</div>`);
     const { instance: a } = await mountFetch(`<a data-component="Fetch" href="#a"></a>`);
     const { instance: b } = await mountFetch(`<a data-component="Fetch" href="#b"></a>`);
 
@@ -710,7 +694,7 @@ describe('Fetch — the dom-update negotiation', () => {
    */
   it('lets an ancestor `wrap()` runner replace the default view transition', async () => {
     const { spy, restore } = stubViewTransition();
-    await render(`<div id="target">old</div>`);
+    await mount(`<div id="target">old</div>`);
     const { root, instance } = await mountFetch(`<a data-component="Fetch" href="#a"></a>`);
     const order: string[] = [];
     root.addEventListener('js-toolkit:dom:update', (event) => {
@@ -731,7 +715,7 @@ describe('Fetch — the dom-update negotiation', () => {
   });
 
   it('accepts a transitioner object exposing `update()`', async () => {
-    await render(`<div id="target">old</div>`);
+    await mount(`<div id="target">old</div>`);
     const { root, instance } = await mountFetch(
       `<a data-component="Fetch" href="#a" data-option-no-view-transition></a>`,
     );
@@ -747,7 +731,7 @@ describe('Fetch — the dom-update negotiation', () => {
   });
 
   it('applies the change anyway when a runner settles without applying it', async () => {
-    await render(`<div id="target">old</div>`);
+    await mount(`<div id="target">old</div>`);
     const { root, instance } = await mountFetch(
       `<a data-component="Fetch" href="#a" data-option-no-view-transition></a>`,
     );
@@ -762,7 +746,7 @@ describe('Fetch — the dom-update negotiation', () => {
 
   it('stops claiming the protocol once the update has finished', async () => {
     const { spy, restore } = stubViewTransition();
-    await render(`<div id="target">old</div>`);
+    await mount(`<div id="target">old</div>`);
     const { instance } = await mountFetch(`<a data-component="Fetch" href="#a"></a>`);
 
     await instance.update(new URL('https://example.com'), {}, '<div id="target">new</div>');
@@ -835,7 +819,7 @@ describe('FetchShopifySection', () => {
           }),
         ),
     );
-    await render(`<div id="header">old header</div><div id="footer">old footer</div>`);
+    await mount(`<div id="header">old header</div><div id="footer">old footer</div>`);
     const { instance } = await mountFetch<FetchShopifySection>(
       `<a data-component="FetchShopifySection" href="#a" data-option-sections="header,footer"
         data-option-no-view-transition></a>`,
@@ -854,7 +838,7 @@ describe('FetchShopifySection', () => {
       async () =>
         new Response(JSON.stringify({ header: '<div id="header">new</div>', footer: null })),
     );
-    await render(`<div id="header">old</div><div id="footer">old</div>`);
+    await mount(`<div id="header">old</div><div id="footer">old</div>`);
     const { instance } = await mountFetch<FetchShopifySection>(
       `<a data-component="FetchShopifySection" href="#a" data-option-sections="header,footer"
         data-option-no-view-transition></a>`,
@@ -870,7 +854,7 @@ describe('FetchShopifySection', () => {
 
   it('degrades to the base text response when no sections are configured', async () => {
     stubClient(async () => new Response('<div id="target">plain html</div>'));
-    await render(`<div id="target">old</div>`);
+    await mount(`<div id="target">old</div>`);
     const { instance } = await mountFetch<FetchShopifySection>(
       `<a data-component="FetchShopifySection" href="#a" data-option-no-view-transition></a>`,
       'FetchShopifySection',
@@ -885,7 +869,7 @@ describe('FetchShopifySection', () => {
 
   it('honours a custom `response` option instead of unwrapping the JSON', async () => {
     stubClient(async () => new Response(JSON.stringify({ html: '<div id="target">custom</div>' })));
-    await render(`<div id="target">old</div>`);
+    await mount(`<div id="target">old</div>`);
     const { instance } = await mountFetch<FetchShopifySection>(
       `<a data-component="FetchShopifySection" href="#a" data-option-sections="header"
         data-option-no-view-transition
@@ -914,7 +898,7 @@ describe('FetchShopifySection', () => {
   });
 
   it('keeps the sections parameter out of the pushed url', async () => {
-    await render(`<div id="target">old</div>`);
+    await mount(`<div id="target">old</div>`);
     const { instance } = await mountFetch<FetchShopifySection>(
       `<a data-component="FetchShopifySection" href="#a" data-option-sections="header"
         data-option-history></a>`,

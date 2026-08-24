@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { frames } from '../test-utils.js';
+import { frames } from '../test/index.js';
 import {
   enterTransition,
   leaveTransition,

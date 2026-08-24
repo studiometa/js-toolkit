@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Base, registerComponents, type BaseConfig } from '../../src/index.js';
-import { getInstance, resetDom, settle } from '../../src/test-utils.js';
+import { getInstance } from '../../src/test-utils.js';
+import { captureDiagnostics, mount, resetDom, settle, waitFor } from '../../src/test/index.js';
 import { LazyInclude } from './LazyInclude.js';
 
 /** A probe, so an injected component can prove it mounted. */
@@ -69,16 +70,11 @@ function stubFailure(): ReturnType<typeof vi.fn> {
   return client;
 }
 
-async function render(html: string): Promise<HTMLElement> {
-  const root = document.createElement('div');
-  root.innerHTML = html;
-  document.body.append(root);
-  await settle();
-  return root;
-}
-
-/** A few settles, because the include lands across several microtask turns. */
-async function included(): Promise<void> {
+/**
+ * A bounded quiet period, for the assertions that no request was made and no
+ * load was recorded. Everything else polls for the state it expects.
+ */
+async function quiet(): Promise<void> {
   for (let i = 0; i < 4; i += 1) {
     await settle();
   }
@@ -87,10 +83,10 @@ async function included(): Promise<void> {
 describe('LazyInclude', () => {
   it('fetches the `src` option on mount and injects the response', async () => {
     const client = stubFetch('<p>remote</p>');
-    const root = await render(
+    const root = await mount(
       `<div data-component="LazyInclude" data-option-src="/lazy.html"></div>`,
     );
-    await included();
+    await waitFor(() => client.mock.calls.length > 0);
 
     expect(client).toHaveBeenCalledWith('/lazy.html');
     expect(root.firstElementChild?.innerHTML.trim()).toBe('<p>remote</p>');
@@ -98,7 +94,7 @@ describe('LazyInclude', () => {
 
   it('hides the `loading` ref once the content lands', async () => {
     const deferred = deferFetch();
-    const root = await render(
+    const root = await mount(
       `<div data-component="LazyInclude" data-option-src="/lazy.html">
         <span data-ref="loading">Loading…</span>
       </div>`,
@@ -107,7 +103,7 @@ describe('LazyInclude', () => {
     expect(loading?.style.display).toBe('');
 
     deferred.resolve('<p>remote</p>');
-    await included();
+    await waitFor(() => loading?.style.display === 'none');
 
     // The ref was hidden before the swap removed it with the rest.
     expect(loading?.style.display).toBe('none');
@@ -115,12 +111,14 @@ describe('LazyInclude', () => {
 
   it('reveals the `error` ref when the request fails', async () => {
     stubFailure();
-    const root = await render(
+    const root = await mount(
       `<div data-component="LazyInclude" data-option-src="/lazy.html">
         <span data-ref="error" style="display:none">Boom</span>
       </div>`,
     );
-    await included();
+    await waitFor(
+      () => root.querySelector<HTMLElement>('[data-ref="error"]')?.style.display === 'block',
+    );
 
     expect(root.querySelector<HTMLElement>('[data-ref="error"]')?.style.display).toBe('block');
   });
@@ -131,8 +129,8 @@ describe('LazyInclude', () => {
     document.addEventListener('content', () => seen.push('content'));
     document.addEventListener('always', () => seen.push('always'));
 
-    await render(`<div data-component="LazyInclude" data-option-src="/lazy.html"></div>`);
-    await included();
+    await mount(`<div data-component="LazyInclude" data-option-src="/lazy.html"></div>`);
+    await waitFor(() => seen.length === 2);
 
     expect(seen).toEqual(['content', 'always']);
   });
@@ -144,8 +142,8 @@ describe('LazyInclude', () => {
       contentWhenAlways = (event.target as HTMLElement).innerHTML;
     });
 
-    await render(`<div data-component="LazyInclude" data-option-src="/lazy.html"></div>`);
-    await included();
+    await mount(`<div data-component="LazyInclude" data-option-src="/lazy.html"></div>`);
+    await waitFor(() => contentWhenAlways);
 
     // `$emit()` returns before an async listener has finished, so an `always`
     // announced from the fetch chain alone would arrive on an empty element.
@@ -158,8 +156,8 @@ describe('LazyInclude', () => {
     document.addEventListener('error', () => seen.push('error'));
     document.addEventListener('always', () => seen.push('always'));
 
-    await render(`<div data-component="LazyInclude" data-option-src="/lazy.html"></div>`);
-    await included();
+    await mount(`<div data-component="LazyInclude" data-option-src="/lazy.html"></div>`);
+    await waitFor(() => seen.length === 2);
 
     expect(seen).toEqual(['error', 'always']);
   });
@@ -171,22 +169,22 @@ describe('LazyInclude', () => {
       detail = (event as CustomEvent<{ content: string }>).detail;
     });
 
-    await render(`<div data-component="LazyInclude" data-option-src="/lazy.html"></div>`);
-    await included();
+    await mount(`<div data-component="LazyInclude" data-option-src="/lazy.html"></div>`);
+    await waitFor(() => detail);
 
     expect(detail?.content).toBe('<p>remote</p>');
   });
 
   it('records the load when `terminateOnLoad` is set, and stays mounted', async () => {
     const deferred = deferFetch();
-    const root = await render(
+    const root = await mount(
       `<div data-component="LazyInclude" data-option-src="/lazy.html" data-option-terminate-on-load></div>`,
     );
     const instance = getInstance<LazyInclude>(root.firstElementChild as HTMLElement, 'LazyInclude');
     expect(instance.hasLoaded).toBe(false);
 
     deferred.resolve('<p>remote</p>');
-    await included();
+    await waitFor(() => instance.hasLoaded);
 
     // The component is not ended: it remembers, which is what the option
     // means and what survives the move the next spec makes.
@@ -196,13 +194,13 @@ describe('LazyInclude', () => {
 
   it('records nothing without `terminateOnLoad`', async () => {
     const deferred = deferFetch();
-    const root = await render(
+    const root = await mount(
       `<div data-component="LazyInclude" data-option-src="/lazy.html"></div>`,
     );
     const instance = getInstance<LazyInclude>(root.firstElementChild as HTMLElement, 'LazyInclude');
 
     deferred.resolve('<p>remote</p>');
-    await included();
+    await quiet();
 
     expect(instance.hasLoaded).toBe(false);
     expect(instance.$isMounted).toBe(true);
@@ -210,14 +208,14 @@ describe('LazyInclude', () => {
 
   it('warns and fetches nothing without a `src` option', async () => {
     const client = stubFetch('<p>remote</p>');
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
 
-    await render(`<div data-component="LazyInclude"></div>`);
-    await included();
+    await mount(`<div data-component="LazyInclude"></div>`);
+    await quiet();
 
     expect(client).not.toHaveBeenCalled();
-    expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
+    expect(log.codes).toEqual(['lazy-include.missing-src']);
+    log.stop();
   });
 
   /**
@@ -227,8 +225,8 @@ describe('LazyInclude', () => {
   it('runs a script that arrives with the included content', async () => {
     stubFetch('<script>window.__lazyScriptRuns = (window.__lazyScriptRuns ?? 0) + 1;</script>');
 
-    await render(`<div data-component="LazyInclude" data-option-src="/lazy.html"></div>`);
-    await included();
+    await mount(`<div data-component="LazyInclude" data-option-src="/lazy.html"></div>`);
+    await waitFor(() => window.__lazyScriptRuns === 1);
 
     expect(window.__lazyScriptRuns).toBe(1);
   });
@@ -236,8 +234,8 @@ describe('LazyInclude', () => {
   it('mounts a component that arrives with the included content', async () => {
     stubFetch('<span data-component="Probe"></span>');
 
-    await render(`<div data-component="LazyInclude" data-option-src="/lazy.html"></div>`);
-    await included();
+    await mount(`<div data-component="LazyInclude" data-option-src="/lazy.html"></div>`);
+    await waitFor(() => Probe.mounts === 1);
 
     expect(Probe.mounts).toBe(1);
   });
@@ -249,16 +247,16 @@ describe('LazyInclude', () => {
    */
   it('fetches again when the element is moved, because a move remounts', async () => {
     const client = stubFetch('<p>remote</p>');
-    const root = await render(
+    const root = await mount(
       `<div data-component="LazyInclude" data-option-src="/lazy.html"></div>`,
     );
-    await included();
+    await waitFor(() => client.mock.calls.length === 1);
     expect(client).toHaveBeenCalledTimes(1);
 
     const other = document.createElement('section');
     document.body.append(other);
     other.append(root.firstElementChild as HTMLElement);
-    await included();
+    await waitFor(() => client.mock.calls.length === 2);
 
     expect(client).toHaveBeenCalledTimes(2);
   });
@@ -271,17 +269,17 @@ describe('LazyInclude', () => {
   it('fetches again after a failed load, whatever `terminateOnLoad` says', async () => {
     const client = vi.fn().mockRejectedValue(new Error('offline'));
     vi.stubGlobal('fetch', client);
-    const root = await render(
+    const root = await mount(
       `<div data-component="LazyInclude" data-option-src="/lazy.html" data-option-terminate-on-load></div>`,
     );
     const el = root.firstElementChild as HTMLElement;
-    await included();
+    await waitFor(() => client.mock.calls.length === 1);
     expect(getInstance<LazyInclude>(el, 'LazyInclude').hasLoaded).toBe(false);
 
     const other = document.createElement('section');
     document.body.append(other);
     other.append(el);
-    await included();
+    await waitFor(() => client.mock.calls.length === 2);
 
     // A request that failed is the one worth retrying on the next mount.
     expect(client).toHaveBeenCalledTimes(2);
@@ -289,16 +287,16 @@ describe('LazyInclude', () => {
 
   it('does not fetch again once `terminateOnLoad` has been honoured', async () => {
     const client = stubFetch('<p>remote</p>');
-    const root = await render(
+    const root = await mount(
       `<div data-component="LazyInclude" data-option-src="/lazy.html" data-option-terminate-on-load></div>`,
     );
     const el = root.firstElementChild as HTMLElement;
-    await included();
+    await waitFor(() => getInstance<LazyInclude>(el, 'LazyInclude').hasLoaded);
 
     const other = document.createElement('section');
     document.body.append(other);
     other.append(el);
-    await included();
+    await quiet();
 
     expect(client).toHaveBeenCalledTimes(1);
   });

@@ -1,28 +1,12 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { registerComponents } from '../../src/index.js';
-import { getInstance, resetDom, settle } from '../../src/test-utils.js';
+import { getInstance } from '../../src/test-utils.js';
+import { mount, resetDom, settle, waitFor } from '../../src/test/index.js';
 import { MenuList } from './MenuList.js';
 
 registerComponents(MenuList);
 
 afterEach(resetDom);
-
-/**
- * `open()`/`close()` start their transition and do not return it, and a kept
- * end state only lands a few frames later — after `nextFrame`, the `from` and
- * `active` states, and either a `transitionend` or one more frame. A single
- * `settle()` is usually enough and is not a guarantee: under full-suite load
- * these assertions failed intermittently. Poll for the class instead.
- */
-async function waitForClass(el: HTMLElement, className: string, timeout = 1000): Promise<void> {
-  const deadline = Date.now() + timeout;
-  while (!el.classList.contains(className)) {
-    if (Date.now() > deadline) {
-      throw new Error(`waitForClass: "${className}" never landed on the element`);
-    }
-    await new Promise((resolve) => setTimeout(resolve, 10));
-  }
-}
 
 async function render(): Promise<{
   root: HTMLElement;
@@ -31,8 +15,7 @@ async function render(): Promise<{
   outerLink: HTMLElement;
   nestedLink: HTMLElement;
 }> {
-  const root = document.createElement('div');
-  root.innerHTML = `
+  const root = await mount(`
     <ul data-component="MenuList" data-option-enter-to="open" data-option-leave-to="closed" id="outer-list">
       <li><a href="#" id="outer-link">Link 1</a></li>
       <li>
@@ -40,9 +23,7 @@ async function render(): Promise<{
           <li><a href="#" id="nested-link">Nested link</a></li>
         </ul>
       </li>
-    </ul>`;
-  document.body.append(root);
-  await settle();
+    </ul>`);
   return {
     root,
     outer: getInstance<MenuList>(root.querySelector('#outer-list'), 'MenuList'),
@@ -65,7 +46,12 @@ describe('MenuList', () => {
     outer.$el.addEventListener('items-open', () => events.push('items-open'));
 
     outer.open();
-    await waitForClass(outer.$el, 'open');
+    // `open()`/`close()` start their transition and do not return it, and a
+    // kept end state only lands a few frames later — after `nextFrame`, the
+    // `from` and `active` states, and either a `transitionend` or one more
+    // frame. A single `settle()` is generous, not a guarantee: under
+    // full-suite load these assertions failed intermittently.
+    await waitFor(() => outer.$el.classList.contains('open'));
 
     expect(outer.isOpen).toBe(true);
     expect(outer.$el.getAttribute('aria-hidden')).toBe('false');
@@ -92,7 +78,7 @@ describe('MenuList', () => {
     });
 
     outer.close();
-    await waitForClass(outer.$el, 'closed');
+    await waitFor(() => outer.$el.classList.contains('closed'));
 
     expect(outer.isOpen).toBe(false);
     expect(outer.$el.getAttribute('aria-hidden')).toBe('true');

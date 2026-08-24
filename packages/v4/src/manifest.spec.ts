@@ -10,7 +10,8 @@ import {
   type WebpackContextLike,
 } from './manifest.js';
 import { registerManifest } from './registry.js';
-import { getInstance, resetDom, settle } from './test-utils.js';
+import { getInstance } from './test-utils.js';
+import { captureDiagnostics, resetDom, settle } from './test/index.js';
 
 class Widget {}
 class Other {}
@@ -66,7 +67,7 @@ describe('defineManifest', () => {
   });
 
   it('warns for a duplicate token and keeps the first path and importer', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     const first = vi.fn(async () => ({ Widget }));
     const second = vi.fn(async () => ({ Widget: Other }));
     const modules = {
@@ -77,10 +78,15 @@ describe('defineManifest', () => {
     defineManifest({ modules });
 
     expect(manifest.Widget).toBe(first);
-    expect(warn).toHaveBeenCalledOnce();
-    expect(warn).toHaveBeenCalledWith(
-      `[js-toolkit:${DIAGNOSTICS.manifest.duplicateToken}] "Widget" is already derived from "./first/Widget.ts"; ignoring "./second/Widget.ts".`,
-    );
+    expect(log.entries).toMatchObject([
+      {
+        severity: 'warning',
+        code: DIAGNOSTICS.manifest.duplicateToken,
+        message:
+          '"Widget" is already derived from "./first/Widget.ts"; ignoring "./second/Widget.ts".',
+      },
+    ]);
+    log.stop();
   });
 
   it('applies one non-eager mount strategy to every generated entry', () => {

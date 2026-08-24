@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { registerComponents } from '../../src/index.js';
-import { frames, getInstance, resetDom, settle } from '../../src/test-utils.js';
+import { getInstance } from '../../src/test-utils.js';
+import { frames, resetDom, settle } from '../../src/test/index.js';
 import { Slider } from './Slider.js';
 import { SliderBtn } from './SliderBtn.js';
 import { SliderCount } from './SliderCount.js';

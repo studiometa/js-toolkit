@@ -5,7 +5,8 @@ import { createContext, provideContext, provideRootContext, type ContextKey } fr
 import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
 import { EVENTS } from './events.js';
 import { registerComponent } from './registry.js';
-import { getInstance, resetDom, settle } from './test-utils.js';
+import { getInstance } from './test-utils.js';
+import { resetDom, settle } from './test/index.js';
 
 afterEach(resetDom);
 

@@ -1,10 +1,12 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { Base, type BaseConfig } from './Base.js';
 import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
 import { EVENTS } from './events.js';
 import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent } from './registry.js';
-import { getInstance, renderTodoList, resetDom, settle, TodoItem, TodoList } from './test-utils.js';
+import { getInstance } from './test-utils.js';
+import { renderTodoList, TodoItem, TodoList } from './todo.fixtures.js';
+import { captureDiagnostics, resetDom, settle } from './test/index.js';
 
 afterEach(resetDom);
 
@@ -243,17 +245,21 @@ describe('registry', () => {
     }
 
     registerComponent(Named);
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     registerComponent(Extended);
     const el = document.createElement('div');
     el.setAttribute('data-component', 'MergedName');
     document.body.append(el);
     await settle();
 
-    expect(warn).toHaveBeenCalledWith(
-      `[js-toolkit:${DIAGNOSTICS.registry.conflict}] "MergedName" is already registered; the incoming declaration was ignored.`,
-    );
+    expect(log.entries).toMatchObject([
+      {
+        severity: 'warning',
+        code: DIAGNOSTICS.registry.conflict,
+        message: '"MergedName" is already registered; the incoming declaration was ignored.',
+      },
+    ]);
     expect(getInstance(el, 'MergedName')).toBeInstanceOf(Named);
-    warn.mockRestore();
+    log.stop();
   });
 });

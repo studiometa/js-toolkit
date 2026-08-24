@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { registerComponents } from '../../src/index.js';
-import { getInstance, resetDom, settle } from '../../src/test-utils.js';
+import { getInstance } from '../../src/test-utils.js';
+import { resetDom, settle, waitFor } from '../../src/test/index.js';
 import { Figure } from './Figure.js';
 
 registerComponents(Figure);
@@ -14,20 +15,10 @@ const ONSCREEN = 'position:absolute;top:0;left:0;width:50px;height:50px';
 const PIXEL =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 
-async function observed(): Promise<void> {
+/** A bounded quiet period, for the assertions that nothing has loaded. */
+async function quiet(): Promise<void> {
   for (let i = 0; i < 6; i += 1) {
     await settle();
-  }
-}
-
-/** Poll for a transition's kept end state; see `MenuList.spec.ts` for why. */
-async function waitForClass(el: HTMLElement, className: string, timeout = 1000): Promise<void> {
-  const deadline = Date.now() + timeout;
-  while (!el.classList.contains(className)) {
-    if (Date.now() > deadline) {
-      throw new Error(`waitForClass: "${className}" never landed on the element`);
-    }
-    await new Promise((resolve) => setTimeout(resolve, 10));
   }
 }
 
@@ -58,12 +49,12 @@ describe('Figure (AbstractFigure)', () => {
     const events: unknown[] = [];
     el.addEventListener('load', () => events.push(1));
 
-    await observed();
+    await quiet();
     expect(events).toEqual([]);
     expect(img.src).toBe(PLACEHOLDER);
 
     el.setAttribute('style', ONSCREEN);
-    await observed();
+    await waitFor(() => events.length > 0);
 
     expect(events).toEqual([1]);
     expect(img.src).toBe(PIXEL);
@@ -74,7 +65,7 @@ describe('Figure (AbstractFigure)', () => {
     const events: unknown[] = [];
     el.addEventListener('load', () => events.push(1));
 
-    await observed();
+    await quiet();
 
     expect(events).toEqual([]);
   });
@@ -85,11 +76,9 @@ describe('Figure (AbstractFigure)', () => {
       'data-option-lazy="true" data-option-enter-to="visible" data-option-enter-keep="true"',
     );
 
-    await observed();
-
     // Polled, not assumed: `mounted()` fire-and-forgets the transition, and a
     // kept end state lands a few frames after the image has loaded.
-    await waitForClass(img, 'visible');
+    await waitFor(() => img.classList.contains('visible'));
     expect(getInstance<Figure>(el, 'Figure').state).toBe('entering');
   });
 });

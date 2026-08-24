@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { registerComponents } from '../../src/index.js';
-import { getInstance, resetDom, settle } from '../../src/test-utils.js';
+import { getInstance } from '../../src/test-utils.js';
+import { mount, resetDom, settle, waitFor } from '../../src/test/index.js';
 import { AnchorNav } from './AnchorNav.js';
 import { AnchorNavLink } from './AnchorNavLink.js';
 import { AnchorNavTarget } from './AnchorNavTarget.js';
@@ -12,37 +13,12 @@ registerComponents(AnchorNav, AnchorNavLink, AnchorNavTarget);
 
 afterEach(resetDom);
 
-async function observed(): Promise<void> {
-  for (let i = 0; i < 6; i += 1) {
-    await settle();
-  }
-}
-
-/**
- * `AnchorNav` fire-and-forgets the link's transition, and a kept end state
- * lands a few frames after that — so the class is polled rather than assumed
- * present once the observer has delivered. `MenuList`'s spec has the same
- * helper for the same reason, after this shape flaked under full-suite load.
- */
-async function waitForClass(el: HTMLElement, className: string, timeout = 1000): Promise<void> {
-  const deadline = Date.now() + timeout;
-  while (!el.classList.contains(className)) {
-    if (Date.now() > deadline) {
-      throw new Error(`waitForClass: "${className}" never landed on the element`);
-    }
-    await new Promise((resolve) => setTimeout(resolve, 10));
-  }
-}
-
 async function render(): Promise<{ root: HTMLElement; target: HTMLElement }> {
-  const root = document.createElement('div');
-  root.innerHTML = `
+  const root = await mount(`
     <div data-component="AnchorNav">
       <a data-component="AnchorNavLink" href="#one" data-option-enter-to="active" data-option-enter-keep="true"></a>
       <div id="one" data-component="AnchorNavTarget" style="${OFFSCREEN}"></div>
-    </div>`;
-  document.body.append(root);
-  await settle();
+    </div>`);
   return { root, target: root.querySelector('#one') as HTMLElement };
 }
 
@@ -55,10 +31,12 @@ describe('AnchorNav', () => {
     );
 
     target.setAttribute('style', ONSCREEN);
-    await observed();
+    await waitFor(() => link.state === 'entering');
 
     expect(link.state).toBe('entering');
-    await waitForClass(link.$el, 'active');
+    // `AnchorNav` fire-and-forgets the transition, so the kept end state lands
+    // a few frames after the state change and has to be polled for.
+    await waitFor(() => link.$el.classList.contains('active'));
   });
 
   it('leaves the matching link once its target scrolls back out of view', async () => {
@@ -69,11 +47,13 @@ describe('AnchorNav', () => {
     );
 
     target.setAttribute('style', ONSCREEN);
-    await observed();
+    await waitFor(() => link.state === 'entering');
     target.setAttribute('style', OFFSCREEN);
-    await observed();
+    await waitFor(() => link.state === 'leaving');
 
     expect(link.state).toBe('leaving');
+    // A removal is asserted directly, never polled for: `leaveTransition()`
+    // clears the other direction's class before its first await.
     expect(link.$el.classList.contains('active')).toBe(false);
   });
 
@@ -93,7 +73,10 @@ describe('AnchorNav', () => {
     const target = root.querySelector('#one') as HTMLElement;
 
     target.setAttribute('style', ONSCREEN);
-    await observed();
+    // An absence cannot be polled for, so this keeps a bounded quiet period.
+    for (let i = 0; i < 6; i += 1) {
+      await settle();
+    }
 
     expect(link.state).toBeNull();
   });
