@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { getInstance, registerComponents } from '../../src/index.js';
-import { resetDom, settle } from '../../src/test/index.js';
+import { recordEvents, resetDom, settle } from '../../src/test/index.js';
 import { TimerProgress } from './TimerProgress.js';
 
 registerComponents(TimerProgress);
@@ -20,12 +20,10 @@ async function render(attributes = ''): Promise<{ el: HTMLElement; instance: Tim
   return { el, instance: getInstance<TimerProgress>(el, 'TimerProgress')! };
 }
 
-function recordProgress(el: HTMLElement): number[] {
-  const ratios: number[] = [];
-  el.addEventListener('timer-progress', (event) => {
-    ratios.push((event as CustomEvent<{ ratio: number }>).detail.ratio);
-  });
-  return ratios;
+/** {@link recordEvents}, projected to the ratio each `timer-progress` carried. */
+function recordProgress(el: HTMLElement): () => number[] {
+  const log = recordEvents(el, 'timer-progress');
+  return () => log.events.map(({ detail }) => (detail as { ratio: number }).ratio);
 }
 
 describe('TimerProgress', () => {
@@ -35,7 +33,7 @@ describe('TimerProgress', () => {
 
     await wait(60);
 
-    expect(ratios).toEqual([]);
+    expect(ratios()).toEqual([]);
   });
 
   it('reports increasing progress while armed, ending at 1', async () => {
@@ -44,9 +42,9 @@ describe('TimerProgress', () => {
 
     await wait(150);
 
-    expect(ratios.length).toBeGreaterThan(1);
-    expect(ratios.at(-1)).toBe(1);
-    expect([...ratios]).toEqual([...ratios].sort((a, b) => a - b));
+    expect(ratios().length).toBeGreaterThan(1);
+    expect(ratios().at(-1)).toBe(1);
+    expect(ratios()).toEqual(ratios().sort((a, b) => a - b));
   });
 
   it('stops the frame loop once complete', async () => {
@@ -54,10 +52,10 @@ describe('TimerProgress', () => {
     const ratios = recordProgress(el);
 
     await wait(60);
-    const countAtComplete = ratios.length;
+    const countAtComplete = ratios().length;
     await wait(60);
 
-    expect(ratios.length).toBe(countAtComplete);
+    expect(ratios().length).toBe(countAtComplete);
   });
 
   it('resets progress to 0 when stopped', async () => {
@@ -67,7 +65,7 @@ describe('TimerProgress', () => {
     await wait(30);
     instance.stop();
 
-    expect(ratios.at(-1)).toBe(0);
+    expect(ratios().at(-1)).toBe(0);
   });
 
   it('stops the frame loop while paused and resumes it', async () => {
@@ -76,14 +74,14 @@ describe('TimerProgress', () => {
 
     await wait(20);
     instance.pause();
-    const countAtPause = ratios.length;
+    const countAtPause = ratios().length;
     await wait(40);
 
-    expect(ratios.length).toBe(countAtPause);
+    expect(ratios().length).toBe(countAtPause);
 
     instance.resume();
     await wait(150);
 
-    expect(ratios.at(-1)).toBe(1);
+    expect(ratios().at(-1)).toBe(1);
   });
 });

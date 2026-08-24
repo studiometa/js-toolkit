@@ -10,6 +10,7 @@ import {
 } from './pointer.js';
 import type { Service } from './service.js';
 import type { Toggle } from './toggle.js';
+import { frames } from '../test/index.js';
 
 function snapshot(props: PointerProps) {
   return { ...props };
@@ -39,13 +40,6 @@ function countReads(el: Element) {
     return box();
   };
   return { box, reads: () => reads };
-}
-
-/** A `ResizeObserver` delivers after the frame's callbacks, so two frames is the safe wait. */
-async function frames(count = 2): Promise<void> {
-  for (let index = 0; index < count; index += 1) {
-    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-  }
 }
 
 async function scrollWindowTo(y: number): Promise<void> {
@@ -333,7 +327,8 @@ describe('usePointer(target)', () => {
     expect(seen.at(-1)?.relativeProgressX).toBeCloseTo(0.25, 5);
 
     el.style.width = '400px';
-    await frames();
+    // A `ResizeObserver` delivers after the frame's callbacks, so two frames.
+    await frames(2);
 
     move(150, 80);
     expect(seen.at(-1)?.relativeProgressX).toBeCloseTo(0.125, 5);

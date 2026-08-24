@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { FRAMEWORK_ATTRIBUTES } from './attributes.js';
 import { Base, type BaseConfig, type OptionChange } from './Base.js';
-import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
+import { DIAGNOSTICS } from './diagnostic-contract.js';
 import {
   isObservedDOMAttribute,
   registerDOMOptionAttributes,
@@ -11,12 +11,10 @@ import {
   whenDOMSettled,
   type AttributeChange,
 } from './dom-mutations.js';
-import { EVENTS } from './events.js';
 import { getInstance } from './instances.js';
-import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent } from './registry.js';
 import { SWAP_MODES, swap } from './swap.js';
-import { resetDom } from './test/index.js';
+import { captureDiagnostics, resetDom } from './test/index.js';
 
 let counter = 0;
 
@@ -55,7 +53,7 @@ describe('whenDOMSettled', () => {
     document.body.append(el);
 
     await whenDOMSettled();
-    expect(el[INSTANCES]?.get(name)?.$isMounted).toBe(true);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 
   it('follows mutations created by eager lifecycle work', async () => {
@@ -83,7 +81,7 @@ describe('whenDOMSettled', () => {
 
     await whenDOMSettled();
     const child = parent.firstElementChild;
-    expect(child?.[INSTANCES]?.get(childName)?.$isMounted).toBe(true);
+    expect(getInstance(child, childName)?.$isMounted).toBe(true);
   });
 
   it('does not wait for a conditional mount strategy', async () => {
@@ -100,7 +98,7 @@ describe('whenDOMSettled', () => {
     document.body.append(el);
 
     await whenDOMSettled();
-    expect(el[INSTANCES]?.get(name)).toBeUndefined();
+    expect(getInstance(el, name)).toBeUndefined();
   });
 
   it('waits for eager teardown caused by removal', async () => {
@@ -118,7 +116,7 @@ describe('whenDOMSettled', () => {
     el.setAttribute('data-component', name);
     document.body.append(el);
     await whenDOMSettled();
-    const instance = el[INSTANCES]?.get(name) as Removed;
+    const instance = getInstance(el, name) as Removed;
 
     el.remove();
     await whenDOMSettled();
@@ -230,11 +228,7 @@ describe('watchAttributes', () => {
     const el = document.createElement('div');
     document.body.append(el);
     const failure = new Error('watcher failure');
-    const diagnostics: ToolkitDiagnosticDetail[] = [];
-    el.addEventListener(EVENTS.diagnostic, (event) => {
-      event.preventDefault();
-      diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
-    });
+    const log = captureDiagnostics(el);
     const changes: AttributeChange[] = [];
     trackedWatcher(el, () => {
       throw failure;
@@ -244,7 +238,7 @@ describe('watchAttributes', () => {
     el.setAttribute(VIRTUAL_ATTRIBUTE, 'open()');
     await whenDOMSettled();
 
-    expect(diagnostics).toEqual([
+    expect(log.entries).toEqual([
       {
         severity: 'error',
         code: DIAGNOSTICS.callback.attributeWatcherFailed,
@@ -253,6 +247,7 @@ describe('watchAttributes', () => {
       },
     ]);
     expect(changes).toEqual([{ name: VIRTUAL_ATTRIBUTE, value: 'open()', previousValue: null }]);
+    log.stop();
   });
 
   it('delivers after declared options in the same mutation batch', async () => {
@@ -317,7 +312,7 @@ describe('watchAttributes', () => {
     await whenDOMSettled();
 
     expect(instance.$isMounted).toBe(false);
-    expect(el[INSTANCES]?.has(name)).toBe(false);
+    expect(getInstance(el, name)).toBeUndefined();
     expect(calls).toEqual(['cleanup']);
   });
 
@@ -465,7 +460,7 @@ describe('setDOMMutationProcessor', () => {
 
     // The registry installed the one processor at import time; a second caller
     // does not replace it and does not get a second delivery of the batch.
-    expect(el[INSTANCES]?.get(name)?.$isMounted).toBe(true);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
     expect(later).not.toHaveBeenCalled();
   });
 });

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { defaultScheduler, nextFrame } from './scheduler.js';
-import { resetDom } from './test/index.js';
+import { resetDom, waitFor } from './test/index.js';
 import { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';
 
 let restoreStartViewTransition = () => {};
@@ -41,9 +41,7 @@ function deferred() {
 }
 
 async function waitForBatch(started: number[], length: number): Promise<void> {
-  for (let index = 0; index < 50 && started.length < length; index += 1) {
-    await Promise.resolve();
-  }
+  await waitFor(() => started.length >= length);
   expect(started).toHaveLength(length);
 }
 

@@ -2,11 +2,10 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { Base } from './Base.js';
 import { subscribeContext } from './context-subscription.js';
 import { createContext, provideContext, provideRootContext, type ContextKey } from './context.js';
-import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
-import { EVENTS } from './events.js';
+import { DIAGNOSTICS } from './diagnostic-contract.js';
 import { getInstance } from './instances.js';
 import { registerComponent } from './registry.js';
-import { resetDom, settle } from './test/index.js';
+import { captureDiagnostics, resetDom, settle } from './test/index.js';
 
 afterEach(resetDom);
 
@@ -130,7 +129,7 @@ describe('subscribeContext', () => {
     `);
     await settle();
 
-    const member = getInstance<Member>(root.querySelector('span')!, 'ReanswerMember')!;
+    const member = getInstance<Member>(root.querySelector('span'), 'ReanswerMember')!;
     expect(member.seen).toEqual(['page']);
 
     root.querySelector('#scope')?.setAttribute('data-component', 'ReanswerScope');
@@ -165,7 +164,7 @@ describe('subscribeContext', () => {
     `);
     await settle();
 
-    const member = getInstance<Member>(root.querySelector('span')!, 'DistanceMember')!;
+    const member = getInstance<Member>(root.querySelector('span'), 'DistanceMember')!;
     expect(member.seen).toEqual(['inner']);
 
     root.querySelector('#outer')?.setAttribute('data-component', 'DistanceScope');
@@ -235,15 +234,11 @@ describe('subscribeContext', () => {
   });
 
   it('isolates callback and teardown failures', () => {
-    const diagnostics: ToolkitDiagnosticDetail[] = [];
     const key = createContext<Registry>('failure-isolation');
     const root = render('<span></span>');
     const consumer = root.querySelector('span') as Element;
     provideContext(root, key, { name: 'root' });
-    consumer.addEventListener(EVENTS.diagnostic, (event) => {
-      event.preventDefault();
-      diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
-    });
+    const log = captureDiagnostics(consumer);
 
     const failed = subscribeContext(consumer, key, () => {
       throw new Error('callback');
@@ -259,11 +254,12 @@ describe('subscribeContext', () => {
     failed();
     teardownFailed();
     expect(seen).toEqual(['root']);
-    expect(diagnostics.map(({ code }) => code)).toEqual([
+    expect(log.codes).toEqual([
       DIAGNOSTICS.callback.contextSubscriptionFailed,
       DIAGNOSTICS.callback.contextTeardownFailed,
     ]);
-    expect(diagnostics.every(({ severity }) => severity === 'error')).toBe(true);
+    expect(log.entries.every(({ severity }) => severity === 'error')).toBe(true);
+    log.stop();
   });
 
   it('does not keep a discarded consumer alive after it was answered', async () => {

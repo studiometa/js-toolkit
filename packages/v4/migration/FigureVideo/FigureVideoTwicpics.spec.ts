@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { getInstance, registerComponents } from '../../src/index.js';
-import { resetDom, settle } from '../../src/test/index.js';
+import { captureDiagnostics, resetDom, settle, waitFor } from '../../src/test/index.js';
 import { FigureVideoTwicpics } from './FigureVideoTwicpics.js';
 
 registerComponents(FigureVideoTwicpics);
@@ -20,7 +20,7 @@ async function render(attributes = ''): Promise<FigureVideoTwicpics> {
     </div>`;
   document.body.append(root);
   await settle();
-  return getInstance<FigureVideoTwicpics>(root.firstElementChild!, 'FigureVideoTwicpics')!;
+  return getInstance<FigureVideoTwicpics>(root.firstElementChild, 'FigureVideoTwicpics')!;
 }
 
 describe('FigureVideoTwicpics — the loadSources override', () => {
@@ -33,12 +33,7 @@ describe('FigureVideoTwicpics — the loadSources override', () => {
         </video>
       </div>`;
     document.body.append(root);
-    const details: Array<Record<string, unknown>> = [];
-    const listener = (event: Event) => {
-      details.push((event as CustomEvent<Record<string, unknown>>).detail);
-      event.preventDefault();
-    };
-    document.addEventListener('js-toolkit:diagnostic', listener);
+    const log = captureDiagnostics();
     await settle();
 
     const el = root.firstElementChild as HTMLElement;
@@ -46,14 +41,11 @@ describe('FigureVideoTwicpics — the loadSources override', () => {
     // This override replaces the base entirely, so fixing the base alone left
     // it waiting on `canplaythrough` forever.
     video.dispatchEvent(new Event('error'));
-    for (let i = 0; i < 6; i += 1) {
-      await settle();
-    }
+    await waitFor(() => log.codes.includes('figure-video.load-failed'));
 
-    expect(details.map((detail) => detail.code)).toContain('figure-video.load-failed');
     expect(getInstance<FigureVideoTwicpics>(el, 'FigureVideoTwicpics')!.hasLoaded).toBe(false);
 
-    document.removeEventListener('js-toolkit:diagnostic', listener);
+    log.stop();
   });
 });
 

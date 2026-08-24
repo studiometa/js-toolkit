@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
-import { EVENTS } from './events.js';
+import { DIAGNOSTICS } from './diagnostic-contract.js';
 import { nextFrame, defaultScheduler, type SchedulerPhase, type TickProps } from './scheduler.js';
+import { captureDiagnostics } from './test/index.js';
 
 describe('defaultScheduler (real frames)', () => {
   it('runs reads before writes within one frame, regardless of scheduling order', async () => {
@@ -26,15 +26,7 @@ describe('defaultScheduler (real frames)', () => {
 
   it('survives a throwing task, reports it, and keeps its promise rejection', async () => {
     const failure = new Error('boom');
-    const diagnostics: ToolkitDiagnosticDetail[] = [];
-    document.addEventListener(
-      EVENTS.diagnostic,
-      (event) => {
-        event.preventDefault();
-        diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
-      },
-      { once: true },
-    );
+    const log = captureDiagnostics();
 
     const task = defaultScheduler.write(() => {
       throw failure;
@@ -43,7 +35,7 @@ describe('defaultScheduler (real frames)', () => {
 
     const after = defaultScheduler.write(() => 'still alive');
     await expect(after.promise).resolves.toBe('still alive');
-    expect(diagnostics).toEqual([
+    expect(log.entries).toEqual([
       {
         severity: 'error',
         code: DIAGNOSTICS.callback.scheduledTaskFailed,
@@ -51,6 +43,7 @@ describe('defaultScheduler (real frames)', () => {
         error: failure,
       },
     ]);
+    log.stop();
   });
 
   it('resolves task promises with return values and supports cancel', async () => {
@@ -159,15 +152,7 @@ describe('defaultScheduler.background', () => {
 
   it('reports a native background-post rejection and continues through the fallback', async () => {
     const failure = new Error('native post failed');
-    const diagnostics: ToolkitDiagnosticDetail[] = [];
-    document.addEventListener(
-      EVENTS.diagnostic,
-      (event) => {
-        event.preventDefault();
-        diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
-      },
-      { once: true },
-    );
+    const log = captureDiagnostics();
     vi.stubGlobal('scheduler', {
       postTask: () => Promise.reject(failure),
     });
@@ -179,7 +164,7 @@ describe('defaultScheduler.background', () => {
       vi.unstubAllGlobals();
     }
 
-    expect(diagnostics).toEqual([
+    expect(log.entries).toEqual([
       {
         severity: 'error',
         code: DIAGNOSTICS.scheduler.backgroundPostFailed,
@@ -187,6 +172,7 @@ describe('defaultScheduler.background', () => {
         error: failure,
       },
     ]);
+    log.stop();
   });
 });
 
@@ -210,15 +196,7 @@ describe('defaultScheduler.tick', () => {
 
   it('isolates a failed tick callback and continues the tick', async () => {
     const failure = new Error('tick failure');
-    const diagnostics: ToolkitDiagnosticDetail[] = [];
-    document.addEventListener(
-      EVENTS.diagnostic,
-      (event) => {
-        event.preventDefault();
-        diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
-      },
-      { once: true },
-    );
+    const log = captureDiagnostics();
     let stopBroken = (): void => {};
     stopBroken = defaultScheduler.tick(() => {
       stopBroken();
@@ -234,7 +212,7 @@ describe('defaultScheduler.tick', () => {
     await nextFrame();
 
     expect(healthyCalls).toBe(1);
-    expect(diagnostics).toEqual([
+    expect(log.entries).toEqual([
       {
         severity: 'error',
         code: DIAGNOSTICS.callback.schedulerTickFailed,
@@ -242,6 +220,7 @@ describe('defaultScheduler.tick', () => {
         error: failure,
       },
     ]);
+    log.stop();
   });
 
   it('reports the time elapsed since the previous tick', async () => {

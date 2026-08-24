@@ -8,7 +8,17 @@ import {
 } from './diagnostic-contract.js';
 import { reportDiagnostic, warn, warnOnce } from './diagnostics.js';
 import { EVENTS } from './events.js';
+import { captureDiagnostics } from './test/index.js';
 
+/**
+ * The listeners below are hand-rolled on purpose: this spec owns the channel
+ * that `captureDiagnostics()` reads, so the helper cannot instrument it.
+ * Every remaining raw listener asserts something the helper hides —
+ * cancellation itself, the order against the default sink, the target the
+ * dispatch started on, or what a listener mutating the detail does — and
+ * `captureDiagnostics()` cancels every event and exposes no target, which
+ * would make each of them vacuous.
+ */
 describe('diagnostics', () => {
   it('exposes exact deeply frozen stable codes', () => {
     expect(DIAGNOSTICS).toEqual({
@@ -257,19 +267,15 @@ describe('diagnostics', () => {
   it('deduplicates by weak owner and misuse key, not by message', () => {
     const firstOwner = {};
     const secondOwner = {};
-    const events: ToolkitDiagnosticDetail[] = [];
-    const listener = (rawEvent: Event) => {
-      rawEvent.preventDefault();
-      events.push((rawEvent as CustomEvent<ToolkitDiagnosticDetail>).detail);
-    };
-    document.addEventListener(EVENTS.diagnostic, listener);
+    // The one test here that only counts dispatches, so the helper fits.
+    const log = captureDiagnostics();
 
     warnOnce(firstOwner, 'a', DIAGNOSTICS.registry.conflict, 'Same message.');
     warnOnce(firstOwner, 'a', DIAGNOSTICS.registry.conflict, 'Same message.');
     warnOnce(firstOwner, 'b', DIAGNOSTICS.registry.conflict, 'Same message.');
     warnOnce(secondOwner, 'a', DIAGNOSTICS.registry.conflict, 'Same message.');
 
-    document.removeEventListener(EVENTS.diagnostic, listener);
-    expect(events).toHaveLength(3);
+    log.stop();
+    expect(log.entries).toHaveLength(3);
   });
 });

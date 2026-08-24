@@ -87,6 +87,9 @@ describe('getInstances by name', () => {
     await settle();
 
     expect(el.matches('[data-component~="Unregistered"]')).toBe(true);
+    // The raw read is the premise, not the assertion: it states that no map
+    // exists at all, so the empty result below cannot be an empty map. A
+    // lookup cannot say that, and would test these exports with themselves.
     expect(el[INSTANCES]).toBeUndefined();
     expect(getInstances('Unregistered')).toEqual([]);
   });

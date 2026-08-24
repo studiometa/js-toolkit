@@ -18,19 +18,15 @@ afterEach(async () => {
   await resetDom();
 });
 
+/** {@link captureDiagnostics} bounded to one awaited call. */
 async function catchDiagnostics(run: () => Promise<void>): Promise<ToolkitDiagnosticDetail[]> {
-  const diagnostics: ToolkitDiagnosticDetail[] = [];
-  const onDiagnostic = (event: Event) => {
-    event.preventDefault();
-    diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
-  };
-  document.addEventListener(EVENTS.diagnostic, onDiagnostic);
+  const log = captureDiagnostics();
   try {
     await run();
   } finally {
-    document.removeEventListener(EVENTS.diagnostic, onDiagnostic);
+    log.stop();
   }
-  return diagnostics;
+  return log.entries;
 }
 
 function renderTarget() {
@@ -163,11 +159,7 @@ describe('domUpdate()', () => {
     // event suppresses it — so this one keeps its spy. `captureDiagnostics()`
     // cancels every event it sees, which would make the assertion vacuous.
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const diagnostics: ToolkitDiagnosticDetail[] = [];
-    target.addEventListener(EVENTS.diagnostic, (event) => {
-      event.preventDefault();
-      diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
-    });
+    const log = captureDiagnostics(target);
     const runner = () => Promise.resolve();
     claim(outer, runner);
 
@@ -175,8 +167,9 @@ describe('domUpdate()', () => {
     await domUpdate(target, () => target.setAttribute('data-applied-again', 'yes'));
 
     expect(target.dataset).toMatchObject({ applied: 'yes', appliedAgain: 'yes' });
-    expect(diagnostics.map(({ code }) => code)).toEqual([DIAGNOSTICS.protocol.unappliedDomUpdate]);
+    expect(log.codes).toEqual([DIAGNOSTICS.protocol.unappliedDomUpdate]);
     expect(warn).not.toHaveBeenCalled();
+    log.stop();
   });
 
   it('warns and ignores a wrap() registration made after dispatch', async () => {

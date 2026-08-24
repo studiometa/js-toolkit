@@ -1,8 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { watchAttributeNamespace } from './attribute-namespaces.js';
-import { EVENTS } from './events.js';
-import { resetDom, settle } from './test/index.js';
-import type { ToolkitDiagnosticDetail } from './diagnostic-contract.js';
+import { captureDiagnostics, resetDom, settle } from './test/index.js';
 
 const cleanups = new Set<() => void>();
 
@@ -158,11 +156,7 @@ describe('watchAttributeNamespace', () => {
   describe('a declared vocabulary', () => {
     it('binds a known head and warns once for an unknown one', async () => {
       const el = element('<div data-bind:text="a" data-bind:prpo.value="b"></div>');
-      const details: ToolkitDiagnosticDetail[] = [];
-      document.addEventListener(EVENTS.diagnostic, (event) => {
-        details.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
-        event.preventDefault();
-      });
+      const log = captureDiagnostics();
       const record = recorder();
       watched(el, 'data-bind', record.bind, {
         qualifiers: ['text', 'if', 'prop'],
@@ -170,16 +164,17 @@ describe('watchAttributeNamespace', () => {
       });
 
       expect(record.bound).toEqual(['data-bind:text|text|a']);
-      expect(details).toHaveLength(1);
-      expect(details[0].code).toBe('attribute.unknown-qualifier');
-      expect(details[0].severity).toBe('warning');
-      expect(details[0].component).toBe('DataBind');
-      expect(details[0].message).toContain('prpo');
+      expect(log.entries).toHaveLength(1);
+      expect(log.entries[0].code).toBe('attribute.unknown-qualifier');
+      expect(log.entries[0].severity).toBe('warning');
+      expect(log.entries[0].component).toBe('DataBind');
+      expect(log.entries[0].message).toContain('prpo');
 
       // Once per element and per name, whatever the value is rewritten to.
       el.setAttribute('data-bind:prpo.value', 'c');
       await settle();
-      expect(details).toHaveLength(1);
+      expect(log.entries).toHaveLength(1);
+      log.stop();
     });
 
     it('validates the head only, so the name after the dot stays open', () => {
@@ -209,22 +204,19 @@ describe('watchAttributeNamespace', () => {
     // the second separator itself — nothing else stands between this and
     // `Action` binding a literal `click:s` DOM event.
     const el = element('<div data-on:click:s="a"></div>');
-    const details: ToolkitDiagnosticDetail[] = [];
-    document.addEventListener(EVENTS.diagnostic, (event) => {
-      details.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
-      event.preventDefault();
-    });
+    const log = captureDiagnostics();
     const record = recorder();
     watched(el, 'data-on', record.bind);
 
     expect(record.bound).toEqual([]);
-    expect(details).toHaveLength(1);
-    expect(details[0].code).toBe('attribute.unknown-qualifier');
+    expect(log.entries).toHaveLength(1);
+    expect(log.entries[0].code).toBe('attribute.unknown-qualifier');
 
     // Once per element and per name, not re-triggered by a rewrite of the value.
     el.setAttribute('data-on:click:s', 'b');
     await settle();
     expect(record.bound).toEqual([]);
-    expect(details).toHaveLength(1);
+    expect(log.entries).toHaveLength(1);
+    log.stop();
   });
 });

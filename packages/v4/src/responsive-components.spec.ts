@@ -2,8 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { Base, type BaseConfig } from './Base.js';
 import { DIAGNOSTICS } from './diagnostic-contract.js';
 import { whenDOMSettled } from './dom-mutations.js';
-import { getMountedInstances } from './instances.js';
-import { INSTANCES } from './protocol-symbols.js';
+import { getInstance, getInstances, getMountedInstances } from './instances.js';
 import { registerComponent, registerManifest } from './registry.js';
 import { BREAKPOINTS, setBreakpoints } from './services/breakpoint.js';
 import { captureDiagnostics, resetDom, settle } from './test/index.js';
@@ -53,7 +52,7 @@ function render(attributes: Record<string, string>): HTMLElement {
 }
 
 function instance(el: Element, name: string): TrackedComponent | undefined {
-  return el[INSTANCES]?.get(name) as TrackedComponent | undefined;
+  return getInstance<TrackedComponent>(el, name);
 }
 
 function at(name: 'small' | 'middle' | 'wide'): void {
@@ -105,9 +104,11 @@ describe('responsive component declarations', () => {
     });
     await whenDOMSettled();
 
-    expect([...(el[INSTANCES]?.keys() ?? [])].sort()).toEqual(
-      [action.name, analytics.name, mobileMenu.name, mobileSearch.name].sort(),
-    );
+    expect(
+      getInstances(el)
+        .map((found) => found.$config.name)
+        .sort(),
+    ).toEqual([action.name, analytics.name, mobileMenu.name, mobileSearch.name].sort());
     expect(instance(el, action.name)?.mounts).toBe(1);
     expect(getMountedInstances(mobileMenu.name)).toEqual([instance(el, mobileMenu.name)]);
   });

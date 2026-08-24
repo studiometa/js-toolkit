@@ -2,7 +2,13 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { Base } from '../Base.js';
 import { getInstance } from '../instances.js';
 import { registerComponent } from '../registry.js';
-import { countRequestedFrames, frames, resetDom, settle } from '../test/index.js';
+import {
+  captureDiagnostics,
+  countRequestedFrames,
+  frames,
+  resetDom,
+  settle,
+} from '../test/index.js';
 import { useDrag, withDrag } from './drag.js';
 import { withRaf } from './raf.js';
 import { withResize } from './resize.js';
@@ -119,14 +125,9 @@ describe('service mixins', () => {
   });
 
   it('subscribes for a component whose `mounted()` threw, as its handlers stay bound', async () => {
-    const failures: string[] = [];
-    const onDiagnostic = (event: Event) => {
-      // Cancel the default sink: the failure is the point of the spec, and
-      // `reportError()` would surface it as an unhandled error in the run.
-      event.preventDefault();
-      failures.push((event as CustomEvent<{ code: string }>).detail.code);
-    };
-    document.addEventListener('js-toolkit:diagnostic', onDiagnostic);
+    // The capture cancels every event, which is what the failure below needs:
+    // uncancelled, `reportError()` would surface it as an unhandled error.
+    const log = captureDiagnostics();
 
     class Broken extends withRaf(Base) {
       static config = { name: 'Broken' };
@@ -151,12 +152,12 @@ describe('service mixins', () => {
     const instance = new Broken(el).$mount();
     await frames(3);
     el.click();
-    document.removeEventListener('js-toolkit:diagnostic', onDiagnostic);
+    log.stop();
 
     // `#guard()` reports the failure and the cycle continues: the component is
     // mounted, its handlers are bound and its option effects are live, so the
     // subscription belongs with them rather than being the one thing withheld.
-    expect(failures).toContain('component.lifecycle-failed');
+    expect(log.codes).toContain('component.lifecycle-failed');
     expect(instance.$isMounted).toBe(true);
     expect(instance.clicks).toBe(1);
     expect(instance.ticks).toBeGreaterThan(0);
@@ -467,12 +468,7 @@ describe('service mixins', () => {
 
 describe('a resolver which comes back with nothing', () => {
   it('reports it and starts no subscription, rather than observing a default', async () => {
-    const codes: string[] = [];
-    const onDiagnostic = (event: Event) => {
-      event.preventDefault();
-      codes.push((event as CustomEvent<{ code: string }>).detail.code);
-    };
-    document.addEventListener('js-toolkit:diagnostic', onDiagnostic);
+    const log = captureDiagnostics();
 
     class Renamed extends Base {
       static config = { name: 'RenamedTarget' };
@@ -489,9 +485,9 @@ describe('a resolver which comes back with nothing', () => {
 
     const instance = new Mixed(render()).$mount();
     await settle();
-    document.removeEventListener('js-toolkit:diagnostic', onDiagnostic);
+    log.stop();
 
-    expect(codes).toEqual(['service.missing-target']);
+    expect(log.codes).toEqual(['service.missing-target']);
     // `useResize()` defaults its target to the document element, so without
     // this the component would have observed the page and looked fine.
     expect(instance.calls).toBe(0);
@@ -504,12 +500,7 @@ describe('a resolver which comes back with nothing', () => {
   });
 
   it('leaves a service whose own target is nothing alone', () => {
-    const codes: string[] = [];
-    const onDiagnostic = (event: Event) => {
-      event.preventDefault();
-      codes.push((event as CustomEvent<{ code: string }>).detail.code);
-    };
-    document.addEventListener('js-toolkit:diagnostic', onDiagnostic);
+    const log = captureDiagnostics();
 
     // `withRaf` resolves no target by design, and that is the contract rather
     // than a mistake — only a caller's resolver can be wrong.
@@ -517,9 +508,9 @@ describe('a resolver which comes back with nothing', () => {
     // unmounts an instance whose element carries no matching token — which is
     // correct, and would take this instance with it.
     const instance = new Ticker(render()).$mount();
-    document.removeEventListener('js-toolkit:diagnostic', onDiagnostic);
+    log.stop();
 
-    expect(codes).toEqual([]);
+    expect(log.codes).toEqual([]);
     // It subscribed: this service observes nothing by design, which is the
     // contract rather than a mistake.
     expect(instance.$services.ticked.isActive).toBe(true);

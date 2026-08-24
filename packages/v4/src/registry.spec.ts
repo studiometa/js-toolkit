@@ -3,7 +3,6 @@ import { Base, type BaseConfig } from './Base.js';
 import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
 import { EVENTS } from './events.js';
 import { getInstance } from './instances.js';
-import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent } from './registry.js';
 import { renderTodoList, TodoItem, TodoList } from './todo.fixtures.js';
 import { captureDiagnostics, resetDom, settle } from './test/index.js';
@@ -54,7 +53,7 @@ describe('registry', () => {
     const el = document.createElement('li');
     document.body.append(el);
     await settle();
-    expect(el[INSTANCES]?.get('TodoItem')).toBeUndefined();
+    expect(getInstance(el, 'TodoItem')).toBeUndefined();
 
     el.setAttribute('data-component', 'TodoItem');
     await settle();
@@ -75,8 +74,8 @@ describe('registry', () => {
     el.setAttribute('data-component', 'TodoCount');
     await settle();
 
-    expect(el[INSTANCES]?.get('TodoItem')).toBeUndefined();
-    expect(el[INSTANCES]?.get('TodoCount')).toBe(count);
+    expect(getInstance(el, 'TodoItem')).toBeUndefined();
+    expect(getInstance(el, 'TodoCount')).toBe(count);
     expect(count.$isMounted).toBe(true);
   });
 
@@ -89,7 +88,7 @@ describe('registry', () => {
 
     el.removeAttribute('data-component');
     await settle();
-    expect(el[INSTANCES]?.get('TodoItem')).toBeUndefined();
+    expect(getInstance(el, 'TodoItem')).toBeUndefined();
     expect(first.$isMounted).toBe(false);
 
     el.setAttribute('data-component', 'TodoItem');
@@ -142,7 +141,7 @@ describe('registry', () => {
     await settle();
 
     expect(attempts).toHaveLength(1);
-    expect(broken[INSTANCES]?.get('BrokenConstructionErrorEvent')).toBeUndefined();
+    expect(getInstance(broken, 'BrokenConstructionErrorEvent')).toBeUndefined();
     expect(brokenMounts).toBe(0);
     expect(healthyMounts).toBe(1);
 
@@ -154,7 +153,7 @@ describe('registry', () => {
 
     expect(attempts).toHaveLength(2);
     expect(attempts[1]).not.toBe(firstAttempt);
-    expect(broken[INSTANCES]?.get('BrokenConstructionErrorEvent')).toBeUndefined();
+    expect(getInstance(broken, 'BrokenConstructionErrorEvent')).toBeUndefined();
     expect(brokenMounts).toBe(0);
     expect(events).toHaveLength(2);
     expect(events.every((event) => event.target === broken)).toBe(true);
@@ -170,7 +169,6 @@ describe('registry', () => {
 
   it('preserves a valid pre-existing instance when its registry mount fails', async () => {
     const failure = new Error('mount failed');
-    const diagnostics: ToolkitDiagnosticDetail[] = [];
 
     class Existing extends Base {
       static config = { name: 'ExistingMountFailure' };
@@ -183,22 +181,20 @@ describe('registry', () => {
     registerComponent(Existing);
     const el = document.createElement('div');
     const instance = new Existing(el);
-    el.addEventListener(EVENTS.diagnostic, (event) => {
-      event.preventDefault();
-      diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
-    });
+    const log = captureDiagnostics(el);
     el.setAttribute('data-component', 'ExistingMountFailure');
     document.body.append(el);
     await settle();
 
-    expect(el[INSTANCES]?.get('ExistingMountFailure')).toBe(instance);
-    expect(diagnostics).toHaveLength(1);
-    expect(diagnostics[0]).toMatchObject({
+    expect(getInstance(el, 'ExistingMountFailure')).toBe(instance);
+    expect(log.entries).toHaveLength(1);
+    expect(log.entries[0]).toMatchObject({
       severity: 'error',
       code: DIAGNOSTICS.component.mountFailed,
       error: failure,
       component: 'ExistingMountFailure',
     });
+    log.stop();
   });
 
   it('processes a pending token replacement before mounting a newly registered class', async () => {
@@ -213,9 +209,7 @@ describe('registry', () => {
     class After extends Base {
       static config = { name: 'RegistrationAfter' };
       mounted(): void {
-        calls.push(
-          `after:mounted:before=${Boolean(this.$el[INSTANCES]?.has('RegistrationBefore'))}`,
-        );
+        calls.push(`after:mounted:before=${Boolean(getInstance(this.$el, 'RegistrationBefore'))}`);
       }
     }
 

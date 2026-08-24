@@ -1,11 +1,10 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { Base } from './Base.js';
-import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
-import { EVENTS } from './events.js';
-import { INSTANCES } from './protocol-symbols.js';
+import { DIAGNOSTICS } from './diagnostic-contract.js';
+import { getInstance } from './instances.js';
 import { registerComponent } from './registry.js';
 import { SWAP_MODES, swap } from './swap.js';
-import { resetDom } from './test/index.js';
+import { captureDiagnostics, resetDom } from './test/index.js';
 
 let counter = 0;
 
@@ -235,7 +234,7 @@ describe('swap — component lifecycle', () => {
     });
 
     expect(log).toEqual(['mounted:first', 'mounted:second']);
-    expect(el.querySelector('#second')?.[INSTANCES]?.get(name)?.$isMounted).toBe(true);
+    expect(getInstance(el.querySelector('#second'), name)?.$isMounted).toBe(true);
 
     await swap(el, '<p>gone</p>');
 
@@ -260,7 +259,7 @@ describe('swap — component lifecycle', () => {
     const el = target();
     await swap(el, `<div id="kept" data-component="${name}">before</div>`);
     const inner = el.querySelector('#kept');
-    const instance = inner?.[INSTANCES]?.get(name);
+    const instance = getInstance(inner, name);
     expect(log).toEqual(['mounted']);
 
     await swap(el, `<div id="kept" data-component="${name}">after</div>`, {
@@ -268,7 +267,7 @@ describe('swap — component lifecycle', () => {
     });
 
     expect(el.querySelector('#kept')).toBe(inner);
-    expect(inner?.[INSTANCES]?.get(name)).toBe(instance);
+    expect(getInstance(inner, name)).toBe(instance);
     expect(inner?.textContent).toBe('after');
     expect(log).toEqual(['mounted']);
   });
@@ -306,24 +305,14 @@ describe('swap — the wrap seam', () => {
     await swap(el, `<div data-component="${name}"></div>`, {
       wrap: (mutate) => {
         mutate();
-        mountedDuringWrap = el.firstElementChild?.[INSTANCES]?.get(name)?.$isMounted;
+        mountedDuringWrap = getInstance(el.firstElementChild, name)?.$isMounted;
       },
     });
 
     expect(mountedDuringWrap).toBeFalsy();
-    expect(el.firstElementChild?.[INSTANCES]?.get(name)?.$isMounted).toBe(true);
+    expect(getInstance(el.firstElementChild, name)?.$isMounted).toBe(true);
   });
 });
-
-/** Collect diagnostic codes until the returned cleanup runs. */
-function captureDiagnostics(): { codes: string[]; release: () => void } {
-  const codes: string[] = [];
-  const listener = (event: Event) => {
-    codes.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail.code);
-  };
-  document.addEventListener(EVENTS.diagnostic, listener);
-  return { codes, release: () => document.removeEventListener(EVENTS.diagnostic, listener) };
-}
 
 describe('swap — replacing the target itself', () => {
   it('replaces the target element, attributes included', async () => {
@@ -391,16 +380,16 @@ describe('swap — replacing the target itself', () => {
 
     await swap(el, `<div id="here" data-component="${name}"></div>`, { self: true });
 
-    expect(parent.firstElementChild?.[INSTANCES]?.get(name)?.$isMounted).toBe(true);
+    expect(getInstance(parent.firstElementChild, name)?.$isMounted).toBe(true);
   });
 
   it('warns and keeps its meaning when a mode adds to the children', async () => {
     const parent = target('<div id="here"><p>old</p></div>');
     const el = parent.firstElementChild as HTMLElement;
-    const { codes, release } = captureDiagnostics();
+    const { codes, stop } = captureDiagnostics();
 
     await swap(el, '<p>new</p>', { mode: SWAP_MODES.APPEND, self: true });
-    release();
+    stop();
 
     expect(codes).toEqual([DIAGNOSTICS.swap.selfIgnored]);
     expect(el.isConnected).toBe(true);
@@ -410,10 +399,10 @@ describe('swap — replacing the target itself', () => {
   it('warns when the content holds no element to replace the target with', async () => {
     const parent = target('<div id="here"><p>old</p></div>');
     const el = parent.firstElementChild as HTMLElement;
-    const { codes, release } = captureDiagnostics();
+    const { codes, stop } = captureDiagnostics();
 
     await swap(el, 'text only', { self: true });
-    release();
+    stop();
 
     expect(codes).toEqual([DIAGNOSTICS.swap.selfIgnored]);
     expect(el.isConnected).toBe(true);

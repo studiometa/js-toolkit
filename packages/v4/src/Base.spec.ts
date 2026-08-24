@@ -76,7 +76,7 @@ describe('$emit and delegation', () => {
     await settle();
 
     const li = root.querySelector('[data-component="TodoItem"]');
-    const instance = getInstance(li!, 'TodoItem')!;
+    const instance = getInstance(li, 'TodoItem')!;
     const seen: unknown[] = [];
     root.addEventListener('ping', (event) => {
       seen.push((event as CustomEvent).detail);
@@ -93,7 +93,7 @@ describe('$emit and delegation', () => {
     await settle();
 
     const li = root.querySelector('[data-component="TodoItem"]');
-    const instance = getInstance(li!, 'TodoItem')!;
+    const instance = getInstance(li, 'TodoItem')!;
     const seen: unknown[] = [];
     root.addEventListener('ping', (event) => seen.push((event as CustomEvent).detail));
 
@@ -106,7 +106,7 @@ describe('$emit and delegation', () => {
     await settle();
 
     const li = root.querySelector('[data-component="TodoItem"]');
-    const instance = getInstance(li!, 'TodoItem')!;
+    const instance = getInstance(li, 'TodoItem')!;
     const log = captureDiagnostics();
     const seen: unknown[] = [];
     root.addEventListener('ping', (event) => seen.push((event as CustomEvent).detail));
@@ -463,7 +463,6 @@ describe('$options', () => {
     const calls: string[] = [];
     const cleanupFailure = new Error('expected cleanup failure');
     const handlerFailure = new Error('expected handler failure');
-    const events: CustomEvent<ToolkitDiagnosticDetail>[] = [];
 
     class ResilientOptions extends Base {
       static config = {
@@ -501,10 +500,7 @@ describe('$options', () => {
       registerComponent(ReentrantOption);
       const resilient = document.createElement('div');
       resilient.setAttribute('data-component', 'ResilientOptions');
-      resilient.addEventListener(EVENTS.diagnostic, (event) => {
-        event.preventDefault();
-        events.push(event as CustomEvent<ToolkitDiagnosticDetail>);
-      });
+      const log = captureDiagnostics(resilient);
       const reentrant = document.createElement('div');
       reentrant.setAttribute('data-component', 'ReentrantOption');
       document.body.append(resilient, reentrant);
@@ -516,12 +512,13 @@ describe('$options', () => {
       await settle();
 
       expect(calls).toEqual(['second:0', 'second:2']);
-      expect(events.map((event) => event.detail.error)).toEqual([cleanupFailure, handlerFailure]);
-      expect(
-        events.every((event) => event.detail.code === DIAGNOSTICS.component.lifecycleFailed),
-      ).toBe(true);
-      expect(events.every((event) => event.detail.component === 'ResilientOptions')).toBe(true);
+      expect(log.entries.map(({ error }) => error)).toEqual([cleanupFailure, handlerFailure]);
+      expect(log.entries.every(({ code }) => code === DIAGNOSTICS.component.lifecycleFailed)).toBe(
+        true,
+      );
+      expect(log.entries.every(({ component }) => component === 'ResilientOptions')).toBe(true);
       expect(getInstance<ReentrantOption>(reentrant, 'ReentrantOption')!.$isMounted).toBe(false);
+      log.stop();
     } finally {
       document.querySelectorAll('[data-component="ResilientOptions"]').forEach((el) => el.remove());
     }
@@ -797,7 +794,7 @@ describe('$refs', () => {
     expect(owner.$refs.item).toBe(root.querySelector('[data-ref="item"]'));
 
     await settle();
-    expect(getInstance(root.lastElementChild!, 'RefReadInserted')!.$isMounted).toBe(true);
+    expect(getInstance(root.lastElementChild, 'RefReadInserted')!.$isMounted).toBe(true);
   });
 });
 
@@ -1330,6 +1327,8 @@ describe('$watchChildren', () => {
     for (const instance of [unrelated, gamma, family, beta, alpha]) {
       instance.$mount();
     }
+    // A raw write, so no lookup replaces it: the fixture needs one instance
+    // filed under a second name, and `getInstance()` only reads.
     alpha.$el[INSTANCES]?.set('WatchAlphaAlias', alpha);
 
     const owner = new Owner(root);
@@ -1618,7 +1617,7 @@ describe('lifecycle', () => {
     expect(instance.$isMounted).toBe(false);
     // Unmount is reversible, so the instance stays on its element for a later
     // mount even when both its hooks threw.
-    expect(el[INSTANCES]?.get('TeardownFailure')).toBe(instance);
+    expect(getInstance(el, 'TeardownFailure')).toBe(instance);
   });
 
   it('runs the mounted() cleanup on unmount', async () => {
@@ -1626,7 +1625,7 @@ describe('lifecycle', () => {
     await settle();
 
     const countInstance = getInstance<TodoCount>(
-      root.querySelector('[data-component="TodoCount"]')!,
+      root.querySelector('[data-component="TodoCount"]'),
       'TodoCount',
     )!;
     expect(countInstance.cleanupCalls).toBe(0);
@@ -1661,14 +1660,14 @@ describe('lifecycle', () => {
 
     instance.$mount();
     expect(instance.$isMounted).toBe(true);
-    expect(el[INSTANCES]?.get('Tracked')).toBe(instance);
+    expect(getInstance(el, 'Tracked')).toBe(instance);
 
     // Mount and unmount are the whole lifecycle: neither is one-way, and the
     // instance stays on its element between them, which is what lets a moved
     // or re-inserted element keep its identity.
     instance.$unmount();
     expect(calls).toEqual(['mounted', 'cleanup', 'unmounted', 'mounted', 'cleanup', 'unmounted']);
-    expect(el[INSTANCES]?.get('Tracked')).toBe(instance);
+    expect(getInstance(el, 'Tracked')).toBe(instance);
 
     instance.$mount();
     expect(instance.$isMounted).toBe(true);

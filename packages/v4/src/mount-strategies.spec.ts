@@ -2,10 +2,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Base, type BaseConfig } from './Base.js';
 import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
 import { EVENTS } from './events.js';
-import { INSTANCES } from './protocol-symbols.js';
+import { getInstance } from './instances.js';
 import { registerComponent } from './registry.js';
 import { getSharedRuntimeSlot } from './shared-runtime.js';
-import { resetDom, settle, waitFor } from './test/index.js';
+import { captureDiagnostics, resetDom, settle, waitFor } from './test/index.js';
 
 /**
  * The page-wide interaction signal is a fact about the visit, so it survives a
@@ -67,10 +67,6 @@ function render(name: string, attributes: Record<string, string> = {}, style = O
   return el;
 }
 
-function instanceOf<T extends Base>(el: Element, name: string): T | undefined {
-  return el[INSTANCES]?.get(name) as T | undefined;
-}
-
 /**
  * A bounded quiet period, for the assertions that nothing mounted. Every
  * positive wait below polls for the state it expects; an absence cannot be
@@ -93,7 +89,7 @@ describe('eager (default)', () => {
     const el = render(name);
     await settle();
 
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 });
 
@@ -103,7 +99,7 @@ describe('data-mount="visible"', () => {
     const el = render(name, { 'data-mount': 'visible' }, OFFSCREEN);
     await quiet();
 
-    expect(el[INSTANCES]?.get(name)).toBeUndefined();
+    expect(getInstance(el, name)).toBeUndefined();
   });
 
   it('mounts once with a root margin and stays mounted afterwards', async () => {
@@ -112,7 +108,7 @@ describe('data-mount="visible"', () => {
     await quiet();
 
     el.setAttribute('style', ONSCREEN);
-    const instance = await waitFor(() => instanceOf(el, name));
+    const instance = await waitFor(() => getInstance(el, name));
     expect(instance?.$isMounted).toBe(true);
 
     el.setAttribute('style', OFFSCREEN);
@@ -126,7 +122,7 @@ describe('data-mount="in-view"', () => {
     const { name, Tracked } = defineTracked();
     type Tracked = InstanceType<typeof Tracked>;
     const el = render(name, { 'data-mount': 'in-view' }, ONSCREEN);
-    const instance = await waitFor(() => instanceOf<Tracked>(el, name));
+    const instance = await waitFor(() => getInstance<Tracked>(el, name));
 
     expect(instance?.$isMounted).toBe(true);
     expect(instance?.mounts).toBe(1);
@@ -138,7 +134,7 @@ describe('data-mount="in-view"', () => {
 
     el.setAttribute('style', ONSCREEN);
     await waitFor(() => instance?.mounts === 2);
-    expect(instanceOf(el, name)).toBe(instance);
+    expect(getInstance(el, name)).toBe(instance);
     expect(instance?.$isMounted).toBe(true);
     expect(instance?.mounts).toBe(2);
   });
@@ -152,11 +148,11 @@ describe('data-mount="interaction"', () => {
     // cursor — which the top-left corner of the viewport often is.
     const el = render(name, { 'data-mount': 'interaction' }, OFFSCREEN);
     await settle();
-    expect(el[INSTANCES]?.get(name)).toBeUndefined();
+    expect(getInstance(el, name)).toBeUndefined();
 
     el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
     await settle();
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 });
 
@@ -167,16 +163,16 @@ describe('data-mount="interaction:page"', () => {
     const { name } = defineTracked();
     const el = render(name, { 'data-mount': 'interaction:page' }, OFFSCREEN);
     await settle();
-    expect(el[INSTANCES]?.get(name)).toBeUndefined();
+    expect(getInstance(el, name)).toBeUndefined();
 
     // What the element-scoped strategy mounts on says nothing about the page.
     el.dispatchEvent(new PointerEvent('pointerenter'));
     await settle();
-    expect(el[INSTANCES]?.get(name)).toBeUndefined();
+    expect(getInstance(el, name)).toBeUndefined();
 
     document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
     await settle();
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 
   it('mounts every waiting element from one interaction, wherever it lands', async () => {
@@ -188,8 +184,8 @@ describe('data-mount="interaction:page"', () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
     await settle();
 
-    expect(instanceOf(first, name)?.$isMounted).toBe(true);
-    expect(instanceOf(second, name)?.$isMounted).toBe(true);
+    expect(getInstance(first, name)?.$isMounted).toBe(true);
+    expect(getInstance(second, name)?.$isMounted).toBe(true);
   });
 
   it('listens once for the page rather than once per waiting element', async () => {
@@ -236,7 +232,7 @@ describe('data-mount="interaction:page"', () => {
     const late = render(name, { 'data-mount': 'interaction:page' }, OFFSCREEN);
     await settle();
 
-    expect(instanceOf(late, name)?.$isMounted).toBe(true);
+    expect(getInstance(late, name)?.$isMounted).toBe(true);
   });
 
   it('stops waiting for an element that left before the interaction', async () => {
@@ -249,7 +245,7 @@ describe('data-mount="interaction:page"', () => {
     document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
     await settle();
 
-    expect(el[INSTANCES]?.get(name)).toBeUndefined();
+    expect(getInstance(el, name)).toBeUndefined();
   });
 });
 
@@ -257,9 +253,9 @@ describe('data-mount="idle"', () => {
   it('mounts when the main thread goes idle', async () => {
     const { name } = defineTracked();
     const el = render(name, { 'data-mount': 'idle' });
-    await waitFor(() => instanceOf(el, name)?.$isMounted);
+    await waitFor(() => getInstance(el, name)?.$isMounted);
 
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 });
 
@@ -273,15 +269,15 @@ describe('data-mount="media:…"', () => {
     // makes the failing query's absence below mean something.
     await waitFor(
       () =>
-        instanceOf(document.querySelector(`[data-component="${matching.name}"]`)!, matching.name)
+        getInstance(document.querySelector(`[data-component="${matching.name}"]`), matching.name)
           ?.$isMounted,
     );
 
     expect(
-      instanceOf(document.querySelector(`[data-component="${matching.name}"]`)!, matching.name)
+      getInstance(document.querySelector(`[data-component="${matching.name}"]`), matching.name)
         ?.$isMounted,
     ).toBe(true);
-    expect(narrow[INSTANCES]?.get(failing.name)).toBeUndefined();
+    expect(getInstance(narrow, failing.name)).toBeUndefined();
   });
 });
 
@@ -290,11 +286,11 @@ describe('config.mountStrategy', () => {
     const { name } = defineTracked({ mountStrategy: 'visible:200px 0px' });
     const el = render(name, {}, OFFSCREEN);
     await quiet();
-    expect(el[INSTANCES]?.get(name)).toBeUndefined();
+    expect(getInstance(el, name)).toBeUndefined();
 
     el.setAttribute('style', ONSCREEN);
-    await waitFor(() => instanceOf(el, name)?.$isMounted);
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    await waitFor(() => getInstance(el, name)?.$isMounted);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 
   it('is overridden by the element attribute', async () => {
@@ -302,17 +298,17 @@ describe('config.mountStrategy', () => {
     const el = render(name, { 'data-mount': 'eager' }, OFFSCREEN);
     await settle();
 
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 
   it('lets a parameterized data-mount override the component config', async () => {
     const { name } = defineTracked({ mountStrategy: 'eager' });
     const el = render(name, { 'data-mount': 'in-view:200px 0px' }, OFFSCREEN);
     await quiet();
-    expect(el[INSTANCES]?.get(name)).toBeUndefined();
+    expect(getInstance(el, name)).toBeUndefined();
 
     el.setAttribute('style', ONSCREEN);
-    const instance = await waitFor(() => instanceOf(el, name));
+    const instance = await waitFor(() => getInstance(el, name));
     expect(instance?.$isMounted).toBe(true);
 
     el.setAttribute('style', OFFSCREEN);
@@ -324,12 +320,12 @@ describe('config.mountStrategy', () => {
     const { name } = defineTracked({ mountStrategy: 'visible' });
     const el = render(name, { 'data-mount': 'interaction' }, OFFSCREEN);
     await settle();
-    expect(el[INSTANCES]?.get(name)).toBeUndefined();
+    expect(getInstance(el, name)).toBeUndefined();
 
     el.removeAttribute('data-mount');
     el.setAttribute('style', ONSCREEN);
-    await waitFor(() => instanceOf(el, name)?.$isMounted);
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    await waitFor(() => getInstance(el, name)?.$isMounted);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 
   it('is inherited by a subclass that declares a config of its own', async () => {
@@ -344,11 +340,11 @@ describe('config.mountStrategy', () => {
 
     const el = render(name, {}, OFFSCREEN);
     await quiet();
-    expect(el[INSTANCES]?.get(name)).toBeUndefined();
+    expect(getInstance(el, name)).toBeUndefined();
 
     el.setAttribute('style', ONSCREEN);
-    await waitFor(() => instanceOf(el, name)?.$isMounted);
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    await waitFor(() => getInstance(el, name)?.$isMounted);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 
   it('is overridden by a subclass declaring its own strategy', async () => {
@@ -363,7 +359,7 @@ describe('config.mountStrategy', () => {
 
     const el = render(name, {}, OFFSCREEN);
     await settle();
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 });
 
@@ -372,11 +368,11 @@ describe('dynamic data-mount', () => {
     const { name } = defineTracked();
     const el = render(name, { 'data-mount': 'visible' }, OFFSCREEN);
     await quiet();
-    expect(el[INSTANCES]?.get(name)).toBeUndefined();
+    expect(getInstance(el, name)).toBeUndefined();
 
     el.setAttribute('data-mount', 'eager');
     await settle();
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 });
 
@@ -397,7 +393,7 @@ describe('invalid data-mount', () => {
 
       await waitFor(() => events.length > 0);
 
-      expect(el[INSTANCES]?.get(name)).toBeUndefined();
+      expect(getInstance(el, name)).toBeUndefined();
       expect(events).toHaveLength(1);
       const failure = events[0].detail.error;
       expect(failure).toBeInstanceOf(Error);
@@ -422,31 +418,28 @@ describe('invalid data-mount', () => {
 
       el.setAttribute('data-mount', 'eager');
       await settle();
-      expect(instanceOf(el, name)?.$isMounted).toBe(true);
+      expect(getInstance(el, name)?.$isMounted).toBe(true);
     },
   );
 
   it('does not stop a valid sibling in the same reconciliation batch', async () => {
     const broken = defineTracked();
     const healthy = defineTracked();
-    const diagnostics: ToolkitDiagnosticDetail[] = [];
 
     const brokenEl = document.createElement('div');
     brokenEl.setAttribute('data-component', broken.name);
     brokenEl.setAttribute('data-mount', 'in-view:not-a-root-margin');
-    brokenEl.addEventListener(EVENTS.diagnostic, (event) => {
-      event.preventDefault();
-      diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
-    });
+    const log = captureDiagnostics(brokenEl);
     const healthyEl = document.createElement('div');
     healthyEl.setAttribute('data-component', healthy.name);
     document.body.append(brokenEl, healthyEl);
 
-    await waitFor(() => instanceOf(healthyEl, healthy.name)?.$isMounted);
+    await waitFor(() => getInstance(healthyEl, healthy.name)?.$isMounted);
 
-    expect(brokenEl[INSTANCES]?.get(broken.name)).toBeUndefined();
-    expect(diagnostics).toHaveLength(1);
-    expect(instanceOf(healthyEl, healthy.name)?.$isMounted).toBe(true);
+    expect(getInstance(brokenEl, broken.name)).toBeUndefined();
+    expect(log.entries).toHaveLength(1);
+    expect(getInstance(healthyEl, healthy.name)?.$isMounted).toBe(true);
+    log.stop();
   });
 });
 
@@ -460,7 +453,7 @@ describe('teardown', () => {
     await quiet();
     el.setAttribute('style', ONSCREEN);
     await quiet();
-    expect(el[INSTANCES]?.get(name)).toBeUndefined();
+    expect(getInstance(el, name)).toBeUndefined();
   });
 
   it('re-schedules an element moved in a single batch', async () => {
@@ -472,7 +465,7 @@ describe('teardown', () => {
     const el = document.createElement('div');
     el.setAttribute('data-component', name);
     from.append(el);
-    const instance = await waitFor(() => instanceOf<Tracked>(el, name));
+    const instance = await waitFor(() => getInstance<Tracked>(el, name));
     expect(instance?.$isMounted).toBe(true);
     expect(instance?.mounts).toBe(1);
 
@@ -480,7 +473,7 @@ describe('teardown', () => {
     // mount cycle and starts another without replacing the instance.
     to.append(el);
     await waitFor(() => instance?.mounts === 2);
-    expect(instanceOf(el, name)).toBe(instance);
+    expect(getInstance(el, name)).toBe(instance);
     expect(instance?.$isMounted).toBe(true);
     expect(instance?.unmounts).toBe(1);
     expect(instance?.mounts).toBe(2);
@@ -490,14 +483,14 @@ describe('teardown', () => {
   it('re-schedules an element that comes back', async () => {
     const { name } = defineTracked();
     const el = render(name, { 'data-mount': 'visible' }, ONSCREEN);
-    await waitFor(() => instanceOf(el, name)?.$isMounted);
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    await waitFor(() => getInstance(el, name)?.$isMounted);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
 
     el.remove();
-    await waitFor(() => instanceOf(el, name)?.$isMounted === false);
+    await waitFor(() => getInstance(el, name)?.$isMounted === false);
     document.body.append(el);
-    await waitFor(() => instanceOf(el, name)?.$isMounted);
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    await waitFor(() => getInstance(el, name)?.$isMounted);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 });
 
@@ -513,12 +506,12 @@ describe('several components on one element', () => {
     document.body.append(el);
     await quiet();
 
-    expect(el[INSTANCES]?.get(first.name)).toBeUndefined();
-    expect(el[INSTANCES]?.get(second.name)).toBeUndefined();
+    expect(getInstance(el, first.name)).toBeUndefined();
+    expect(getInstance(el, second.name)).toBeUndefined();
 
     el.setAttribute('style', ONSCREEN);
-    await waitFor(() => instanceOf(el, first.name)?.$isMounted);
-    expect(instanceOf(el, first.name)?.$isMounted).toBe(true);
-    expect(instanceOf(el, second.name)?.$isMounted).toBe(true);
+    await waitFor(() => getInstance(el, first.name)?.$isMounted);
+    expect(getInstance(el, first.name)?.$isMounted).toBe(true);
+    expect(getInstance(el, second.name)?.$isMounted).toBe(true);
   });
 });

@@ -1,21 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from '../diagnostic-contract.js';
-import { EVENTS } from '../events.js';
 import { createService, perTarget } from './service.js';
+import { captureDiagnostics } from '../test/index.js';
 
+/** {@link captureDiagnostics} bounded to one synchronous call. */
 function catchDiagnostics(run: () => void): ToolkitDiagnosticDetail[] {
-  const diagnostics: ToolkitDiagnosticDetail[] = [];
-  const onDiagnostic = (event: Event) => {
-    event.preventDefault();
-    diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
-  };
-  document.addEventListener(EVENTS.diagnostic, onDiagnostic);
+  const log = captureDiagnostics();
   try {
     run();
   } finally {
-    document.removeEventListener(EVENTS.diagnostic, onDiagnostic);
+    log.stop();
   }
-  return diagnostics;
+  return log.entries;
 }
 
 describe('createService', () => {

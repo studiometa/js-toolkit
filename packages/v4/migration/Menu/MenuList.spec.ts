@@ -25,8 +25,8 @@ async function render(): Promise<{
     </ul>`);
   return {
     root,
-    outer: getInstance<MenuList>(root.querySelector('#outer-list')!, 'MenuList')!,
-    nested: getInstance<MenuList>(root.querySelector('#nested-list')!, 'MenuList')!,
+    outer: getInstance<MenuList>(root.querySelector('#outer-list'), 'MenuList')!,
+    nested: getInstance<MenuList>(root.querySelector('#nested-list'), 'MenuList')!,
     outerLink: root.querySelector('#outer-link') as HTMLElement,
     nestedLink: root.querySelector('#nested-link') as HTMLElement,
   };

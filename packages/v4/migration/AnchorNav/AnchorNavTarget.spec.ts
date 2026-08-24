@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { INSTANCES } from '../../src/protocol-symbols.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { resetDom, settle, waitFor } from '../../src/test/index.js';
 import { AnchorNavTarget } from './AnchorNavTarget.js';
 
@@ -18,7 +17,7 @@ async function quiet(): Promise<void> {
   }
 }
 
-const mountedState = (el: HTMLElement) => el[INSTANCES]?.get('AnchorNavTarget')?.$isMounted;
+const mountedState = (el: HTMLElement) => getInstance(el, 'AnchorNavTarget')?.$isMounted;
 
 function render(style: string): HTMLElement {
   const el = document.createElement('div');

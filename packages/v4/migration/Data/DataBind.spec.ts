@@ -67,7 +67,7 @@ function el<T extends HTMLElement = HTMLElement>(root: HTMLElement, selector: st
 }
 
 function at<T>(root: HTMLElement, selector: string, name: string): T {
-  return getInstance<never>(root.querySelector(selector)!, name)! as T;
+  return getInstance<never>(root.querySelector(selector), name)! as T;
 }
 
 describe('DataBind — the element half', () => {
@@ -272,15 +272,9 @@ describe('DataBind — the element half', () => {
   });
 
   it('warns for a binding type that names nothing', async () => {
-    const details: string[] = [];
-    // Removed at the end: this listener cancels the default sink, and leaking
-    // it silenced every later diagnostic in the file.
-    const listener = (event: Event) => {
-      const { detail } = event as CustomEvent<{ code: string; message: string }>;
-      details.push(detail.code);
-      event.preventDefault();
-    };
-    document.addEventListener(EVENTS.diagnostic, listener);
+    // Stopped at the end: the capture cancels the default sink, and leaking it
+    // silenced every later diagnostic in the file.
+    const log = captureDiagnostics();
 
     const root = await mount(`
       <div id="d" data-component="DataBind" data-option-group="${uniqueGroup('v')}"
@@ -288,10 +282,10 @@ describe('DataBind — the element half', () => {
     `);
 
     // The typo used to be an attribute that silently did nothing at all.
-    expect(details).toContain('attribute.unknown-qualifier');
+    expect(log.codes).toContain('attribute.unknown-qualifier');
     expect(at<DataBind>(root, '#d', 'DataBind').hasVirtualBindings).toBe(false);
 
-    document.removeEventListener(EVENTS.diagnostic, listener);
+    log.stop();
   });
 
   it('fails quietly when a virtual expression throws', async () => {

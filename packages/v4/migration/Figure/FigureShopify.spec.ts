@@ -19,7 +19,7 @@ async function render(attributes = ''): Promise<FigureShopify> {
     </div>`;
   document.body.append(root);
   await settle();
-  return getInstance<FigureShopify>(root.firstElementChild!, 'FigureShopify')!;
+  return getInstance<FigureShopify>(root.firstElementChild, 'FigureShopify')!;
 }
 
 describe('FigureShopify', () => {
