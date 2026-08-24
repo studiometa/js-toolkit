@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { Base, type BaseConfig } from './Base.js';
 import { DIAGNOSTICS } from './diagnostic-contract.js';
 import { whenDOMSettled } from './dom-mutations.js';
-import { getInstances } from './instances.js';
+import { getMountedInstances } from './instances.js';
 import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent, registerManifest } from './registry.js';
 import { BREAKPOINTS, setBreakpoints } from './services/breakpoint.js';
@@ -109,7 +109,7 @@ describe('responsive component declarations', () => {
       [action.name, analytics.name, mobileMenu.name, mobileSearch.name].sort(),
     );
     expect(instance(el, action.name)?.mounts).toBe(1);
-    expect(getInstances(mobileMenu.name)).toEqual([instance(el, mobileMenu.name)]);
+    expect(getMountedInstances(mobileMenu.name)).toEqual([instance(el, mobileMenu.name)]);
   });
 
   it('replaces lower scoped sets, stops them on an empty override, and restores fresh identities', async () => {

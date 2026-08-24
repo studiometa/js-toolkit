@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as subpath from '@studiometa/js-toolkit-v4/test';
 import { Base } from '../Base.js';
 import { warn } from '../diagnostics.js';
-import { getInstances } from '../instances.js';
+import { getInstances, getMountedInstances } from '../instances.js';
 import { registerComponent, registerComponents, registerManifest } from '../registry.js';
 import { defaultScheduler } from '../scheduler.js';
 import {
@@ -94,7 +94,7 @@ describe('mount()', () => {
     expect(root.parentElement).toBe(document.body);
     expect(root.tagName).toBe('DIV');
 
-    const [subject] = getInstances<Subject>('TestHelpersSubject', root);
+    const [subject] = getMountedInstances<Subject>('TestHelpersSubject', root);
     expect(subject.mountedCalls).toBe(1);
     expect(subject.$el).toBe(root.firstElementChild);
     expect(subject.$el.textContent).toBe('written');
@@ -106,7 +106,7 @@ describe('mount()', () => {
     );
 
     expect(root.children).toHaveLength(2);
-    expect(getInstances('TestHelpersSubject', root)).toHaveLength(2);
+    expect(getMountedInstances('TestHelpersSubject', root)).toHaveLength(2);
   });
 });
 
@@ -210,7 +210,7 @@ describe('waitFor()', () => {
 describe('resetDom()', () => {
   it('empties the body and unmounts what was in it', async () => {
     const root = await mount('<div data-component="TestHelpersSubject"></div>');
-    expect(getInstances('TestHelpersSubject', root)).toHaveLength(1);
+    expect(getMountedInstances('TestHelpersSubject', root)).toHaveLength(1);
 
     await resetDom();
 
@@ -276,7 +276,7 @@ describe('captureDiagnostics()', () => {
 describe('recordEvents()', () => {
   it("captures a component's emit, with its detail", async () => {
     const root = await mount('<div data-component="TestHelpersEmitter"></div>');
-    const [emitter] = getInstances<Emitter>('TestHelpersEmitter', root);
+    const [emitter] = getMountedInstances<Emitter>('TestHelpersEmitter', root);
     const log = recordEvents(root, 'ping');
 
     emitter.ping(2);
@@ -291,7 +291,7 @@ describe('recordEvents()', () => {
 
   it('keeps several types in one array, in delivery order', async () => {
     const root = await mount('<div data-component="TestHelpersEmitter"></div>');
-    const [emitter] = getInstances<Emitter>('TestHelpersEmitter', root);
+    const [emitter] = getMountedInstances<Emitter>('TestHelpersEmitter', root);
     const log = recordEvents(root, 'ping', 'pong');
 
     emitter.pingLater(1);
@@ -306,7 +306,7 @@ describe('recordEvents()', () => {
 
   it('ignores a type it was not asked for, and stops when stopped', async () => {
     const root = await mount('<div data-component="TestHelpersEmitter"></div>');
-    const [emitter] = getInstances<Emitter>('TestHelpersEmitter', root);
+    const [emitter] = getMountedInstances<Emitter>('TestHelpersEmitter', root);
     const log = recordEvents(root, 'ping');
 
     emitter.$emit('pong');
@@ -349,7 +349,7 @@ describe('resetRegistry()', () => {
     expect(log.codes).toEqual([]);
 
     const root = await mount('<div data-component="TestHelpersRecycled"></div>');
-    const [instance] = getInstances('TestHelpersRecycled', root);
+    const [instance] = getMountedInstances('TestHelpersRecycled', root);
     expect(instance).toBeInstanceOf(second);
   });
 
@@ -381,7 +381,7 @@ describe('resetRegistry()', () => {
       },
     );
     const before = await mount('<div data-component="TestHelpersRetired"></div>');
-    expect(getInstances('TestHelpersRetired', before)).toHaveLength(1);
+    expect(getMountedInstances('TestHelpersRetired', before)).toHaveLength(1);
 
     await resetDom();
     resetRegistry();

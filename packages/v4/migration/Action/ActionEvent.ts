@@ -1,4 +1,4 @@
-import { getInstances, type Base } from '../../src/index.js';
+import { getMountedInstances, type Base } from '../../src/index.js';
 import { MODIFIERS, parseEventDefinition, type Modifier } from '../event-modifiers.js';
 import { getEffect, type EffectFunction } from './expression.js';
 
@@ -63,7 +63,7 @@ export class ActionEvent {
   /** Co-located mounted instances, recomputed for each event. */
   get instances(): Map<string, Base> {
     return new Map(
-      getInstances(this.action.$el).map((instance) => [instance.$config.name, instance]),
+      getMountedInstances(this.action.$el).map((instance) => [instance.$config.name, instance]),
     );
   }
 
@@ -99,7 +99,7 @@ export class ActionEvent {
         // Ignore unparseable target parts.
         continue;
       }
-      for (const instance of getInstances(name)) {
+      for (const instance of getMountedInstances(name)) {
         if (!selector || instance.$el.matches(selector)) {
           targets.push({ [name]: instance });
         }
