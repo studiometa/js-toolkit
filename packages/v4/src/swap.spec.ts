@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { Base } from './Base.js';
 import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
 import { EVENTS } from './events.js';
-import { INSTANCES } from './protocol-symbols.js';
+import { getInstance } from './instances.js';
 import { registerComponent } from './registry.js';
 import { SWAP_MODES, swap } from './swap.js';
 import { resetDom } from './test/index.js';
@@ -235,7 +235,7 @@ describe('swap — component lifecycle', () => {
     });
 
     expect(log).toEqual(['mounted:first', 'mounted:second']);
-    expect(el.querySelector('#second')?.[INSTANCES]?.get(name)?.$isMounted).toBe(true);
+    expect(getInstance(el.querySelector('#second'), name)?.$isMounted).toBe(true);
 
     await swap(el, '<p>gone</p>');
 
@@ -260,7 +260,7 @@ describe('swap — component lifecycle', () => {
     const el = target();
     await swap(el, `<div id="kept" data-component="${name}">before</div>`);
     const inner = el.querySelector('#kept');
-    const instance = inner?.[INSTANCES]?.get(name);
+    const instance = getInstance(inner, name);
     expect(log).toEqual(['mounted']);
 
     await swap(el, `<div id="kept" data-component="${name}">after</div>`, {
@@ -268,7 +268,7 @@ describe('swap — component lifecycle', () => {
     });
 
     expect(el.querySelector('#kept')).toBe(inner);
-    expect(inner?.[INSTANCES]?.get(name)).toBe(instance);
+    expect(getInstance(inner, name)).toBe(instance);
     expect(inner?.textContent).toBe('after');
     expect(log).toEqual(['mounted']);
   });
@@ -306,12 +306,12 @@ describe('swap — the wrap seam', () => {
     await swap(el, `<div data-component="${name}"></div>`, {
       wrap: (mutate) => {
         mutate();
-        mountedDuringWrap = el.firstElementChild?.[INSTANCES]?.get(name)?.$isMounted;
+        mountedDuringWrap = getInstance(el.firstElementChild, name)?.$isMounted;
       },
     });
 
     expect(mountedDuringWrap).toBeFalsy();
-    expect(el.firstElementChild?.[INSTANCES]?.get(name)?.$isMounted).toBe(true);
+    expect(getInstance(el.firstElementChild, name)?.$isMounted).toBe(true);
   });
 });
 
@@ -391,7 +391,7 @@ describe('swap — replacing the target itself', () => {
 
     await swap(el, `<div id="here" data-component="${name}"></div>`, { self: true });
 
-    expect(parent.firstElementChild?.[INSTANCES]?.get(name)?.$isMounted).toBe(true);
+    expect(getInstance(parent.firstElementChild, name)?.$isMounted).toBe(true);
   });
 
   it('warns and keeps its meaning when a mode adds to the children', async () => {

@@ -13,7 +13,6 @@ import {
 } from './dom-mutations.js';
 import { EVENTS } from './events.js';
 import { getInstance } from './instances.js';
-import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent } from './registry.js';
 import { SWAP_MODES, swap } from './swap.js';
 import { resetDom } from './test/index.js';
@@ -55,7 +54,7 @@ describe('whenDOMSettled', () => {
     document.body.append(el);
 
     await whenDOMSettled();
-    expect(el[INSTANCES]?.get(name)?.$isMounted).toBe(true);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 
   it('follows mutations created by eager lifecycle work', async () => {
@@ -83,7 +82,7 @@ describe('whenDOMSettled', () => {
 
     await whenDOMSettled();
     const child = parent.firstElementChild;
-    expect(child?.[INSTANCES]?.get(childName)?.$isMounted).toBe(true);
+    expect(getInstance(child, childName)?.$isMounted).toBe(true);
   });
 
   it('does not wait for a conditional mount strategy', async () => {
@@ -100,7 +99,7 @@ describe('whenDOMSettled', () => {
     document.body.append(el);
 
     await whenDOMSettled();
-    expect(el[INSTANCES]?.get(name)).toBeUndefined();
+    expect(getInstance(el, name)).toBeUndefined();
   });
 
   it('waits for eager teardown caused by removal', async () => {
@@ -118,7 +117,7 @@ describe('whenDOMSettled', () => {
     el.setAttribute('data-component', name);
     document.body.append(el);
     await whenDOMSettled();
-    const instance = el[INSTANCES]?.get(name) as Removed;
+    const instance = getInstance(el, name) as Removed;
 
     el.remove();
     await whenDOMSettled();
@@ -317,7 +316,7 @@ describe('watchAttributes', () => {
     await whenDOMSettled();
 
     expect(instance.$isMounted).toBe(false);
-    expect(el[INSTANCES]?.has(name)).toBe(false);
+    expect(getInstance(el, name)).toBeUndefined();
     expect(calls).toEqual(['cleanup']);
   });
 
@@ -465,7 +464,7 @@ describe('setDOMMutationProcessor', () => {
 
     // The registry installed the one processor at import time; a second caller
     // does not replace it and does not get a second delivery of the batch.
-    expect(el[INSTANCES]?.get(name)?.$isMounted).toBe(true);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
     expect(later).not.toHaveBeenCalled();
   });
 });

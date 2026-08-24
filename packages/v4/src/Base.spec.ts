@@ -1330,6 +1330,8 @@ describe('$watchChildren', () => {
     for (const instance of [unrelated, gamma, family, beta, alpha]) {
       instance.$mount();
     }
+    // A raw write, so no lookup replaces it: the fixture needs one instance
+    // filed under a second name, and `getInstance()` only reads.
     alpha.$el[INSTANCES]?.set('WatchAlphaAlias', alpha);
 
     const owner = new Owner(root);
@@ -1618,7 +1620,7 @@ describe('lifecycle', () => {
     expect(instance.$isMounted).toBe(false);
     // Unmount is reversible, so the instance stays on its element for a later
     // mount even when both its hooks threw.
-    expect(el[INSTANCES]?.get('TeardownFailure')).toBe(instance);
+    expect(getInstance(el, 'TeardownFailure')).toBe(instance);
   });
 
   it('runs the mounted() cleanup on unmount', async () => {
@@ -1661,14 +1663,14 @@ describe('lifecycle', () => {
 
     instance.$mount();
     expect(instance.$isMounted).toBe(true);
-    expect(el[INSTANCES]?.get('Tracked')).toBe(instance);
+    expect(getInstance(el, 'Tracked')).toBe(instance);
 
     // Mount and unmount are the whole lifecycle: neither is one-way, and the
     // instance stays on its element between them, which is what lets a moved
     // or re-inserted element keep its identity.
     instance.$unmount();
     expect(calls).toEqual(['mounted', 'cleanup', 'unmounted', 'mounted', 'cleanup', 'unmounted']);
-    expect(el[INSTANCES]?.get('Tracked')).toBe(instance);
+    expect(getInstance(el, 'Tracked')).toBe(instance);
 
     instance.$mount();
     expect(instance.$isMounted).toBe(true);

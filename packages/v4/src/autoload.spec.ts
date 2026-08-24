@@ -3,8 +3,7 @@ import { Base, type BaseConfig, type BaseConstructor } from './Base.js';
 import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
 import { whenDOMSettled } from './dom-mutations.js';
 import { EVENTS } from './events.js';
-import { getInstances } from './instances.js';
-import { INSTANCES } from './protocol-symbols.js';
+import { getInstance, getInstances } from './instances.js';
 import { registerComponent, registerManifest } from './registry.js';
 import { captureDiagnostics, resetDom, settle, waitFor } from './test/index.js';
 
@@ -64,10 +63,6 @@ function render(name: string, attributes: Record<string, string> = {}, style = O
   return el;
 }
 
-function instanceOf<T extends Base>(el: Element, name: string): T | undefined {
-  return el[INSTANCES]?.get(name) as T | undefined;
-}
-
 /**
  * A bounded quiet period. Waiting for something to arrive is a poll — see the
  * `waitFor` calls below — but an assertion that nothing was imported cannot be
@@ -87,13 +82,13 @@ describe('registerManifest', () => {
     const el = render(name);
     await settle();
 
-    expect(el[INSTANCES]).toBeUndefined();
+    expect(getInstance(el, name)).toBeUndefined();
 
     registerManifest({ [name]: load });
     await settle();
 
     expect(importCount()).toBe(1);
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 
   it('imports and mounts a component inserted after the manifest', async () => {
@@ -104,7 +99,7 @@ describe('registerManifest', () => {
     const el = render(name);
     await settle();
 
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 
   it('imports the module once for every element declaring the token', async () => {
@@ -115,8 +110,8 @@ describe('registerManifest', () => {
     await settle();
 
     expect(importCount()).toBe(1);
-    expect(instanceOf(first, name)?.$isMounted).toBe(true);
-    expect(instanceOf(second, name)?.$isMounted).toBe(true);
+    expect(getInstance(first, name)?.$isMounted).toBe(true);
+    expect(getInstance(second, name)?.$isMounted).toBe(true);
   });
 
   it('imports nothing when no element declares the token', async () => {
@@ -139,8 +134,8 @@ describe('registerManifest', () => {
     });
     await settle();
 
-    expect(instanceOf(namedEl, named.name)?.$isMounted).toBe(true);
-    expect(instanceOf(defaultEl, fallback.name)?.$isMounted).toBe(true);
+    expect(getInstance(namedEl, named.name)?.$isMounted).toBe(true);
+    expect(getInstance(defaultEl, fallback.name)?.$isMounted).toBe(true);
   });
 });
 
@@ -151,14 +146,14 @@ describe('a lazy declaration before its class arrives', () => {
     registerManifest({ [name]: { load, mountStrategy: 'visible' } });
     await quiet();
 
-    expect(el[INSTANCES]).toBeUndefined();
+    expect(getInstance(el, name)).toBeUndefined();
     expect(getInstances(name)).toEqual([]);
 
     el.setAttribute('style', ONSCREEN);
     await waitFor(() => getInstances(name).length > 0);
 
     expect(getInstances(name)).toHaveLength(1);
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 
   it('is dropped when its token is removed before the trigger fires', async () => {
@@ -191,7 +186,7 @@ describe('a lazy declaration before its class arrives', () => {
     await waitFor(() => importCount() > 0);
 
     expect(importCount()).toBe(1);
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 });
 
@@ -208,7 +203,7 @@ describe('the strategy that triggers the import', () => {
     await waitFor(() => importCount() > 0);
 
     expect(importCount()).toBe(1);
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 
   it('lets the element data-mount win over the entry default', async () => {
@@ -224,7 +219,7 @@ describe('the strategy that triggers the import', () => {
     await settle();
 
     expect(importCount()).toBe(1);
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 
   // An invalid strategy is reported and kept inert by the one scheduling path
@@ -242,24 +237,24 @@ describe('the strategy that triggers the import', () => {
     await waitFor(() => diagnostics.length > 0);
 
     expect(importCount()).toBe(0);
-    expect(el[INSTANCES]?.get(name)).toBeUndefined();
+    expect(getInstance(el, name)).toBeUndefined();
     expect(diagnostics).toHaveLength(1);
     expect(diagnostics[0].code).toBe(DIAGNOSTICS.component.invalidMountStrategy);
 
     el.setAttribute('data-mount', 'eager');
     await settle();
     expect(importCount()).toBe(1);
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 
   it('imports on a media query which matches while its trigger is being applied', async () => {
     const { name, load, importCount } = defineLazy();
     const el = render(name);
     registerManifest({ [name]: { load, mountStrategy: 'media:(min-width: 1px)' } });
-    await waitFor(() => instanceOf(el, name)?.$isMounted);
+    await waitFor(() => getInstance(el, name)?.$isMounted);
 
     expect(importCount()).toBe(1);
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 
   it('imports nothing while the media query does not match', async () => {
@@ -269,7 +264,7 @@ describe('the strategy that triggers the import', () => {
     await quiet();
 
     expect(importCount()).toBe(0);
-    expect(el[INSTANCES]).toBeUndefined();
+    expect(getInstance(el, name)).toBeUndefined();
   });
 
   it('hands a parameterized reversible override to the registry after the import', async () => {
@@ -281,7 +276,7 @@ describe('the strategy that triggers the import', () => {
     expect(importCount()).toBe(0);
 
     el.setAttribute('style', ONSCREEN);
-    const instance = await waitFor(() => instanceOf(el, name));
+    const instance = await waitFor(() => getInstance(el, name));
 
     expect(importCount()).toBe(1);
     expect(instance?.$isMounted).toBe(true);
@@ -321,12 +316,12 @@ describe('the strategy that triggers the import', () => {
     release();
     await quiet();
 
-    expect(el[INSTANCES]?.get(name)).toBeUndefined();
+    expect(getInstance(el, name)).toBeUndefined();
 
     el.setAttribute('style', ONSCREEN);
-    await waitFor(() => instanceOf(el, name)?.$isMounted);
+    await waitFor(() => getInstance(el, name)?.$isMounted);
 
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 });
 
@@ -339,7 +334,7 @@ describe('whenDOMSettled and a lazy component', () => {
     const el = render(name);
     await whenDOMSettled();
 
-    expect(instanceOf(el, name)?.$isMounted).toBe(true);
+    expect(getInstance(el, name)?.$isMounted).toBe(true);
   });
 
   it('does not wait for a conditional trigger', async () => {
@@ -378,7 +373,7 @@ describe('registerManifest collisions and failures', () => {
         message: `"${name}" is already registered; the incoming declaration was ignored.`,
       },
     ]);
-    expect(instanceOf(el, name)).toBeInstanceOf(Owned);
+    expect(getInstance(el, name)).toBeInstanceOf(Owned);
     log.stop();
   });
 
@@ -446,8 +441,8 @@ describe('registerManifest collisions and failures', () => {
       component: name,
     });
     expect(elementEvents[0].detail.error).toBe(failure);
-    expect(first[INSTANCES]).toBeUndefined();
-    expect(second[INSTANCES]).toBeUndefined();
+    expect(getInstance(first, name)).toBeUndefined();
+    expect(getInstance(second, name)).toBeUndefined();
   });
 
   it('reports a module which resolves to no component class', async () => {
@@ -490,7 +485,7 @@ describe('registerManifest collisions and failures', () => {
         message: `"${token}" resolved to a component named "${name}".`,
       },
     ]);
-    expect(el[INSTANCES]).toBeUndefined();
+    expect(getInstance(el, name)).toBeUndefined();
     log.stop();
   });
 });
@@ -509,7 +504,7 @@ describe('a dynamic import declared in config.components', () => {
     await settle();
 
     expect(child.importCount()).toBe(1);
-    expect(instanceOf(el, child.name)?.$isMounted).toBe(true);
+    expect(getInstance(el, child.name)?.$isMounted).toBe(true);
   });
 
   it('registers the class half of a mixed map right away', async () => {
@@ -527,14 +522,14 @@ describe('a dynamic import declared in config.components', () => {
     const siblingEl = render(eagerName);
     await settle();
 
-    expect(instanceOf(siblingEl, eagerName)).toBeInstanceOf(Sibling);
+    expect(getInstance(siblingEl, eagerName)).toBeInstanceOf(Sibling);
     expect(lazy.importCount()).toBe(0);
 
     const lazyEl = render(lazy.name);
     await settle();
 
     expect(lazy.importCount()).toBe(1);
-    expect(instanceOf(lazyEl, lazy.name)?.$isMounted).toBe(true);
+    expect(getInstance(lazyEl, lazy.name)?.$isMounted).toBe(true);
   });
 
   it('imports the module once for every element declaring the child', async () => {
@@ -547,8 +542,8 @@ describe('a dynamic import declared in config.components', () => {
     await settle();
 
     expect(child.importCount()).toBe(1);
-    expect(instanceOf(first, child.name)?.$isMounted).toBe(true);
-    expect(instanceOf(second, child.name)?.$isMounted).toBe(true);
+    expect(getInstance(first, child.name)?.$isMounted).toBe(true);
+    expect(getInstance(second, child.name)?.$isMounted).toBe(true);
   });
 
   it('imports once when two parents declare the same child', async () => {
@@ -588,8 +583,8 @@ describe('a dynamic import declared in config.components', () => {
 
     expect(parentImports).toBe(1);
     expect(child.importCount()).toBe(1);
-    expect(instanceOf(root, parentName)?.$isMounted).toBe(true);
-    expect(instanceOf(childEl, child.name)?.$isMounted).toBe(true);
+    expect(getInstance(root, parentName)?.$isMounted).toBe(true);
+    expect(getInstance(childEl, child.name)?.$isMounted).toBe(true);
   });
 
   it('honours the element data-mount of a child nobody has imported', async () => {
@@ -606,7 +601,7 @@ describe('a dynamic import declared in config.components', () => {
     await waitFor(() => child.importCount() > 0);
 
     expect(child.importCount()).toBe(1);
-    expect(instanceOf(el, child.name)?.$isMounted).toBe(true);
+    expect(getInstance(el, child.name)?.$isMounted).toBe(true);
   });
 
   it('reports a value which is neither a class nor an importer', async () => {
@@ -659,7 +654,7 @@ describe('the family a subclass inherits', () => {
     const el = render(childName);
     await settle();
 
-    expect(instanceOf(el, childName)).toBeInstanceOf(Child);
+    expect(getInstance(el, childName)).toBeInstanceOf(Child);
   });
 
   it('registers a lazy child its base declared', async () => {
@@ -672,7 +667,7 @@ describe('the family a subclass inherits', () => {
     await settle();
 
     expect(child.importCount()).toBe(1);
-    expect(instanceOf(el, child.name)?.$isMounted).toBe(true);
+    expect(getInstance(el, child.name)?.$isMounted).toBe(true);
   });
 
   it('lets a subclass override one key without dropping the rest', async () => {
@@ -688,9 +683,9 @@ describe('the family a subclass inherits', () => {
     await settle();
 
     expect(stale).not.toHaveBeenCalled();
-    expect(instanceOf(overriddenEl, overridden.name)).toBeInstanceOf(overridden.Lazy);
+    expect(getInstance(overriddenEl, overridden.name)).toBeInstanceOf(overridden.Lazy);
     expect(kept.importCount()).toBe(1);
-    expect(instanceOf(keptEl, kept.name)?.$isMounted).toBe(true);
+    expect(getInstance(keptEl, kept.name)?.$isMounted).toBe(true);
   });
 
   it('registers a shared family once when the base registers too', async () => {
@@ -706,7 +701,7 @@ describe('the family a subclass inherits', () => {
 
     expect(log.codes).toEqual([]);
     expect(child.importCount()).toBe(1);
-    expect(instanceOf(el, child.name)?.$isMounted).toBe(true);
+    expect(getInstance(el, child.name)?.$isMounted).toBe(true);
     log.stop();
   });
 });

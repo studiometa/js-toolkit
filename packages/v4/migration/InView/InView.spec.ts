@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { Base, registerComponents, type BaseConfig } from '../../src/index.js';
-import { INSTANCES } from '../../src/protocol-symbols.js';
+import { Base, getInstance, registerComponents, type BaseConfig } from '../../src/index.js';
 import { recordEvents, resetDom, settle, waitFor } from '../../src/test/index.js';
 import { InView } from './InView.js';
 import { InViewOnce } from './InViewOnce.js';
@@ -79,7 +78,7 @@ describe('InView', () => {
   it('re-emits `in-view` on each re-entry, from the same instance', async () => {
     const el = render('InView', ONSCREEN);
     await waitFor(() => log.events.length > 0);
-    const instance = el[INSTANCES]?.get('InView');
+    const instance = getInstance(el, 'InView');
 
     el.setAttribute('style', OFFSCREEN);
     await waitFor(() => log.events.length > 1);
@@ -87,14 +86,14 @@ describe('InView', () => {
     await waitFor(() => log.events.length > 2);
 
     expect(types()).toEqual(['in-view', 'out-of-view', 'in-view']);
-    expect(el[INSTANCES]?.get('InView')).toBe(instance);
+    expect(getInstance(el, 'InView')).toBe(instance);
   });
 
   it('does not instantiate the component until it is first seen', async () => {
     const el = render('InView', OFFSCREEN);
     await quiet();
 
-    expect(el[INSTANCES]?.get('InView')).toBeUndefined();
+    expect(getInstance(el, 'InView')).toBeUndefined();
   });
 });
 
@@ -123,7 +122,7 @@ describe('InViewOnce', () => {
 
   it('stays mounted after leaving the viewport, where v3 terminated', async () => {
     const el = render('InViewOnce', ONSCREEN);
-    const instance = await waitFor(() => el[INSTANCES]?.get('InViewOnce'));
+    const instance = await waitFor(() => getInstance(el, 'InViewOnce'));
 
     el.setAttribute('style', OFFSCREEN);
     await quiet();
@@ -153,7 +152,7 @@ describe('mount strategy gaps found by the port', () => {
     await waitFor(() => log.events.length > 0);
 
     expect(types()).toEqual(['in-view']);
-    expect(el[INSTANCES]?.get('InView')?.$isMounted).toBe(true);
+    expect(getInstance(el, 'InView')?.$isMounted).toBe(true);
   });
 
   /** Subclasses must inherit the resolved mount strategy. */
@@ -161,7 +160,7 @@ describe('mount strategy gaps found by the port', () => {
     const el = render('InViewSubclass', OFFSCREEN);
     await quiet();
 
-    expect(el[INSTANCES]?.get('InViewSubclass')).toBeUndefined();
+    expect(getInstance(el, 'InViewSubclass')).toBeUndefined();
   });
 });
 
@@ -177,19 +176,19 @@ describe('the strategy is per element, which the decorator never was', () => {
 
   it('lets `data-mount` override the class default on one element', async () => {
     const el = render('InView', OFFSCREEN, { 'data-mount': 'eager' });
-    await waitFor(() => el[INSTANCES]?.get('InView')?.$isMounted);
+    await waitFor(() => getInstance(el, 'InView')?.$isMounted);
 
-    expect(el[INSTANCES]?.get('InView')?.$isMounted).toBe(true);
+    expect(getInstance(el, 'InView')?.$isMounted).toBe(true);
     expect(types()).toEqual(['in-view']);
   });
 
   it('lets `data-mount="in-view"` give the strategy to a component that never asked', async () => {
     const el = render('InViewEagerProbe', OFFSCREEN, { 'data-mount': 'in-view' });
     await quiet();
-    expect(el[INSTANCES]?.get('InViewEagerProbe')).toBeUndefined();
+    expect(getInstance(el, 'InViewEagerProbe')).toBeUndefined();
 
     el.setAttribute('style', ONSCREEN);
-    await waitFor(() => el[INSTANCES]?.get('InViewEagerProbe'));
-    expect((el[INSTANCES]?.get('InViewEagerProbe') as Eager | undefined)?.mounts).toBe(1);
+    await waitFor(() => getInstance(el, 'InViewEagerProbe'));
+    expect((getInstance(el, 'InViewEagerProbe') as Eager | undefined)?.mounts).toBe(1);
   });
 });
