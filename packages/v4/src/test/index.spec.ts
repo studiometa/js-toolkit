@@ -3,7 +3,7 @@ import * as subpath from '@studiometa/js-toolkit-v4/test';
 import { Base } from '../Base.js';
 import { warn } from '../diagnostics.js';
 import { getInstances } from '../instances.js';
-import { registerComponent, registerComponents } from '../registry.js';
+import { registerComponent, registerComponents, registerManifest } from '../registry.js';
 import { defaultScheduler } from '../scheduler.js';
 import {
   captureDiagnostics,
@@ -11,6 +11,7 @@ import {
   mount,
   recordEvents,
   resetDom,
+  resetRegistry,
   settle,
   waitFor,
 } from './index.js';
@@ -64,13 +65,14 @@ function silenceSink() {
 }
 
 describe('the /test subpath', () => {
-  it('serves these seven helpers under the package name, and nothing else', () => {
+  it('serves these eight helpers under the package name, and nothing else', () => {
     expect(Object.keys(subpath).sort()).toEqual([
       'captureDiagnostics',
       'frames',
       'mount',
       'recordEvents',
       'resetDom',
+      'resetRegistry',
       'settle',
       'waitFor',
     ]);
@@ -81,6 +83,7 @@ describe('the /test subpath', () => {
     expect(subpath.resetDom).toBe(resetDom);
     expect(subpath.captureDiagnostics).toBe(captureDiagnostics);
     expect(subpath.recordEvents).toBe(recordEvents);
+    expect(subpath.resetRegistry).toBe(resetRegistry);
   });
 });
 
@@ -312,5 +315,88 @@ describe('recordEvents()', () => {
     emitter.ping(2);
 
     expect(log.events).toEqual([{ type: 'ping', detail: { count: 1 } }]);
+  });
+});
+
+describe('resetRegistry()', () => {
+  /**
+   * These cases empty the page-wide registry, which the two components at the
+   * top of this file live in. Restoring them is the documented pattern: the
+   * reset, then the registrations still needed — never a bare reset in an
+   * `afterEach`, which would unregister them for every later test.
+   */
+  afterEach(async () => {
+    await resetDom();
+    resetRegistry();
+    registerComponents(Subject, Emitter);
+  });
+
+  it('frees a name that would otherwise report a conflict', async () => {
+    const first = class extends Base {
+      static config = { name: 'TestHelpersRecycled' };
+    };
+    const second = class extends Base {
+      static config = { name: 'TestHelpersRecycled' };
+    };
+    const log = captureDiagnostics();
+
+    registerComponent(first);
+    await resetDom();
+    resetRegistry();
+    registerComponent(second);
+
+    log.stop();
+    expect(log.codes).toEqual([]);
+
+    const root = await mount('<div data-component="TestHelpersRecycled"></div>');
+    const [instance] = getInstances('TestHelpersRecycled', root);
+    expect(instance).toBeInstanceOf(second);
+  });
+
+  it('is what avoids that conflict — without it the second name is taken', async () => {
+    silenceSink();
+    const log = captureDiagnostics();
+
+    registerComponent(
+      class extends Base {
+        static config = { name: 'TestHelpersContested' };
+      },
+    );
+    await resetDom();
+    registerComponent(
+      class extends Base {
+        static config = { name: 'TestHelpersContested' };
+      },
+    );
+
+    log.stop();
+
+    expect(log.codes).toEqual(['registry.conflict']);
+  });
+
+  it('stops a component registered earlier from mounting again', async () => {
+    registerComponent(
+      class extends Base {
+        static config = { name: 'TestHelpersRetired' };
+      },
+    );
+    const before = await mount('<div data-component="TestHelpersRetired"></div>');
+    expect(getInstances('TestHelpersRetired', before)).toHaveLength(1);
+
+    await resetDom();
+    resetRegistry();
+
+    const after = await mount('<div data-component="TestHelpersRetired"></div>');
+    expect(getInstances('TestHelpersRetired', after)).toEqual([]);
+  });
+
+  it('drops a lazy manifest entry too, without importing it', async () => {
+    const load = vi.fn(() => Promise.resolve(Subject));
+    registerManifest({ TestHelpersLazy: load });
+
+    resetRegistry();
+    await mount('<div data-component="TestHelpersLazy"></div>');
+
+    expect(load).not.toHaveBeenCalled();
   });
 });

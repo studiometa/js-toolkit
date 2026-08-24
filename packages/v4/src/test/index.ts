@@ -16,13 +16,19 @@
  *
  * The rest answer the questions whose right answer is not the obvious one.
  * {@link captureDiagnostics} reads the diagnostic channel instead of the
- * console sink it happens to write to, and {@link recordEvents} keeps the order
- * and the payloads a call-counting spy throws away.
+ * console sink it happens to write to; {@link recordEvents} keeps the order and
+ * the payloads a call-counting spy throws away; and `resetRegistry()` undoes a
+ * registration the framework has no other way to undo.
  */
 
 import { type ToolkitDiagnosticDetail } from '../diagnostic-contract.js';
 import { EVENTS } from '../events.js';
 import { defaultScheduler, nextFrame } from '../scheduler.js';
+
+// `resetRegistry()` lives next to the state it clears, which is module-private
+// to the registry. It is re-exported here because a test suite is its only
+// caller — see the doc comment there for where the call belongs.
+export { resetRegistry } from '../registry.js';
 
 /** Options for {@link waitFor}. */
 export interface WaitForOptions {
