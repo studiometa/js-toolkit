@@ -513,12 +513,12 @@ describe('$options', () => {
 
       expect(calls).toEqual(['second:0', 'second:2']);
       expect(log.entries.map(({ error }) => error)).toEqual([cleanupFailure, handlerFailure]);
-      expect(
-        log.entries.every(({ code }) => code === DIAGNOSTICS.component.lifecycleFailed),
-      ).toBe(true);
+      expect(log.entries.every(({ code }) => code === DIAGNOSTICS.component.lifecycleFailed)).toBe(
+        true,
+      );
       expect(log.entries.every(({ component }) => component === 'ResilientOptions')).toBe(true);
-      log.stop();
       expect(getInstance<ReentrantOption>(reentrant, 'ReentrantOption')!.$isMounted).toBe(false);
+      log.stop();
     } finally {
       document.querySelectorAll('[data-component="ResilientOptions"]').forEach((el) => el.remove());
     }
