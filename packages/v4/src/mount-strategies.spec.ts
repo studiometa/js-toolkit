@@ -269,12 +269,12 @@ describe('data-mount="media:…"', () => {
     // makes the failing query's absence below mean something.
     await waitFor(
       () =>
-        getInstance(document.querySelector(`[data-component="${matching.name}"]`)!, matching.name)
+        getInstance(document.querySelector(`[data-component="${matching.name}"]`), matching.name)
           ?.$isMounted,
     );
 
     expect(
-      getInstance(document.querySelector(`[data-component="${matching.name}"]`)!, matching.name)
+      getInstance(document.querySelector(`[data-component="${matching.name}"]`), matching.name)
         ?.$isMounted,
     ).toBe(true);
     expect(getInstance(narrow, failing.name)).toBeUndefined();
