@@ -10,7 +10,7 @@ import {
   type Extension,
 } from './negotiated-events.js';
 import { nextFrame } from './scheduler.js';
-import { resetDom } from './test/index.js';
+import { captureDiagnostics, resetDom } from './test/index.js';
 import { viewTransition } from './viewTransition.js';
 
 afterEach(async () => {
@@ -159,6 +159,9 @@ describe('domUpdate()', () => {
 
   it('keeps the direct fallback when its warning is canceled', async () => {
     const { outer, target } = renderTarget();
+    // The assertion here *is* about the console sink — that cancelling the
+    // event suppresses it — so this one keeps its spy. `captureDiagnostics()`
+    // cancels every event it sees, which would make the assertion vacuous.
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const diagnostics: ToolkitDiagnosticDetail[] = [];
     target.addEventListener(EVENTS.diagnostic, (event) => {
@@ -178,7 +181,7 @@ describe('domUpdate()', () => {
 
   it('warns and ignores a wrap() registration made after dispatch', async () => {
     const { outer, target } = renderTarget();
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     let late: DomUpdateDetail['wrap'] | undefined;
     outer.addEventListener(EVENTS.dom.update, (event) => {
       late = detailOf<DomUpdateDetail>(event).wrap;
@@ -192,7 +195,8 @@ describe('domUpdate()', () => {
     expect(target.dataset).toMatchObject({ applied: 'yes', appliedAgain: 'yes' });
     expect(target.dataset.late).toBeUndefined();
     expect(target.dataset.later).toBeUndefined();
-    expect(warn).toHaveBeenCalledOnce();
+    expect(log.codes).toEqual([DIAGNOSTICS.protocol.lateRegistration]);
+    log.stop();
   });
 
   it('accepts viewTransition() without an adapter', async () => {
@@ -284,7 +288,7 @@ describe('emitExtendable()', () => {
 
   it('warns and ignores a waitUntil() registration made after dispatch', async () => {
     const { outer, target } = renderTarget();
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     let late: ExtendableDetail['waitUntil'] | undefined;
     let calls = 0;
     outer.addEventListener('close', (event) => {
@@ -300,6 +304,7 @@ describe('emitExtendable()', () => {
     });
 
     expect(calls).toBe(0);
-    expect(warn).toHaveBeenCalledOnce();
+    expect(log.codes).toEqual([DIAGNOSTICS.protocol.lateRegistration]);
+    log.stop();
   });
 });

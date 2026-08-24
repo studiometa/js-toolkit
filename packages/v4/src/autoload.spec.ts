@@ -6,7 +6,7 @@ import { EVENTS } from './events.js';
 import { getInstances } from './instances.js';
 import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent, registerManifest } from './registry.js';
-import { resetDom, settle, waitFor } from './test/index.js';
+import { captureDiagnostics, resetDom, settle, waitFor } from './test/index.js';
 
 /** Positions used to control viewport strategies. */
 const OFFSCREEN = 'position:absolute;top:300vh;left:0;width:50px;height:50px';
@@ -364,33 +364,37 @@ describe('registerManifest collisions and failures', () => {
     }
 
     registerComponent(Owned);
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     const load = vi.fn();
     registerManifest({ [name]: load });
     const el = render(name);
     await settle();
 
     expect(load).not.toHaveBeenCalled();
-    expect(warn).toHaveBeenCalledWith(
-      `[js-toolkit:${DIAGNOSTICS.registry.conflict}] "${name}" is already registered; the incoming declaration was ignored.`,
-    );
+    expect(log.entries).toMatchObject([
+      {
+        severity: 'warning',
+        code: DIAGNOSTICS.registry.conflict,
+        message: `"${name}" is already registered; the incoming declaration was ignored.`,
+      },
+    ]);
     expect(instanceOf(el, name)).toBeInstanceOf(Owned);
-    warn.mockRestore();
+    log.stop();
   });
 
   it('ignores a token an earlier manifest already owns', async () => {
     const { name, load, importCount } = defineLazy();
     const later = vi.fn();
     registerManifest({ [name]: load });
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     registerManifest({ [name]: later });
     render(name);
     await settle();
 
     expect(importCount()).toBe(1);
     expect(later).not.toHaveBeenCalled();
-    expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
+    expect(log.codes).toEqual([DIAGNOSTICS.registry.conflict]);
+    log.stop();
   });
 
   it('reports an import failure once and leaves the page running', async () => {
@@ -473,17 +477,21 @@ describe('registerManifest collisions and failures', () => {
     const { name, Lazy } = defineLazy();
     counter += 1;
     const token = `Alias${counter}`;
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
 
     registerManifest({ [token]: async () => Lazy });
     const el = render(token);
     await settle();
 
-    expect(warn).toHaveBeenCalledWith(
-      `[js-toolkit:${DIAGNOSTICS.registry.lazyNameMismatch}] "${token}" resolved to a component named "${name}".`,
-    );
+    expect(log.entries).toMatchObject([
+      {
+        severity: 'warning',
+        code: DIAGNOSTICS.registry.lazyNameMismatch,
+        message: `"${token}" resolved to a component named "${name}".`,
+      },
+    ]);
     expect(el[INSTANCES]).toBeUndefined();
-    warn.mockRestore();
+    log.stop();
   });
 });
 
@@ -602,7 +610,7 @@ describe('a dynamic import declared in config.components', () => {
   });
 
   it('reports a value which is neither a class nor an importer', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     counter += 1;
     const childName = `NotAThunk${counter}`;
 
@@ -613,10 +621,14 @@ describe('a dynamic import declared in config.components', () => {
     render(childName);
     await settle();
 
-    expect(warn).toHaveBeenCalledWith(
-      `[js-toolkit:${DIAGNOSTICS.component.invalidFamilyDeclaration}] "${parentName}" declares "${childName}" as neither a component class nor an importer; the declaration was ignored.`,
-    );
-    warn.mockRestore();
+    expect(log.entries).toMatchObject([
+      {
+        severity: 'warning',
+        code: DIAGNOSTICS.component.invalidFamilyDeclaration,
+        message: `"${parentName}" declares "${childName}" as neither a component class nor an importer; the declaration was ignored.`,
+      },
+    ]);
+    log.stop();
   });
 });
 
@@ -685,16 +697,16 @@ describe('the family a subclass inherits', () => {
     const child = defineLazy();
     const { Parent } = defineParent({ [child.name]: child.load });
     const { Sub } = defineSubclass(Parent);
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
 
     registerComponent(Parent);
     registerComponent(Sub);
     const el = render(child.name);
     await settle();
 
-    expect(warn).not.toHaveBeenCalled();
+    expect(log.codes).toEqual([]);
     expect(child.importCount()).toBe(1);
     expect(instanceOf(el, child.name)?.$isMounted).toBe(true);
-    warn.mockRestore();
+    log.stop();
   });
 });

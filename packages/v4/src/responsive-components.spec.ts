@@ -1,11 +1,12 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { Base, type BaseConfig } from './Base.js';
+import { DIAGNOSTICS } from './diagnostic-contract.js';
 import { whenDOMSettled } from './dom-mutations.js';
 import { getInstances } from './instances.js';
 import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent, registerManifest } from './registry.js';
 import { BREAKPOINTS, setBreakpoints } from './services/breakpoint.js';
-import { resetDom, settle } from './test/index.js';
+import { captureDiagnostics, resetDom, settle } from './test/index.js';
 
 let counter = 0;
 
@@ -347,7 +348,7 @@ describe('responsive component declarations', () => {
   it('discovers declarations from a custom setBreakpoints replacement and settles their mount', async () => {
     const feature = defineTracked('CustomBreakpoint');
     register(feature);
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     const el = render({ 'data-component:desktop': feature.name });
     await whenDOMSettled();
     expect(instance(el, feature.name)).toBeUndefined();
@@ -361,14 +362,14 @@ describe('responsive component declarations', () => {
     await whenDOMSettled();
     expect(mounted?.$isMounted).toBe(false);
     expect(instance(el, feature.name)).toBeUndefined();
-    warn.mockRestore();
+    log.stop();
   });
 
   it('ignores and warns once for a suffix naming no configured breakpoint', async () => {
     const base = defineTracked('WarningBase');
     const invalid = defineTracked('Invalid');
     register(base, invalid);
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     const el = render({
       'data-component': base.name,
       'data-component:xxs:xs:s': invalid.name,
@@ -377,15 +378,13 @@ describe('responsive component declarations', () => {
 
     expect(instance(el, base.name)?.$isMounted).toBe(true);
     expect(instance(el, invalid.name)).toBeUndefined();
-    expect(warn).toHaveBeenCalledTimes(1);
-    expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining('`data-component:xxs:xs:s` names no breakpoint'),
-    );
+    expect(log.codes).toEqual([DIAGNOSTICS.responsive.unknownBreakpoint]);
+    expect(log.entries[0].message).toContain('`data-component:xxs:xs:s` names no breakpoint');
 
     el.setAttribute('data-component', `${base.name} ${base.name}`);
     await whenDOMSettled();
-    expect(warn).toHaveBeenCalledTimes(1);
-    warn.mockRestore();
+    expect(log.codes).toHaveLength(1);
+    log.stop();
   });
 
   it('opens no breakpoint listener for pages with plain declarations only', async () => {

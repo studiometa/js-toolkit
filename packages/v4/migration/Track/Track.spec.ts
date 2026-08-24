@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { registerComponents } from '../../src/index.js';
 import { getInstance } from '../../src/test-utils.js';
-import { mount, resetDom, settle, waitFor } from '../../src/test/index.js';
+import { captureDiagnostics, mount, resetDom, settle, waitFor } from '../../src/test/index.js';
 import { Track } from './Track.js';
 import { TrackContext } from './TrackContext.js';
 import { TrackShopify } from './TrackShopify.js';
@@ -16,16 +16,6 @@ registerComponents(Track, TrackContext, TrackShopify);
  * default sink is `reportError()`, not `console.warn`, and the assertion goes
  * to the channel rather than to the console.
  */
-function recordDiagnostics(): { codes: string[]; stop: () => void } {
-  const codes: string[] = [];
-  const listener = (event: Event) => {
-    codes.push((event as CustomEvent<{ code: string }>).detail.code);
-    event.preventDefault();
-  };
-  document.addEventListener('js-toolkit:diagnostic', listener);
-  return { codes, stop: () => document.removeEventListener('js-toolkit:diagnostic', listener) };
-}
-
 const OFFSCREEN = 'position:absolute;top:300vh;left:0;width:50px;height:50px';
 const ONSCREEN = 'position:absolute;top:0;left:0;width:50px;height:50px';
 
@@ -195,7 +185,7 @@ describe('Track — payload resolution', () => {
 
 describe('Track — malformed declarations', () => {
   it('drops an event whose JSON cannot be parsed, without throwing', async () => {
-    const log = recordDiagnostics();
+    const log = captureDiagnostics();
     const root = await mount(
       `<button data-component="Track" data-track:click='{ not json }'></button>`,
     );
@@ -207,7 +197,7 @@ describe('Track — malformed declarations', () => {
   });
 
   it('falls back to an empty payload when the `payload` ref is invalid JSON', async () => {
-    const log = recordDiagnostics();
+    const log = captureDiagnostics();
     const root = await mount(`
       <button data-component="Track" data-track:click='{"event": "x"}'>
         <script data-ref="payload" type="application/json">{ broken </script>
@@ -222,7 +212,7 @@ describe('Track — malformed declarations', () => {
   });
 
   it('falls back to an empty payload when `data-option-payload` is invalid JSON', async () => {
-    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     const root = await mount(
       `<button data-component="Track" data-track:click='{"event": "x"}'
         data-option-payload='{ not json }'></button>`,
@@ -230,7 +220,11 @@ describe('Track — malformed declarations', () => {
 
     expect(() => root.querySelector('button')?.click()).not.toThrow();
     expect(lastPush()).toEqual({ event: 'x' });
-    spy.mockRestore();
+    // Nothing is reported here, unlike the two cases above: `readJSON()` in
+    // `Base` swallows a malformed option attribute and hands back the
+    // declared default, so `optionPayload`'s own catch never runs.
+    expect(log.codes).toEqual([]);
+    log.stop();
   });
 });
 
@@ -656,7 +650,7 @@ describe('TrackShopify — the dispatch seam', () => {
   it('publishes nothing without a string `event` name', async () => {
     const publish = vi.fn();
     window.Shopify = { analytics: { publish } };
-    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
 
     const root = await mount(
       `<button data-component="TrackShopify" data-track:click='{"id": "1"}'></button>`,
@@ -664,17 +658,19 @@ describe('TrackShopify — the dispatch seam', () => {
     root.querySelector('button')?.click();
 
     expect(publish).not.toHaveBeenCalled();
-    spy.mockRestore();
+    expect(log.codes).toContain('track.missing-event-name');
+    log.stop();
     delete window.Shopify;
   });
 
   it('does not throw when the Shopify analytics API is absent', async () => {
-    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     const root = await mount(
       `<button data-component="TrackShopify" data-track:click='{"event": "x"}'></button>`,
     );
 
     expect(() => root.querySelector('button')?.click()).not.toThrow();
-    spy.mockRestore();
+    expect(log.codes).toContain('track.shopify-unavailable');
+    log.stop();
   });
 });

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Base, registerComponents, type BaseConfig } from '../../src/index.js';
 import { getInstance } from '../../src/test-utils.js';
-import { mount, resetDom, settle, waitFor } from '../../src/test/index.js';
+import { captureDiagnostics, mount, resetDom, settle, waitFor } from '../../src/test/index.js';
 import { LazyInclude } from './LazyInclude.js';
 
 /** A probe, so an injected component can prove it mounted. */
@@ -208,14 +208,14 @@ describe('LazyInclude', () => {
 
   it('warns and fetches nothing without a `src` option', async () => {
     const client = stubFetch('<p>remote</p>');
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
 
     await mount(`<div data-component="LazyInclude"></div>`);
     await quiet();
 
     expect(client).not.toHaveBeenCalled();
-    expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
+    expect(log.codes).toEqual(['lazy-include.missing-src']);
+    log.stop();
   });
 
   /**

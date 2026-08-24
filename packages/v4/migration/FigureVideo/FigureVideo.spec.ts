@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { registerComponents } from '../../src/index.js';
 import { getInstance } from '../../src/test-utils.js';
-import { resetDom, settle, waitFor } from '../../src/test/index.js';
+import { captureDiagnostics, resetDom, settle, waitFor } from '../../src/test/index.js';
 import { FigureVideo } from './FigureVideo.js';
 
 registerComponents(FigureVideo);
@@ -125,11 +125,11 @@ describe('FigureVideo', () => {
     const root = document.createElement('div');
     root.innerHTML = `<div data-component="FigureVideo" style="${ONSCREEN}" data-option-lazy="true"></div>`;
     document.body.append(root);
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
 
     await expect(quiet()).resolves.toBeUndefined();
 
-    expect(warnSpy).toHaveBeenCalled();
-    warnSpy.mockRestore();
+    expect(log.codes).toEqual(['figure-video.invalid-ref']);
+    log.stop();
   });
 });

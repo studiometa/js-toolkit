@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { EVENTS, registerComponents } from '../../src/index.js';
 import { getInstance } from '../../src/test-utils.js';
-import { mount, resetDom, settle } from '../../src/test/index.js';
+import { captureDiagnostics, mount, resetDom, settle } from '../../src/test/index.js';
 import { DataBind } from './DataBind.js';
 import { DataComputed } from './DataComputed.js';
 import { DataEffect } from './DataEffect.js';
@@ -336,7 +336,7 @@ describe('DataBind — the element half', () => {
   });
 
   it('refuses the mutation helpers on computed values and effects', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     const root = await mount(`
       <div id="c" data-component="DataComputed" data-option-compute="value"
            data-option-group="${uniqueGroup('m')}">current</div>
@@ -349,8 +349,8 @@ describe('DataBind — the element half', () => {
 
     at<DataEffect>(root, '#e', 'DataEffect').increment();
     expect(el(root, '#e').dataset.called).toBeUndefined();
-    expect(warn).toHaveBeenCalledTimes(2);
-    warn.mockRestore();
+    expect(log.codes).toEqual(['data-bind.unsupported-mutation', 'data-bind.unsupported-mutation']);
+    log.stop();
   });
 });
 
@@ -600,14 +600,14 @@ describe('DataBind — the data-bind:if template protocol', () => {
   });
 
   it('warns when the if binding sits on something other than a template', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = captureDiagnostics();
     const root = await mount(`
       <div id="d" data-component="DataBind" data-option-group="${uniqueGroup('if')}"
            data-bind:if="value"></div>
     `);
 
     at<DataBind>(root, '#d', 'DataBind').set(true);
-    expect(warn).toHaveBeenCalledTimes(1);
-    warn.mockRestore();
+    expect(log.codes).toEqual(['data-bind.invalid-if-target']);
+    log.stop();
   });
 });
