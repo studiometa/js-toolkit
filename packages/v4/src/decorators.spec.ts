@@ -644,7 +644,7 @@ describe('@on', () => {
 
     const parent = getInstance<DecoParent>(root, 'DecoParent')!;
     const child = getInstance<DecoChild>(
-      root.querySelector('[data-component="DecoChild"]')!,
+      root.querySelector('[data-component="DecoChild"]'),
       'DecoChild',
     )!;
 
@@ -660,7 +660,7 @@ describe('@on', () => {
 
     const parent = getInstance<DecoParent>(root, 'DecoParent')!;
     const child = getInstance<DecoChild>(
-      root.querySelector('[data-component="DecoChild"]')!,
+      root.querySelector('[data-component="DecoChild"]'),
       'DecoChild',
     )!;
 
@@ -718,7 +718,7 @@ describe('@on', () => {
 
     const parent = getInstance<DecoParent>(root, 'DecoParent')!;
     const child = getInstance<DecoChild>(
-      root.querySelector('[data-component="DecoChild"]')!,
+      root.querySelector('[data-component="DecoChild"]'),
       'DecoChild',
     )!;
 
@@ -849,9 +849,9 @@ describe('@on', () => {
     await settle();
 
     const parent = getInstance<SubTargetParent>(root, 'SubTargetParent')!;
-    const sub = getInstance<SubKind>(root.querySelector('[data-component="SubKind"]')!, 'SubKind')!;
+    const sub = getInstance<SubKind>(root.querySelector('[data-component="SubKind"]'), 'SubKind')!;
     const base = getInstance<BaseKind>(
-      root.querySelector('[data-component="BaseKind"]')!,
+      root.querySelector('[data-component="BaseKind"]'),
       'BaseKind',
     )!;
 
@@ -1043,7 +1043,7 @@ describe('@on stacked with @read / @write', () => {
 
     const instance = getInstance<PhasedHandlers>(root, 'PhasedHandlers')!;
     const child = getInstance<PhasedChild>(
-      root.querySelector('[data-component="PhasedChild"]')!,
+      root.querySelector('[data-component="PhasedChild"]'),
       'PhasedChild',
     )!;
 
@@ -1101,7 +1101,7 @@ describe('@provide / @inject', () => {
 
     const parent = getInstance<DecoParent>(root, 'DecoParent')!;
     const child = getInstance<DecoChild>(
-      root.querySelector('[data-component="DecoChild"]')!,
+      root.querySelector('[data-component="DecoChild"]'),
       'DecoChild',
     )!;
 

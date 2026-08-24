@@ -76,7 +76,7 @@ describe('$emit and delegation', () => {
     await settle();
 
     const li = root.querySelector('[data-component="TodoItem"]');
-    const instance = getInstance(li!, 'TodoItem')!;
+    const instance = getInstance(li, 'TodoItem')!;
     const seen: unknown[] = [];
     root.addEventListener('ping', (event) => {
       seen.push((event as CustomEvent).detail);
@@ -93,7 +93,7 @@ describe('$emit and delegation', () => {
     await settle();
 
     const li = root.querySelector('[data-component="TodoItem"]');
-    const instance = getInstance(li!, 'TodoItem')!;
+    const instance = getInstance(li, 'TodoItem')!;
     const seen: unknown[] = [];
     root.addEventListener('ping', (event) => seen.push((event as CustomEvent).detail));
 
@@ -106,7 +106,7 @@ describe('$emit and delegation', () => {
     await settle();
 
     const li = root.querySelector('[data-component="TodoItem"]');
-    const instance = getInstance(li!, 'TodoItem')!;
+    const instance = getInstance(li, 'TodoItem')!;
     const log = captureDiagnostics();
     const seen: unknown[] = [];
     root.addEventListener('ping', (event) => seen.push((event as CustomEvent).detail));
@@ -797,7 +797,7 @@ describe('$refs', () => {
     expect(owner.$refs.item).toBe(root.querySelector('[data-ref="item"]'));
 
     await settle();
-    expect(getInstance(root.lastElementChild!, 'RefReadInserted')!.$isMounted).toBe(true);
+    expect(getInstance(root.lastElementChild, 'RefReadInserted')!.$isMounted).toBe(true);
   });
 });
 
@@ -1626,7 +1626,7 @@ describe('lifecycle', () => {
     await settle();
 
     const countInstance = getInstance<TodoCount>(
-      root.querySelector('[data-component="TodoCount"]')!,
+      root.querySelector('[data-component="TodoCount"]'),
       'TodoCount',
     )!;
     expect(countInstance.cleanupCalls).toBe(0);

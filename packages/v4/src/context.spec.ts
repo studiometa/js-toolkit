@@ -445,7 +445,7 @@ describe('provide/inject', () => {
 
     const counter = getInstance<Counter>(root, 'Counter')!;
     const button = root.querySelector('button');
-    const control = getInstance<CounterBtn>(button!, 'CounterBtn')!;
+    const control = getInstance<CounterBtn>(button, 'CounterBtn')!;
 
     button?.click();
     button?.click();

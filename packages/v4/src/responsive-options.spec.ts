@@ -138,7 +138,7 @@ describe('responsive options', () => {
           data-option-label:large="wide"></p>`,
     );
     await settle();
-    const label = getInstance<Label>(root.firstElementChild!, 'Label')!;
+    const label = getInstance<Label>(root.firstElementChild, 'Label')!;
 
     expect(label.$options.label).toBe('base');
 
@@ -151,7 +151,7 @@ describe('responsive options', () => {
     const root = render('<p data-component="Label"></p>');
     await settle();
 
-    expect(getInstance<Label>(root.firstElementChild!, 'Label')!.$options.label).toBe('base');
+    expect(getInstance<Label>(root.firstElementChild, 'Label')!.$options.label).toBe('base');
   });
 
   it('is derived on read, so a component that never subscribes still sees the crossing', async () => {
@@ -162,7 +162,7 @@ describe('responsive options', () => {
           data-option-label:large="wide"></p>`,
     );
     await settle();
-    const label = getInstance<Label>(root.firstElementChild!, 'Label')!;
+    const label = getInstance<Label>(root.firstElementChild, 'Label')!;
     expect(label.$options.label).toBe('narrow');
 
     const added = await countMediaListeners(async () => {
@@ -181,7 +181,7 @@ describe('responsive options', () => {
           data-option-label:large="wide"></p>`,
     );
     await settle();
-    const label = getInstance<Label>(root.firstElementChild!, 'Label')!;
+    const label = getInstance<Label>(root.firstElementChild, 'Label')!;
 
     const added = await countMediaListeners(async () => {
       for (let index = 0; index < 5; index += 1) {
@@ -208,7 +208,7 @@ describe('responsive options', () => {
             data-option-columns:large="4"></div>`,
     );
     await settle();
-    const grid = getInstance<Grid>(root.firstElementChild!, 'Grid')!;
+    const grid = getInstance<Grid>(root.firstElementChild, 'Grid')!;
 
     expect(grid.changes).toHaveLength(1);
     expect(grid.changes[0]).toMatchObject({ value: 1, initial: true });
@@ -232,7 +232,7 @@ describe('responsive options', () => {
     atSmall();
     const root = render('<div data-component="Grid" data-option-columns="2"></div>');
     await settle();
-    const grid = getInstance<Grid>(root.firstElementChild!, 'Grid')!;
+    const grid = getInstance<Grid>(root.firstElementChild, 'Grid')!;
     expect(grid.changes).toHaveLength(1);
 
     atLarge();
@@ -250,7 +250,7 @@ describe('responsive options', () => {
             data-option-columns:large="4"></div>`,
     );
     await settle();
-    const grid = getInstance<Grid>(root.firstElementChild!, 'Grid')!;
+    const grid = getInstance<Grid>(root.firstElementChild, 'Grid')!;
     grid.changes = [];
 
     grid.$el.setAttribute('data-option-columns:large', '6');
@@ -274,7 +274,7 @@ describe('responsive options', () => {
       `<div data-component="Grid" data-option-columns:large="4" data-option-gap="8"></div>`,
     );
     await settle();
-    const grid = getInstance<Grid>(root.firstElementChild!, 'Grid')!;
+    const grid = getInstance<Grid>(root.firstElementChild, 'Grid')!;
 
     expect(grid.$options.gap).toBe(8);
     atLarge();
@@ -290,7 +290,7 @@ describe('responsive options', () => {
           data-option-theme:large="dark"></p>`,
     );
     await settle();
-    const banner = getInstance<Banner>(root.firstElementChild!, 'Banner')!;
+    const banner = getInstance<Banner>(root.firstElementChild, 'Banner')!;
 
     expect(banner.$options.theme).toBe('light');
     atLarge();
@@ -301,7 +301,7 @@ describe('responsive options', () => {
     atSmall();
     const root = render('<p data-component="Banner" data-option-theme="light"></p>');
     await settle();
-    const banner = getInstance<Banner>(root.firstElementChild!, 'Banner')!;
+    const banner = getInstance<Banner>(root.firstElementChild, 'Banner')!;
     banner.changes = [];
 
     banner.$el.setAttribute('data-option-theme:small', 'dark');
@@ -315,7 +315,7 @@ describe('responsive options', () => {
     atSmall();
     const root = render('<div data-component="Grid" data-option-columns="1"></div>');
     await settle();
-    const grid = getInstance<Grid>(root.firstElementChild!, 'Grid')!;
+    const grid = getInstance<Grid>(root.firstElementChild, 'Grid')!;
     grid.changes = [];
 
     setBreakpoints({ small: '0rem', wide: '0rem' });
@@ -341,7 +341,7 @@ describe('responsive options', () => {
     });
     expect(added).toBeGreaterThan(0);
 
-    const grid = getInstance<Grid>(root.firstElementChild!, 'Grid')!;
+    const grid = getInstance<Grid>(root.firstElementChild, 'Grid')!;
     atLarge();
     expect(grid.changes).toHaveLength(2);
 
@@ -385,7 +385,7 @@ describe('responsive options', () => {
             data-option-columns:large="4"></div>`,
     );
     await settle();
-    const grid = getInstance<LazyGrid>(root.firstElementChild!, 'LazyGrid')!;
+    const grid = getInstance<LazyGrid>(root.firstElementChild, 'LazyGrid')!;
 
     expect(grid.$options.columns).toBe(1);
     grid.changes = [];
@@ -469,7 +469,7 @@ describe('negated boolean options', () => {
   it('turns a boolean off by the presence of its negated attribute', async () => {
     const root = render(`<p data-component="Flags" data-option-no-view-transition></p>`);
     await settle();
-    const flags = getInstance<Flags>(root.firstElementChild!, 'Flags')!;
+    const flags = getInstance<Flags>(root.firstElementChild, 'Flags')!;
 
     expect(flags.$options.viewTransition).toBe(false);
   });
@@ -506,7 +506,7 @@ describe('negated boolean options', () => {
     await settle();
 
     // A negation is a flag too: it is present or it is not.
-    expect(getInstance<Flags>(root.firstElementChild!, 'Flags')!.$options.viewTransition).toBe(
+    expect(getInstance<Flags>(root.firstElementChild, 'Flags')!.$options.viewTransition).toBe(
       false,
     );
   });
@@ -515,7 +515,7 @@ describe('negated boolean options', () => {
     const root = render(`<p data-component="Flags" data-option-no-mode></p>`);
     await settle();
 
-    expect(getInstance<Flags>(root.firstElementChild!, 'Flags')!.$options.mode).toBe(false);
+    expect(getInstance<Flags>(root.firstElementChild, 'Flags')!.$options.mode).toBe(false);
   });
 
   it('turns one off whatever order the union declares its members in', async () => {
@@ -523,14 +523,14 @@ describe('negated boolean options', () => {
     await settle();
 
     // `[String, Boolean]` would otherwise read the negation as a string.
-    expect(getInstance<Flags>(root.firstElementChild!, 'Flags')!.$options.label).toBe(false);
+    expect(getInstance<Flags>(root.firstElementChild, 'Flags')!.$options.label).toBe(false);
   });
 
   it('cascades from a breakpoint like every other spelling', async () => {
     atSmall();
     const root = render(`<p data-component="Flags" data-option-no-view-transition:large></p>`);
     await settle();
-    const flags = getInstance<Flags>(root.firstElementChild!, 'Flags')!;
+    const flags = getInstance<Flags>(root.firstElementChild, 'Flags')!;
 
     expect(flags.$options.viewTransition).toBe(true);
 
@@ -546,7 +546,7 @@ describe('negated boolean options', () => {
           data-option-view-transition:large="true"></p>`,
     );
     await settle();
-    const flags = getInstance<Flags>(root.firstElementChild!, 'Flags')!;
+    const flags = getInstance<Flags>(root.firstElementChild, 'Flags')!;
 
     expect(flags.$options.viewTransition).toBe(false);
 
@@ -563,15 +563,13 @@ describe('negated boolean options', () => {
     await settle();
 
     // An explicit value states more than a flag does.
-    expect(getInstance<Flags>(root.firstElementChild!, 'Flags')!.$options.viewTransition).toBe(
-      true,
-    );
+    expect(getInstance<Flags>(root.firstElementChild, 'Flags')!.$options.viewTransition).toBe(true);
   });
 
   it('announces a change to the negated attribute like any other option change', async () => {
     const root = render(`<p data-component="Flags"></p>`);
     await settle();
-    const flags = getInstance<Flags>(root.firstElementChild!, 'Flags')!;
+    const flags = getInstance<Flags>(root.firstElementChild, 'Flags')!;
     expect(flags.$options.viewTransition).toBe(true);
 
     (root.firstElementChild as HTMLElement).setAttribute('data-option-no-view-transition', '');
@@ -599,6 +597,6 @@ describe('negated boolean options', () => {
     await settle();
 
     // Nothing to turn off, so the attribute is not this option's: the default stands.
-    expect(getInstance<Label>(root.firstElementChild!, 'Label')!.$options.label).toBe('base');
+    expect(getInstance<Label>(root.firstElementChild, 'Label')!.$options.label).toBe('base');
   });
 });

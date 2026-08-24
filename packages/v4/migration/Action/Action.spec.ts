@@ -43,7 +43,7 @@ registerComponents(Action, Target, Foo, Bar, Dialog, MountProbe);
 afterEach(resetDom);
 
 function at<T extends Base>(root: ParentNode, selector: string, name: string): T {
-  return getInstance<T>(root.querySelector(selector)!, name)!;
+  return getInstance<T>(root.querySelector(selector), name)!;
 }
 
 function click(el: Element): Event {

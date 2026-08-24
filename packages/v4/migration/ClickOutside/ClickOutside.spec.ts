@@ -79,7 +79,7 @@ describe('ClickOutside', () => {
     outside.click();
 
     const dropdown = getInstance<Dropdown>(
-      root.querySelector('[data-component="Dropdown"]')!,
+      root.querySelector('[data-component="Dropdown"]'),
       'Dropdown',
     )!;
     expect(dropdown.closed).toHaveLength(1);

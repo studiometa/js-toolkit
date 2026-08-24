@@ -20,7 +20,7 @@ async function render(
     </div>`;
   document.body.append(root);
   await settle();
-  return getInstance<FigureTwicpics>(root.firstElementChild!, 'FigureTwicpics')!;
+  return getInstance<FigureTwicpics>(root.firstElementChild, 'FigureTwicpics')!;
 }
 
 describe('FigureTwicpics', () => {

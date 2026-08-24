@@ -25,7 +25,7 @@ describe('AnchorNav', () => {
   it('enters the matching link once its target scrolls into view', async () => {
     const { root, target } = await render();
     const link = getInstance<AnchorNavLink>(
-      root.querySelector('[data-component="AnchorNavLink"]')!,
+      root.querySelector('[data-component="AnchorNavLink"]'),
       'AnchorNavLink',
     )!;
 
@@ -41,7 +41,7 @@ describe('AnchorNav', () => {
   it('leaves the matching link once its target scrolls back out of view', async () => {
     const { root, target } = await render();
     const link = getInstance<AnchorNavLink>(
-      root.querySelector('[data-component="AnchorNavLink"]')!,
+      root.querySelector('[data-component="AnchorNavLink"]'),
       'AnchorNavLink',
     )!;
 
@@ -66,7 +66,7 @@ describe('AnchorNav', () => {
     document.body.append(root);
     await settle();
     const link = getInstance<AnchorNavLink>(
-      root.querySelector('[data-component="AnchorNavLink"]')!,
+      root.querySelector('[data-component="AnchorNavLink"]'),
       'AnchorNavLink',
     )!;
     const target = root.querySelector('#one') as HTMLElement;

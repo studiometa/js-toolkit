@@ -174,7 +174,7 @@ describe('a component declared with a props type parameter', () => {
       </form>`;
     await settle();
 
-    const instance = getInstance<Extensible>(document.querySelector('form')!, 'Extensible')!;
+    const instance = getInstance<Extensible>(document.querySelector('form'), 'Extensible')!;
     expect(instance.$options.target).toBe('here');
     expect(instance.$refs.btn).toBeInstanceOf(HTMLButtonElement);
     expect(instance.$refs.items).toHaveLength(2);

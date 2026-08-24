@@ -41,7 +41,7 @@ async function render(): Promise<{ root: HTMLElement; instance: Toaster }> {
   await settle();
   return {
     root,
-    instance: getInstance<Toaster>(root.querySelector('[data-component="Toaster"]')!, 'Toaster')!,
+    instance: getInstance<Toaster>(root.querySelector('[data-component="Toaster"]'), 'Toaster')!,
   };
 }
 

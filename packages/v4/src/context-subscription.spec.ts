@@ -130,7 +130,7 @@ describe('subscribeContext', () => {
     `);
     await settle();
 
-    const member = getInstance<Member>(root.querySelector('span')!, 'ReanswerMember')!;
+    const member = getInstance<Member>(root.querySelector('span'), 'ReanswerMember')!;
     expect(member.seen).toEqual(['page']);
 
     root.querySelector('#scope')?.setAttribute('data-component', 'ReanswerScope');
@@ -165,7 +165,7 @@ describe('subscribeContext', () => {
     `);
     await settle();
 
-    const member = getInstance<Member>(root.querySelector('span')!, 'DistanceMember')!;
+    const member = getInstance<Member>(root.querySelector('span'), 'DistanceMember')!;
     expect(member.seen).toEqual(['inner']);
 
     root.querySelector('#outer')?.setAttribute('data-component', 'DistanceScope');

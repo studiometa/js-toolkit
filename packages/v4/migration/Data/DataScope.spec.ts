@@ -27,7 +27,7 @@ function uniqueGroup(name: string): string {
 }
 
 function at<T>(root: HTMLElement, selector: string, name: string): T {
-  return getInstance<never>(root.querySelector(selector)!, name)! as T;
+  return getInstance<never>(root.querySelector(selector), name)! as T;
 }
 
 function el<T extends HTMLElement = HTMLElement>(root: HTMLElement, selector: string): T {

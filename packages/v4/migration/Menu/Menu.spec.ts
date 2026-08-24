@@ -28,7 +28,7 @@ async function render(mode?: string): Promise<{ root: HTMLElement; menu: Menu }>
   root.innerHTML = menuMarkup(mode);
   document.body.append(root);
   await settle();
-  return { root, menu: getInstance<Menu>(root.querySelector('[data-component="Menu"]')!, 'Menu')! };
+  return { root, menu: getInstance<Menu>(root.querySelector('[data-component="Menu"]'), 'Menu')! };
 }
 
 describe('Menu', () => {
@@ -133,8 +133,8 @@ describe('Menu', () => {
       </div>`;
     document.body.append(root);
     await settle();
-    const subA = getInstance<Menu>(root.querySelector('#sub-a')!, 'Menu')!;
-    const subB = getInstance<Menu>(root.querySelector('#sub-b')!, 'Menu')!;
+    const subA = getInstance<Menu>(root.querySelector('#sub-a'), 'Menu')!;
+    const subB = getInstance<Menu>(root.querySelector('#sub-b'), 'Menu')!;
 
     subA.open();
     expect(subA.menuList?.isOpen).toBe(true);

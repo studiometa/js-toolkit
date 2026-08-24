@@ -67,7 +67,7 @@ function el<T extends HTMLElement = HTMLElement>(root: HTMLElement, selector: st
 }
 
 function at<T>(root: HTMLElement, selector: string, name: string): T {
-  return getInstance<never>(root.querySelector(selector)!, name)! as T;
+  return getInstance<never>(root.querySelector(selector), name)! as T;
 }
 
 describe('DataBind — the element half', () => {

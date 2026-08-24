@@ -120,10 +120,25 @@ export function getUnmountedInstances<T extends Base = Base>(
  * answer to "is this element's instance there yet", which every plural form
  * loses by returning a list.
  *
+ * `el` accepts `null` so that a `querySelector()` result can be passed
+ * straight through. The two ways of having no instance — no element, and an
+ * element without one — are the same answer to the caller, and `undefined`
+ * says it for both. Narrowing the parameter to `Element` would buy nothing
+ * back: the body reads an optional map either way, so the only thing a
+ * stricter type produces is a `!` at every call site that asserts something
+ * the function never needed.
+ *
+ * The *return* stays `T | undefined`, and that asymmetry is deliberate. An
+ * absent element is a fact the caller may reasonably not know; an absent
+ * instance is a fact the caller must handle.
+ *
  * There is deliberately no `getMountedInstance`. The result is one object, so
  * a caller who needs the live one reads `.$isMounted` on it — a second export
  * would only hide that check behind a `undefined` that means two things.
  */
-export function getInstance<T extends Base = Base>(el: Element, name: string): T | undefined {
-  return el[INSTANCES]?.get(name) as T | undefined;
+export function getInstance<T extends Base = Base>(
+  el: Element | null,
+  name: string,
+): T | undefined {
+  return el?.[INSTANCES]?.get(name) as T | undefined;
 }

@@ -20,7 +20,7 @@ async function render(attributes = ''): Promise<FigureVideoTwicpics> {
     </div>`;
   document.body.append(root);
   await settle();
-  return getInstance<FigureVideoTwicpics>(root.firstElementChild!, 'FigureVideoTwicpics')!;
+  return getInstance<FigureVideoTwicpics>(root.firstElementChild, 'FigureVideoTwicpics')!;
 }
 
 describe('FigureVideoTwicpics — the loadSources override', () => {
