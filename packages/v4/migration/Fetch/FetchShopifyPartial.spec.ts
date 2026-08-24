@@ -223,6 +223,36 @@ describe('FetchShopifyPartial', () => {
     expect(errors).toEqual([failure]);
   });
 
+  it('skips the history push for a popstate header given as a Headers instance', async () => {
+    stubPartials({ fetch: async () => ({}), apply: vi.fn() });
+    const { instance } = await mount(
+      `<a data-component="FetchShopifyPartial" href="/page" data-option-partials="main" data-option-history></a>`,
+    );
+    const before = window.history.length;
+
+    // The internal header is what tells `applyPartials()` not to push; read as
+    // a plain record it is invisible in this form.
+    await instance.fetch(instance.url, {
+      headers: new Headers({ 'x-triggered-by': 'popstate' }),
+    });
+    await settle();
+
+    expect(window.history.length).toBe(before);
+  });
+
+  it('still pushes history for a request that is not popstate-triggered', async () => {
+    stubPartials({ fetch: async () => ({}), apply: vi.fn() });
+    const { instance } = await mount(
+      `<a data-component="FetchShopifyPartial" href="/page" data-option-partials="main" data-option-history></a>`,
+    );
+    const before = window.history.length;
+
+    await instance.fetch();
+    await settle();
+
+    expect(window.history.length).toBe(before + 1);
+  });
+
   it('memoises the resolved partials module across calls', async () => {
     const loadSpy = vi.fn(async () => ({
       partials: { fetch: vi.fn(async () => ({})), apply: vi.fn() },

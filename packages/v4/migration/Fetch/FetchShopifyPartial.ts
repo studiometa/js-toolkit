@@ -1,6 +1,13 @@
 import { component, type BaseProps } from '../../src/index.js';
 import { historyPush } from '../../src/utils/history.js';
-import { FETCH_EVENTS, Fetch, HEADER_NAMES, type FetchProps } from './Fetch.js';
+import {
+  FETCH_EVENTS,
+  Fetch,
+  HEADER_NAMES,
+  headerNames,
+  headerValue,
+  type FetchProps,
+} from './Fetch.js';
 
 /** Minimal shape of the `partials` API exposed by `@shopify/partial-rendering`. */
 interface PartialsApi {
@@ -13,28 +20,6 @@ interface PartialsApi {
 /** Minimal shape of the `@shopify/partial-rendering` module. */
 interface PartialsModule {
   partials: PartialsApi;
-}
-
-/**
- * The header names a `RequestInit` carries, lowercased.
- *
- * `RequestInit.headers` is a `HeadersInit`: a record, a list of tuples, or a
- * `Headers` instance. Spreading it only sees the record — a `Headers` yields no
- * own enumerable keys at all — so a custom header written that way used to pass
- * the eligibility check below unnoticed and then be dropped, because the
- * partials API forwards nothing but `{ url, signal }`.
- */
-function headerNames(headers: HeadersInit | undefined): string[] {
-  if (!headers) {
-    return [];
-  }
-  if (headers instanceof Headers) {
-    return [...headers.keys()];
-  }
-  if (Array.isArray(headers)) {
-    return headers.map(([name]) => name.toLowerCase());
-  }
-  return Object.keys(headers).map((name) => name.toLowerCase());
 }
 
 export type FetchShopifyPartialProps = FetchProps & {
@@ -236,11 +221,7 @@ export class FetchShopifyPartial<T extends BaseProps = BaseProps> extends Fetch<
     this.$emit(FETCH_EVENTS.BEFORE_UPDATE, { instance: this, url, requestInit, content: update });
 
     if (history) {
-      if (
-        (requestInit.headers as Record<string, string> | undefined)?.[
-          HEADER_NAMES.X_TRIGGERED_BY
-        ] !== 'popstate'
-      ) {
+      if (headerValue(requestInit.headers, HEADER_NAMES.X_TRIGGERED_BY) !== 'popstate') {
         historyPush({ path: url.pathname, search: url.searchParams });
       }
     }

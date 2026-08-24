@@ -23,6 +23,40 @@ async function render(attributes = ''): Promise<FigureVideoTwicpics> {
   return getInstance<FigureVideoTwicpics>(root.firstElementChild, 'FigureVideoTwicpics');
 }
 
+describe('FigureVideoTwicpics — the loadSources override', () => {
+  it('settles and reports when its sources fail, as the base does', async () => {
+    const root = document.createElement('div');
+    root.innerHTML = `
+      <div data-component="FigureVideoTwicpics" data-option-lazy="true" data-option-domain="cdn.twic.pics">
+        <video data-ref="video" style="width:100px;height:200px">
+          <source data-src="https://example.com/original/clip.mp4" />
+        </video>
+      </div>`;
+    document.body.append(root);
+    const details: Array<Record<string, unknown>> = [];
+    const listener = (event: Event) => {
+      details.push((event as CustomEvent<Record<string, unknown>>).detail);
+      event.preventDefault();
+    };
+    document.addEventListener('js-toolkit:diagnostic', listener);
+    await settle();
+
+    const el = root.firstElementChild as HTMLElement;
+    const video = el.querySelector('[data-ref="video"]') as HTMLVideoElement;
+    // This override replaces the base entirely, so fixing the base alone left
+    // it waiting on `canplaythrough` forever.
+    video.dispatchEvent(new Event('error'));
+    for (let i = 0; i < 6; i += 1) {
+      await settle();
+    }
+
+    expect(details.map((detail) => detail.code)).toContain('figure-video.load-failed');
+    expect(getInstance<FigureVideoTwicpics>(el, 'FigureVideoTwicpics').hasLoaded).toBe(false);
+
+    document.removeEventListener('js-toolkit:diagnostic', listener);
+  });
+});
+
 describe('FigureVideoTwicpics', () => {
   it('builds a twic query from the measured size and the default cover mode', async () => {
     const instance = await render('data-option-step="50"');

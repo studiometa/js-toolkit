@@ -122,8 +122,27 @@ export class FigureVideoTwicpics<T extends BaseProps = BaseProps> extends withRe
       );
     }
 
-    return new Promise<void>((resolve) => {
-      video.addEventListener('canplaythrough', () => resolve(), { once: true });
+    /**
+     * Settled by either outcome, mirroring the base `loadSources()`.
+     *
+     * This override waits on `canplaythrough` where the base waits on
+     * `loadeddata`, and it had the same defect: without an `error` listener a
+     * video whose sources fail never settles, and `mounted()` awaits it — so
+     * no diagnostic, no transition and no retry. Fixing only the base left the
+     * TwicPics variant hanging, because this method replaces it entirely.
+     */
+    return new Promise<void>((resolve, reject) => {
+      const settle = (handler: () => void) => {
+        video.removeEventListener('canplaythrough', onReady);
+        video.removeEventListener('error', onError);
+        handler();
+      };
+      const onReady = () => settle(resolve);
+      const onError = () =>
+        settle(() => reject(new Error(`Failed to load the sources of "${video.currentSrc}".`)));
+
+      video.addEventListener('canplaythrough', onReady, { once: true });
+      video.addEventListener('error', onError, { once: true });
       video.width = this.#normalizeSize('offsetWidth');
       video.height = this.#normalizeSize('offsetHeight');
       video.load();
