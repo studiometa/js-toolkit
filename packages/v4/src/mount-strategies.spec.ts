@@ -5,7 +5,7 @@ import { EVENTS } from './events.js';
 import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent } from './registry.js';
 import { getSharedRuntimeSlot } from './shared-runtime.js';
-import { resetDom, settle } from './test-utils.js';
+import { resetDom, settle } from './test/index.js';
 
 /**
  * The page-wide interaction signal is a fact about the visit, so it survives a

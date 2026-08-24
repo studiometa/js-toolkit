@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { registerComponents, type InViewProps, type ScrollProps } from '../../src/index.js';
-import { getInstance, resetDom, settle } from '../../src/test-utils.js';
+import { getInstance } from '../../src/test-utils.js';
+import { mount, resetDom, settle } from '../../src/test/index.js';
 import { Sentinel } from '../Sentinel/index.js';
 import { Sticky } from './Sticky.js';
 
@@ -18,14 +19,6 @@ function sticky(): string {
       ${SENTINEL}
       <div data-ref="inner" style="height:50px"></div>
     </div>`;
-}
-
-async function render(markup: string): Promise<HTMLElement> {
-  const root = document.createElement('div');
-  root.innerHTML = markup;
-  document.body.append(root);
-  await settle();
-  return root;
 }
 
 function dispatchIntersected(sentinelEl: Element, isInView: boolean, y: number): void {
@@ -55,7 +48,7 @@ const BASE_SCROLL_PROPS: ScrollProps = {
 
 describe('Sticky', () => {
   it('sizes its sentinel from the earlier instances sharing its relative ancestor', async () => {
-    const root = await render(`<div style="position:relative">${sticky()}${sticky()}</div>`);
+    const root = await mount(`<div style="position:relative">${sticky()}${sticky()}</div>`);
     const [first, second] = root.querySelectorAll('[data-component="Sticky"]');
     const firstInstance = getInstance<Sticky>(first, 'Sticky');
     const secondInstance = getInstance<Sticky>(second, 'Sticky');
@@ -70,7 +63,7 @@ describe('Sticky', () => {
   });
 
   it('sets `isSticky` from the sentinel entry and clears the transform once it is not sticky', async () => {
-    const root = await render(sticky());
+    const root = await mount(sticky());
     const el = root.querySelector('[data-component="Sticky"]') as HTMLElement;
     const sentinelEl = root.querySelector('[data-component="Sentinel"]') as HTMLElement;
     const instance = getInstance<Sticky>(el, 'Sticky');
@@ -85,7 +78,7 @@ describe('Sticky', () => {
   });
 
   it('does not consider a sentinel intersecting from below sticky, only one that has scrolled past the top', async () => {
-    const root = await render(sticky());
+    const root = await mount(sticky());
     const sentinelEl = root.querySelector('[data-component="Sentinel"]') as HTMLElement;
     const el = root.querySelector('[data-component="Sticky"]') as HTMLElement;
     const instance = getInstance<Sticky>(el, 'Sticky');
@@ -96,7 +89,7 @@ describe('Sticky', () => {
   });
 
   it('stacks onto an earlier instance that hid itself on scroll, and unstacks once it reappears', async () => {
-    const root = await render(`<div style="position:relative">${sticky()}${sticky()}</div>`);
+    const root = await mount(`<div style="position:relative">${sticky()}${sticky()}</div>`);
     const [firstEl, secondEl] = [
       ...root.querySelectorAll('[data-component="Sticky"]'),
     ] as HTMLElement[];
@@ -128,7 +121,7 @@ describe('Sticky', () => {
   });
 
   it('hides on scroll direction when `hideWhenDown` is set, and shows again on the way up', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div data-component="Sticky" data-option-hide-when-down="true">
         ${SENTINEL}
         <div data-ref="inner" style="height:50px"></div>
@@ -148,7 +141,7 @@ describe('Sticky', () => {
   });
 
   it('ignores a scroll update with no movement', async () => {
-    const root = await render(sticky());
+    const root = await mount(sticky());
     const el = root.querySelector('[data-component="Sticky"]') as HTMLElement;
     const sentinelEl = root.querySelector('[data-component="Sentinel"]') as HTMLElement;
     const instance = getInstance<Sticky>(el, 'Sticky');

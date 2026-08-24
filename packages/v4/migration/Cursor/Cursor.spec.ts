@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { registerComponents } from '../../src/index.js';
-import { countRequestedFrames, getInstance, resetDom, settle } from '../../src/test-utils.js';
+import { countRequestedFrames, getInstance } from '../../src/test-utils.js';
+import { mount, resetDom, settle } from '../../src/test/index.js';
 import { Cursor } from './Cursor.js';
 
 registerComponents(Cursor);
@@ -11,19 +12,11 @@ afterEach(async () => {
   await resetDom();
 });
 
-async function render(html: string): Promise<HTMLElement> {
-  const root = document.createElement('div');
-  root.innerHTML = html;
-  document.body.append(root);
-  await settle();
-  return root;
-}
-
 async function mountCursor(
   attributes = '',
   inner = '',
 ): Promise<{ root: HTMLElement; instance: Cursor }> {
-  const root = await render(
+  const root = await mount(
     `<div data-component="Cursor" style="position:fixed;top:0;left:0;width:20px;height:20px" ${attributes}>${inner}</div>`,
   );
   return { root, instance: getInstance<Cursor>(root.firstElementChild as HTMLElement, 'Cursor') };

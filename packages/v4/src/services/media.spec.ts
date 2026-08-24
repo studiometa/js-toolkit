@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cdp } from 'vitest/browser';
 import type {} from '@vitest/browser-playwright';
-import { settle } from '../test-utils.js';
+import { settle } from '../test/index.js';
 import { useMediaQuery, usePrefersReducedMotion, type MediaQueryProps } from './media.js';
 
 async function emulateReducedMotion(value: 'reduce' | 'no-preference'): Promise<void> {

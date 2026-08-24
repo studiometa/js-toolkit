@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { Base, registerComponents, type BaseConfig } from '../../src/index.js';
 import { INSTANCES } from '../../src/protocol-symbols.js';
-import { resetDom, settle } from '../../src/test-utils.js';
+import { resetDom, settle } from '../../src/test/index.js';
 import { InView } from './InView.js';
 import { InViewOnce } from './InViewOnce.js';
 

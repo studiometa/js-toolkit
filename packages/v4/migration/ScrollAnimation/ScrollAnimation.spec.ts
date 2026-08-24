@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { registerComponent } from '../../src/index.js';
-import { frames, getInstance, resetDom, settle } from '../../src/test-utils.js';
+import { getInstance } from '../../src/test-utils.js';
+import { frames, resetDom, settle } from '../../src/test/index.js';
 import { ScrollAnimationTarget } from './ScrollAnimationTarget.js';
 import { ScrollAnimationTimeline } from './ScrollAnimationTimeline.js';
 

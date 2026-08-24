@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { registerComponents } from '../../src/index.js';
-import { getInstance, resetDom, settle } from '../../src/test-utils.js';
+import { getInstance } from '../../src/test-utils.js';
+import { mount, resetDom, settle } from '../../src/test/index.js';
 import { AbstractPrefetch } from './AbstractPrefetch.js';
 import { PrefetchOnInteraction } from './PrefetchOnInteraction.js';
 import { PrefetchWhenVisible } from './PrefetchWhenVisible.js';
@@ -39,14 +40,6 @@ afterEach(async () => {
   await resetDom();
 });
 
-async function render(html: string): Promise<HTMLElement> {
-  const root = document.createElement('div');
-  root.innerHTML = html;
-  document.body.append(root);
-  await settle();
-  return root;
-}
-
 /** Give the observer and the link a few frames. */
 async function observed(): Promise<void> {
   for (let i = 0; i < 8; i += 1) {
@@ -57,7 +50,7 @@ async function observed(): Promise<void> {
 describe('AbstractPrefetch — is the URL prefetchable', () => {
   it('accepts a same-origin URL that is not the current page', async () => {
     const href = uniqueHref();
-    const root = await render(`<a data-component="AbstractPrefetch" href="${href}"></a>`);
+    const root = await mount(`<a data-component="AbstractPrefetch" href="${href}"></a>`);
     const instance = getInstance<AbstractPrefetch>(
       root.firstElementChild as HTMLElement,
       'AbstractPrefetch',
@@ -68,7 +61,7 @@ describe('AbstractPrefetch — is the URL prefetchable', () => {
   });
 
   it('refuses a cross-origin URL', async () => {
-    const root = await render(
+    const root = await mount(
       `<a data-component="AbstractPrefetch" href="https://example.com/other"></a>`,
     );
     const instance = getInstance<AbstractPrefetch>(
@@ -80,7 +73,7 @@ describe('AbstractPrefetch — is the URL prefetchable', () => {
   });
 
   it('refuses the current page', async () => {
-    const root = await render(
+    const root = await mount(
       `<a data-component="AbstractPrefetch" href="${window.location.href}"></a>`,
     );
     const instance = getInstance<AbstractPrefetch>(
@@ -92,7 +85,7 @@ describe('AbstractPrefetch — is the URL prefetchable', () => {
   });
 
   it('refuses an anchor into the current page', async () => {
-    const root = await render(`<a data-component="AbstractPrefetch" href="#section"></a>`);
+    const root = await mount(`<a data-component="AbstractPrefetch" href="#section"></a>`);
     const instance = getInstance<AbstractPrefetch>(
       root.firstElementChild as HTMLElement,
       'AbstractPrefetch',
@@ -102,7 +95,7 @@ describe('AbstractPrefetch — is the URL prefetchable', () => {
   });
 
   it('refuses when the `prefetch` option is off', async () => {
-    const root = await render(
+    const root = await mount(
       `<a data-component="AbstractPrefetch" href="${uniqueHref()}" data-option-no-prefetch></a>`,
     );
     const instance = getInstance<AbstractPrefetch>(
@@ -118,7 +111,7 @@ describe('AbstractPrefetch — is the URL prefetchable', () => {
    * there. Found by running the port rather than by reading it.
    */
   it('answers for an anchor with no href instead of throwing', async () => {
-    const root = await render(`<a data-component="AbstractPrefetch"></a>`);
+    const root = await mount(`<a data-component="AbstractPrefetch"></a>`);
     const instance = getInstance<AbstractPrefetch>(
       root.firstElementChild as HTMLElement,
       'AbstractPrefetch',
@@ -133,7 +126,7 @@ describe('AbstractPrefetch — is the URL prefetchable', () => {
 describe('AbstractPrefetch — the hint', () => {
   it('appends a prefetch link for a prefetchable URL', async () => {
     const href = uniqueHref();
-    const root = await render(`<a data-component="AbstractPrefetch" href="${href}"></a>`);
+    const root = await mount(`<a data-component="AbstractPrefetch" href="${href}"></a>`);
     const instance = getInstance<AbstractPrefetch>(
       root.firstElementChild as HTMLElement,
       'AbstractPrefetch',
@@ -147,7 +140,7 @@ describe('AbstractPrefetch — the hint', () => {
 
   it('appends nothing for a URL that is not prefetchable', async () => {
     const before = prefetchLinks().length;
-    const root = await render(
+    const root = await mount(
       `<a data-component="AbstractPrefetch" href="https://example.com/other"></a>`,
     );
     const instance = getInstance<AbstractPrefetch>(
@@ -163,7 +156,7 @@ describe('AbstractPrefetch — the hint', () => {
 
   it('emits `prefetched` with the URL once the hint has settled', async () => {
     const href = uniqueHref();
-    const root = await render(`<a data-component="AbstractPrefetch" href="${href}"></a>`);
+    const root = await mount(`<a data-component="AbstractPrefetch" href="${href}"></a>`);
     const instance = getInstance<AbstractPrefetch>(
       root.firstElementChild as HTMLElement,
       'AbstractPrefetch',
@@ -185,7 +178,7 @@ describe('AbstractPrefetch — the hint', () => {
    */
   it('appends one link for two components pointing at the same URL', async () => {
     const href = uniqueHref();
-    const root = await render(`
+    const root = await mount(`
       <a data-component="AbstractPrefetch" href="${href}"></a>
       <a data-component="AbstractPrefetch" href="${href}"></a>
     `);
@@ -207,7 +200,7 @@ describe('AbstractPrefetch — the hint', () => {
    */
   it('still announces to the second component sharing the link', async () => {
     const href = uniqueHref();
-    const root = await render(`
+    const root = await mount(`
       <a data-component="AbstractPrefetch" href="${href}"></a>
       <a data-component="AbstractPrefetch" href="${href}"></a>
     `);
@@ -229,7 +222,7 @@ describe('AbstractPrefetch — the hint', () => {
 
   it('says nothing once the component has been unmounted', async () => {
     const href = uniqueHref();
-    const root = await render(`<a data-component="AbstractPrefetch" href="${href}"></a>`);
+    const root = await mount(`<a data-component="AbstractPrefetch" href="${href}"></a>`);
     const instance = getInstance<AbstractPrefetch>(
       root.firstElementChild as HTMLElement,
       'AbstractPrefetch',
@@ -250,7 +243,7 @@ describe('AbstractPrefetch — the hint', () => {
 describe('PrefetchOnInteraction', () => {
   it('prefetches when the pointer arrives', async () => {
     const href = uniqueHref();
-    const root = await render(`<a data-component="PrefetchOnInteraction" href="${href}"></a>`);
+    const root = await mount(`<a data-component="PrefetchOnInteraction" href="${href}"></a>`);
 
     root.firstElementChild?.dispatchEvent(new PointerEvent('pointerenter'));
     await observed();
@@ -261,7 +254,7 @@ describe('PrefetchOnInteraction', () => {
   it('prefetches for a touch and for the keyboard, which `mouseenter` never saw', async () => {
     const tapped = uniqueHref();
     const focused = uniqueHref();
-    const root = await render(
+    const root = await mount(
       `<a data-component="PrefetchOnInteraction" href="${tapped}"></a>` +
         `<a data-component="PrefetchOnInteraction" href="${focused}"></a>`,
     );
@@ -277,7 +270,7 @@ describe('PrefetchOnInteraction', () => {
 
   it('does not instantiate the component before the intent arrives', async () => {
     const href = uniqueHref();
-    const root = await render(`<a data-component="PrefetchOnInteraction" href="${href}"></a>`);
+    const root = await mount(`<a data-component="PrefetchOnInteraction" href="${href}"></a>`);
     await observed();
 
     expect(
@@ -291,7 +284,7 @@ describe('PrefetchOnInteraction', () => {
 
   it('inherits the `prefetch` option from the base class config', async () => {
     const href = uniqueHref();
-    const root = await render(
+    const root = await mount(
       `<a data-component="PrefetchOnInteraction" href="${href}" data-option-no-prefetch></a>`,
     );
 
@@ -305,7 +298,7 @@ describe('PrefetchOnInteraction', () => {
 describe('PrefetchWhenVisible', () => {
   it('does not instantiate the component while the link is off screen', async () => {
     const href = uniqueHref();
-    const root = await render(
+    const root = await mount(
       `<a data-component="PrefetchWhenVisible" href="${href}" style="${OFFSCREEN}"></a>`,
     );
     await observed();
@@ -321,7 +314,7 @@ describe('PrefetchWhenVisible', () => {
 
   it('prefetches the first time the link is seen', async () => {
     const href = uniqueHref();
-    await render(`<a data-component="PrefetchWhenVisible" href="${href}" style="${ONSCREEN}"></a>`);
+    await mount(`<a data-component="PrefetchWhenVisible" href="${href}" style="${ONSCREEN}"></a>`);
     await observed();
 
     expect(hasPrefetchLink(href)).toBe(true);
@@ -334,7 +327,7 @@ describe('PrefetchWhenVisible', () => {
    */
   it('stays mounted after the link leaves the viewport', async () => {
     const href = uniqueHref();
-    const root = await render(
+    const root = await mount(
       `<a data-component="PrefetchWhenVisible" href="${href}" style="${ONSCREEN}"></a>`,
     );
     await observed();
@@ -350,7 +343,7 @@ describe('PrefetchWhenVisible', () => {
 
   it('appends exactly one link, however often the link crosses', async () => {
     const href = uniqueHref();
-    const root = await render(
+    const root = await mount(
       `<a data-component="PrefetchWhenVisible" href="${href}" style="${ONSCREEN}"></a>`,
     );
     await observed();

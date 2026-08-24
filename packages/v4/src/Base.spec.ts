@@ -13,15 +13,8 @@ import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract
 import { EVENTS } from './events.js';
 import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent } from './registry.js';
-import {
-  getInstance,
-  renderTodoList,
-  resetDom,
-  settle,
-  TodoCount,
-  TodoItem,
-  TodoList,
-} from './test-utils.js';
+import { getInstance, renderTodoList, TodoCount, TodoItem, TodoList } from './test-utils.js';
+import { resetDom, settle } from './test/index.js';
 
 afterEach(resetDom);
 

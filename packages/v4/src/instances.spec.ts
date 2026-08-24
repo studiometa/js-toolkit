@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { getInstances } from './instances.js';
 import { INSTANCES } from './protocol-symbols.js';
-import { getInstance, renderTodoList, resetDom, settle, type TodoItem } from './test-utils.js';
+import { getInstance, renderTodoList, type TodoItem } from './test-utils.js';
+import { resetDom, settle } from './test/index.js';
 
 afterEach(resetDom);
 

@@ -10,7 +10,7 @@ import {
   type Extension,
 } from './negotiated-events.js';
 import { nextFrame } from './scheduler.js';
-import { resetDom } from './test-utils.js';
+import { resetDom } from './test/index.js';
 import { viewTransition } from './viewTransition.js';
 
 afterEach(async () => {

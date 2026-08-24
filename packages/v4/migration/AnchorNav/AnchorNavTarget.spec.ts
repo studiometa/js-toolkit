@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { registerComponents } from '../../src/index.js';
 import { INSTANCES } from '../../src/protocol-symbols.js';
-import { resetDom, settle } from '../../src/test-utils.js';
+import { resetDom, settle } from '../../src/test/index.js';
 import { AnchorNavTarget } from './AnchorNavTarget.js';
 
 const OFFSCREEN = 'position:absolute;top:300vh;left:0;width:50px;height:50px';

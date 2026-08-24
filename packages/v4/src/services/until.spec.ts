@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { settle } from '../test-utils.js';
+import { settle } from '../test/index.js';
 import { createService, type MutableProps } from './service.js';
 import { useScroll } from './scroll.js';
 import { until } from './until.js';

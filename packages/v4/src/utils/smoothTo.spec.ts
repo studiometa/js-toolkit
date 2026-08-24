@@ -1,6 +1,7 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { smoothTo, type SmoothTo } from './smoothTo.js';
-import { countRequestedFrames, frames } from '../test-utils.js';
+import { countRequestedFrames } from '../test-utils.js';
+import { frames } from '../test/index.js';
 
 describe('smoothTo', () => {
   it('starts at its start value and does not move on its own', async () => {

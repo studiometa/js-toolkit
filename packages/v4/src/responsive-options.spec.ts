@@ -3,7 +3,8 @@ import { Base, type OptionChange } from './Base.js';
 import { EVENTS } from './events.js';
 import { registerComponent, registerManifest } from './registry.js';
 import { BREAKPOINTS, setBreakpoints } from './services/breakpoint.js';
-import { getInstance, resetDom, settle } from './test-utils.js';
+import { getInstance } from './test-utils.js';
+import { resetDom, settle } from './test/index.js';
 
 /** Select test breakpoints without changing the viewport. */
 function atSmall(): void {

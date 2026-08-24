@@ -37,7 +37,7 @@ import {
 import { Base } from './Base.js';
 import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent } from './registry.js';
-import { resetDom, settle } from './test-utils.js';
+import { resetDom, settle } from './test/index.js';
 
 class V3Widget extends BaseV3 {
   static config: BaseConfigV3 = { name: 'Widget' };

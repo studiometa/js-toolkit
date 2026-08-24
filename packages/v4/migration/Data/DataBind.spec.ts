@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { EVENTS, registerComponents } from '../../src/index.js';
-import { getInstance, resetDom, settle } from '../../src/test-utils.js';
+import { getInstance } from '../../src/test-utils.js';
+import { mount, resetDom, settle } from '../../src/test/index.js';
 import { DataBind } from './DataBind.js';
 import { DataComputed } from './DataComputed.js';
 import { DataEffect } from './DataEffect.js';
@@ -54,14 +55,6 @@ function uniqueGroup(name: string): string {
   return `${name}-${counter}`;
 }
 
-async function render(html: string): Promise<HTMLElement> {
-  const root = document.createElement('div');
-  root.innerHTML = html;
-  document.body.append(root);
-  await settle();
-  return root;
-}
-
 function el<T extends HTMLElement = HTMLElement>(root: HTMLElement, selector: string): T {
   return root.querySelector<T>(selector) as T;
 }
@@ -72,7 +65,7 @@ function at<T>(root: HTMLElement, selector: string, name: string): T {
 
 describe('DataBind — the element half', () => {
   it('binds textContent by default and a named property on demand', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="text" data-component="DataBind" data-option-group="${uniqueGroup('t')}"></div>
       <div id="named" data-component="DataBind" data-option-prop="title" data-option-group="${uniqueGroup('t')}"></div>
     `);
@@ -91,7 +84,7 @@ describe('DataBind — the element half', () => {
   });
 
   it('reads and writes typed input properties', async () => {
-    const root = await render(`
+    const root = await mount(`
       <input id="number" type="number" value="1" data-component="DataBind" data-option-group="${uniqueGroup('n')}">
       <input id="date" type="date" value="2025-01-01" data-component="DataBind" data-option-group="${uniqueGroup('d')}">
       <input id="check" type="checkbox" data-component="DataBind" data-option-group="${uniqueGroup('c')}">
@@ -124,7 +117,7 @@ describe('DataBind — the element half', () => {
 
   it('unions the checked values of a [] checkbox group', async () => {
     const group = `${uniqueGroup('checkbox')}[]`;
-    const root = await render(`
+    const root = await mount(`
       <input id="a" type="checkbox" value="foo" data-component="DataBind" data-option-group="${group}">
       <input id="b" type="checkbox" value="bar" data-component="DataBind" data-option-group="${group}">
     `);
@@ -142,7 +135,7 @@ describe('DataBind — the element half', () => {
   it('selects one or several options of a select', async () => {
     const single = uniqueGroup('select');
     const multi = `${uniqueGroup('select')}[]`;
-    const root = await render(`
+    const root = await mount(`
       <select id="one" data-component="DataBind" data-option-group="${single}">
         <option value="foo">Foo</option><option value="bar">Bar</option>
       </select>
@@ -164,7 +157,7 @@ describe('DataBind — the element half', () => {
   });
 
   it('applies every virtual binding kind', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="btn" data-component="DataBind" data-option-group="${uniqueGroup('v')}"
         data-bind:prop.disabled="!value"
         data-bind:prop.tab-index="value ? 0 : -1"
@@ -186,7 +179,7 @@ describe('DataBind — the element half', () => {
   });
 
   it('passes the raw value through empty expressions and clears on nullish', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="d" data-component="DataBind" data-option-group="${uniqueGroup('v')}"
         data-bind:prop.title="" data-bind:attr.data-value="" data-bind:class.selected=""
         data-bind:style.--state="" data-bind:text=""></div>
@@ -211,7 +204,7 @@ describe('DataBind — the element half', () => {
   });
 
   it('retains the raw value a virtual binding was fed, not what it wrote', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="b" data-component="DataBind" data-option-group="${uniqueGroup('v')}"
         data-bind:attr.aria-expanded="String(value === 'open')"></button>
     `);
@@ -227,7 +220,7 @@ describe('DataBind — the element half', () => {
   });
 
   it('follows a virtual binding rewritten in place', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="d" data-component="DataBind" data-option-group="${uniqueGroup('v')}"
         data-bind:text="\`was: \${value}\`"></div>
     `);
@@ -248,7 +241,7 @@ describe('DataBind — the element half', () => {
   });
 
   it('picks up a virtual binding added after mount, and drops a removed one', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="d" data-component="DataBind" data-option-group="${uniqueGroup('v')}"
         data-bind:text="value"></div>
     `);
@@ -282,7 +275,7 @@ describe('DataBind — the element half', () => {
     };
     document.addEventListener(EVENTS.diagnostic, listener);
 
-    const root = await render(`
+    const root = await mount(`
       <div id="d" data-component="DataBind" data-option-group="${uniqueGroup('v')}"
         data-bind:txet="value"></div>
     `);
@@ -296,7 +289,7 @@ describe('DataBind — the element half', () => {
 
   it('fails quietly when a virtual expression throws', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const root = await render(`
+    const root = await mount(`
       <div id="d" data-component="DataBind" data-option-group="${uniqueGroup('v')}"
         data-bind:attr.title="missing.value" data-bind:text="\`Value: \${value}\`"></div>
     `);
@@ -309,7 +302,7 @@ describe('DataBind — the element half', () => {
   });
 
   it('toggles, increments and cycles', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="state" data-component="DataBind" data-option-group="${uniqueGroup('m')}"></div>
       <div id="count" data-component="DataBind" data-option-group="${uniqueGroup('m')}">2</div>
       <div id="cycle" data-component="DataBind" data-option-group="${uniqueGroup('m')}">one</div>
@@ -344,7 +337,7 @@ describe('DataBind — the element half', () => {
 
   it('refuses the mutation helpers on computed values and effects', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const root = await render(`
+    const root = await mount(`
       <div id="c" data-component="DataComputed" data-option-compute="value"
            data-option-group="${uniqueGroup('m')}">current</div>
       <div id="e" data-component="DataEffect" data-option-effect="target.dataset.called = 'true'"
@@ -364,7 +357,7 @@ describe('DataBind — the element half', () => {
 describe('DataBind — the group half', () => {
   it('dispatches a value to every peer of an unscoped group', async () => {
     const group = uniqueGroup('a');
-    const root = await render(`
+    const root = await mount(`
       <div id="one" data-component="DataBind" data-option-group="${group}">foo</div>
       <div id="two" data-component="DataBind" data-option-group="${group}">foo</div>
       <div id="three" data-component="DataComputed" data-option-group="${group}"
@@ -386,7 +379,7 @@ describe('DataBind — the group half', () => {
 
   it('delivers through the public set method, with dispatch false', async () => {
     const group = uniqueGroup('delivery');
-    const root = await render(`
+    const root = await mount(`
       <div id="src" data-component="DataBind" data-option-group="${group}"></div>
       <div id="sub" data-component="RecordingBind" data-option-group="${group}"></div>
     `);
@@ -400,7 +393,7 @@ describe('DataBind — the group half', () => {
 
   it('gives every peer the same page-wide channel when no scope is above them', async () => {
     const group = uniqueGroup('page');
-    const root = await render(`
+    const root = await mount(`
       <div id="a" data-component="DataBind" data-option-group="${group}"></div>
       <section><article><div id="b" data-component="DataBind" data-option-group="${group}"></div></article></section>
     `);
@@ -417,7 +410,7 @@ describe('DataBind — the group half', () => {
   it('preserves the latest value during reentrant group updates', async () => {
     // A nested write must prevent later subscribers from receiving the superseded frame.
     const group = uniqueGroup('reentrant');
-    const root = await render(`
+    const root = await mount(`
       <div id="src" data-component="DataBind" data-option-group="${group}"></div>
       <div id="reentrant" data-component="ReentrantBind" data-option-group="${group}"></div>
       <div id="out" data-component="DataBind" data-option-group="${group}"></div>
@@ -436,7 +429,7 @@ describe('DataBind — the group half', () => {
 
   it('leaves and rejoins its group across unmount/mount cycles', async () => {
     const group = uniqueGroup('lifecycle');
-    const root = await render(`
+    const root = await mount(`
       <div id="src" data-component="DataBind" data-option-group="${group}"></div>
       <div id="wrap"><div id="eff" data-component="DataEffect" data-option-group="${group}"
         data-option-effect="target.dataset.calls = String(Number(target.dataset.calls || 0) + 1)"></div></div>
@@ -461,7 +454,7 @@ describe('DataBind — the group half', () => {
 
   it('forgets peers that left the document, synchronously', async () => {
     const group = `${uniqueGroup('checkbox')}[]`;
-    const root = await render(`
+    const root = await mount(`
       <input id="a" type="checkbox" value="foo" checked data-component="DataBind" data-option-group="${group}">
       <input id="b" type="checkbox" value="bar" checked data-component="DataBind" data-option-group="${group}">
     `);
@@ -476,7 +469,7 @@ describe('DataBind — the group half', () => {
 
   it('propagates its own value on mount when immediate is set', async () => {
     const group = uniqueGroup('immediate');
-    const root = await render(`
+    const root = await mount(`
       <input id="a" type="text" value="foo" data-option-immediate data-component="DataBind" data-option-group="${group}">
       <input id="b" type="text" data-component="DataBind" data-option-group="${group}">
     `);
@@ -487,7 +480,7 @@ describe('DataBind — the group half', () => {
   it('runs an effect on mount only when immediate is set', async () => {
     const passive = uniqueGroup('passive');
     const immediate = uniqueGroup('immediate');
-    const root = await render(`
+    const root = await mount(`
       <div id="passive" data-component="DataEffect" data-option-group="${passive}"
            data-option-effect="target.dataset.called = 'true'"></div>
       <div id="immediate" data-component="DataEffect" data-option-group="${immediate}" data-option-immediate
@@ -500,7 +493,7 @@ describe('DataBind — the group half', () => {
 
   it('updates a virtual subscriber even when its own value already matches', async () => {
     const group = uniqueGroup('equal');
-    const root = await render(`
+    const root = await mount(`
       <div id="src" data-component="DataBind" data-option-group="${group}">foo</div>
       <button id="sub" data-component="DataBind" data-option-group="${group}"
               data-bind:attr.data-value="value">foo</button>
@@ -512,7 +505,7 @@ describe('DataBind — the group half', () => {
 
   it('uses the scoped $data inside virtual expressions', async () => {
     const group = uniqueGroup('tabs');
-    const root = await render(`
+    const root = await mount(`
       <div id="scope" data-component="DataScope" data-option-group="${group}">
         <button id="btn" data-component="DataBind"
                 data-bind:attr.aria-selected="$data.active === value"
@@ -529,7 +522,7 @@ describe('DataBind — the group half', () => {
 
   it('syncs a late immediate keyed subscriber with the current scoped value', async () => {
     const group = uniqueGroup('late');
-    const root = await render(`
+    const root = await mount(`
       <div id="scope" data-component="DataScope" data-option-group="${group}">
         <input id="model" data-component="DataModel" name="query" value="initial">
       </div>
@@ -553,7 +546,7 @@ describe('DataBind — the group half', () => {
 describe('DataBind — the data-bind:if template protocol', () => {
   it('toggles the presence of template content', async () => {
     const group = uniqueGroup('if');
-    const root = await render(`
+    const root = await mount(`
       <div id="host">
         <template id="tpl" data-component="DataBind" data-option-group="${group}"
                   data-bind:if="value === 'open'"><p>Hello</p></template>
@@ -577,7 +570,7 @@ describe('DataBind — the data-bind:if template protocol', () => {
 
   it('lets an EVENTS.dom.update listener defer the insertion', async () => {
     const group = uniqueGroup('if');
-    const root = await render(`
+    const root = await mount(`
       <div id="host">
         <template id="tpl" data-component="DataBind" data-option-group="${group}"
                   data-bind:if=""><p>Hello</p></template>
@@ -608,7 +601,7 @@ describe('DataBind — the data-bind:if template protocol', () => {
 
   it('warns when the if binding sits on something other than a template', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const root = await render(`
+    const root = await mount(`
       <div id="d" data-component="DataBind" data-option-group="${uniqueGroup('if')}"
            data-bind:if="value"></div>
     `);

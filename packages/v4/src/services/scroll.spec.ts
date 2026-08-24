@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { settle } from '../test-utils.js';
+import { settle } from '../test/index.js';
 import { useScroll, useWindowScroll, type ScrollProps } from './scroll.js';
 
 function snapshot(props: ScrollProps) {

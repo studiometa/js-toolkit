@@ -10,7 +10,8 @@ import {
   type WebpackContextLike,
 } from './manifest.js';
 import { registerManifest } from './registry.js';
-import { getInstance, resetDom, settle } from './test-utils.js';
+import { getInstance } from './test-utils.js';
+import { resetDom, settle } from './test/index.js';
 
 class Widget {}
 class Other {}

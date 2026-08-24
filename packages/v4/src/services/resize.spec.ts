@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { settle } from '../test-utils.js';
+import { settle } from '../test/index.js';
 import { useResize, useWindowSize, type ResizeProps } from './resize.js';
 
 function snapshot(props: ResizeProps): ResizeProps {

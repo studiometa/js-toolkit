@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { registerComponent } from '../../src/index.js';
-import { getInstance, resetDom, settle } from '../../src/test-utils.js';
+import { getInstance } from '../../src/test-utils.js';
+import { resetDom, settle } from '../../src/test/index.js';
 import { Transition } from '../Transition/Transition.js';
 import { Dialog } from './Dialog.js';
 

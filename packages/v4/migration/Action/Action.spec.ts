@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Base, registerComponents, swap, SWAP_MODES, type BaseConfig } from '../../src/index.js';
-import { getInstance, resetDom, settle } from '../../src/test-utils.js';
+import { getInstance } from '../../src/test-utils.js';
+import { mount, resetDom, settle } from '../../src/test/index.js';
 import { Dialog } from '../Dialog/Dialog.js';
 import { Action } from './Action.js';
 import { ActionEvent } from './ActionEvent.js';
@@ -35,14 +36,6 @@ registerComponents(Action, Target, Foo, Bar, Dialog, MountProbe);
 
 afterEach(resetDom);
 
-async function render(html: string): Promise<HTMLElement> {
-  const root = document.createElement('div');
-  root.innerHTML = html;
-  document.body.append(root);
-  await settle();
-  return root;
-}
-
 function at<T extends Base>(root: ParentNode, selector: string, name: string): T {
   return getInstance<T>(root.querySelector(selector), name);
 }
@@ -57,7 +50,7 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 describe('ActionEvent — parsing and the effect evaluator', () => {
   it('compiles a callable effect from the effect definition', async () => {
-    const root = await render('<div id="action" data-component="Action"></div>');
+    const root = await mount('<div id="action" data-component="Action"></div>');
     const action = at<Action>(root, '#action', 'Action');
     const spy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
@@ -70,7 +63,7 @@ describe('ActionEvent — parsing and the effect evaluator', () => {
   });
 
   it('returns a callable function from the effect property', async () => {
-    const root = await render('<div id="action" data-component="Action"></div>');
+    const root = await mount('<div id="action" data-component="Action"></div>');
     const action = at<Action>(root, '#action', 'Action');
     const spy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
@@ -85,7 +78,7 @@ describe('ActionEvent — parsing and the effect evaluator', () => {
   });
 
   it('parses modifiers and the debounce delay', async () => {
-    const root = await render('<div id="action" data-component="Action"></div>');
+    const root = await mount('<div id="action" data-component="Action"></div>');
     const action = at<Action>(root, '#action', 'Action');
 
     const plain = new ActionEvent(action, 'click.prevent.stop', 'target');
@@ -101,7 +94,7 @@ describe('ActionEvent — parsing and the effect evaluator', () => {
   });
 
   it('splits the target definition from the effect', async () => {
-    const root = await render('<div id="action" data-component="Action"></div>');
+    const root = await mount('<div id="action" data-component="Action"></div>');
     const action = at<Action>(root, '#action', 'Action');
 
     const actionEvent = new ActionEvent(action, 'click', ' Target(#a) Foo -> target.fn() ');
@@ -112,7 +105,7 @@ describe('ActionEvent — parsing and the effect evaluator', () => {
 
 describe('ActionEvent — target resolution', () => {
   it('resolves the target to the action itself when no target is set', async () => {
-    const root = await render('<div id="action" data-component="Action"></div>');
+    const root = await mount('<div id="action" data-component="Action"></div>');
     const action = at<Action>(root, '#action', 'Action');
 
     const actionEvent = new ActionEvent(action, 'click', '(...args) => args');
@@ -120,7 +113,7 @@ describe('ActionEvent — target resolution', () => {
   });
 
   it('resolves a single target', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="action" data-component="Action"></div>
       <div id="target" data-component="Target"></div>
     `);
@@ -132,7 +125,7 @@ describe('ActionEvent — target resolution', () => {
   });
 
   it('resolves multiple targets', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="action" data-component="Action"></div>
       <div id="target" data-component="Target"></div>
       <div id="foo" data-component="Foo"></div>
@@ -146,7 +139,7 @@ describe('ActionEvent — target resolution', () => {
   });
 
   it('resolves targets narrowed by a selector', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="action" data-component="Action"></div>
       <div id="a" data-component="Target"></div>
       <div id="b" data-component="Target"></div>
@@ -159,7 +152,7 @@ describe('ActionEvent — target resolution', () => {
   });
 
   it('ignores a target part it cannot parse', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="action" data-component="Action"></div>
       <div id="target" data-component="Target"></div>
     `);
@@ -171,7 +164,7 @@ describe('ActionEvent — target resolution', () => {
   });
 
   it('reaches a target that is neither a descendant nor an ancestor', async () => {
-    const root = await render(`
+    const root = await mount(`
       <section><button id="action" data-component="Action"
         data-on:click="Foo -> target.fn('far')"></button></section>
       <section><div><div id="foo" data-component="Foo"></div></div></section>
@@ -183,7 +176,7 @@ describe('ActionEvent — target resolution', () => {
   });
 
   it('resolves targets at event time, so a target mounting later is reached', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action" data-on:click="Foo -> target.fn()"></button>
     `);
 
@@ -200,7 +193,7 @@ describe('ActionEvent — target resolution', () => {
   });
 
   it('stops targeting a component once it is unmounted', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action" data-on:click="Foo -> target.fn()"></button>
       <div id="foo" data-component="Foo"></div>
     `);
@@ -219,7 +212,7 @@ describe('ActionEvent — target resolution', () => {
 
 describe('ActionEvent — modifiers', () => {
   it('prevents default and stops propagation', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="outer">
         <button id="action" data-component="Action"
           data-on:click.prevent.stop="Foo -> target.fn()"></button>
@@ -239,7 +232,7 @@ describe('ActionEvent — modifiers', () => {
   });
 
   it('forwards capture, once and passive to the listener options', async () => {
-    const root = await render('<div id="action" data-component="Action"></div>');
+    const root = await mount('<div id="action" data-component="Action"></div>');
     const action = at<Action>(root, '#action', 'Action');
     const spy = vi.spyOn(action.$el, 'addEventListener');
 
@@ -256,7 +249,7 @@ describe('ActionEvent — modifiers', () => {
   });
 
   it('runs a `once` binding exactly once', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action" data-on:click.once="Foo -> target.fn()"></button>
       <div id="foo" data-component="Foo"></div>
     `);
@@ -269,7 +262,7 @@ describe('ActionEvent — modifiers', () => {
   });
 
   it('debounces with the default delay', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action"
         data-on:click.debounce="Foo -> target.fn()"></button>
       <div id="foo" data-component="Foo"></div>
@@ -290,7 +283,7 @@ describe('ActionEvent — modifiers', () => {
   });
 
   it('debounces with a custom delay', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action"
         data-on:click.debounce300="Foo -> target.fn()"></button>
       <div id="foo" data-component="Foo"></div>
@@ -307,7 +300,7 @@ describe('ActionEvent — modifiers', () => {
   });
 
   it('drops a pending debounced effect when the action is unmounted', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action"
         data-on:click.debounce50="Foo -> target.fn()"></button>
       <div id="foo" data-component="Foo"></div>
@@ -325,7 +318,7 @@ describe('ActionEvent — modifiers', () => {
 
 describe('Action — the component', () => {
   it('reacts on click by default', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action"
         data-option-target="Foo" data-option-effect="target.fn()"></button>
       <div id="foo" data-component="Foo"></div>
@@ -336,7 +329,7 @@ describe('Action — the component', () => {
   });
 
   it('reacts on the event given by the `on` option', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action" data-option-on="mouseenter"
         data-option-target="Foo" data-option-effect="(ctx) => ctx.Foo.fn()"></button>
       <div id="foo" data-component="Foo"></div>
@@ -350,7 +343,7 @@ describe('Action — the component', () => {
   });
 
   it('does nothing when `on` is set without an `effect`', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action" data-option-on="click"
         data-option-target="Foo"></button>
       <div id="foo" data-component="Foo"></div>
@@ -363,7 +356,7 @@ describe('Action — the component', () => {
   });
 
   it('calls the effect with the documented arguments', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action" data-option-target="Foo"
         data-option-effect="target.fn(this, ...arguments)"></button>
       <div id="foo" data-component="Foo"></div>
@@ -381,7 +374,7 @@ describe('Action — the component', () => {
   });
 
   it('calls a returned function with the same arguments', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action" data-option-target="Foo"
         data-option-effect="function() { target.fn(this, ...arguments); }"></button>
       <div id="foo" data-component="Foo"></div>
@@ -397,7 +390,7 @@ describe('Action — the component', () => {
   });
 
   it('exposes the instances mounted on its own element by name', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action Bar" data-option-target="Foo"
         data-option-effect="target.fn(Action, Bar)"></button>
       <div id="foo" data-component="Foo"></div>
@@ -410,7 +403,7 @@ describe('Action — the component', () => {
   });
 
   it('sees an instance mounted on the action element after it', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action" data-option-target="Foo"
         data-option-effect="target.fn(typeof Bar === 'undefined' ? null : Bar)"></button>
       <div id="foo" data-component="Foo"></div>
@@ -429,7 +422,7 @@ describe('Action — the component', () => {
   });
 
   it('binds every `data-on:<event>` attribute', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="action" data-component="Action"
         data-on:click="target.$el.id = 'clicked'"
         data-on:mouseenter="Foo -> target.fn('hovered')"></div>
@@ -445,7 +438,7 @@ describe('Action — the component', () => {
   });
 
   it('accepts a multiline binding', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="bar" data-component="Action" data-on:click="
         Action(#bar)
         ->
@@ -462,7 +455,7 @@ describe('Action — the component', () => {
   });
 
   it('reports on the diagnostic channel instead of throwing when the effect fails', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="action" data-component="Action" data-on:click="() => consol.log()"></div>
     `);
     const details: Array<Record<string, unknown>> = [];
@@ -491,7 +484,7 @@ describe('Action — the component', () => {
 
 describe('Action — the v4 lifecycle', () => {
   it('releases its listeners when the element leaves the DOM', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action" data-on:click="Foo -> target.fn()"></button>
       <div id="foo" data-component="Foo"></div>
     `);
@@ -509,7 +502,7 @@ describe('Action — the v4 lifecycle', () => {
   });
 
   it('re-reads its bindings on every mount cycle', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="a"><button id="action" data-component="Action"
         data-on:click="Foo -> target.fn('before')"></button></div>
       <div id="b"></div>
@@ -530,7 +523,7 @@ describe('Action — the v4 lifecycle', () => {
   });
 
   it('binds once per cycle, not once per remount', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="a"><button id="action" data-component="Action"
         data-on:click="Foo -> target.fn()"></button></div>
       <div id="b"></div>
@@ -551,7 +544,7 @@ describe('Action — the v4 lifecycle', () => {
 
 describe('Action — live rebinding through watchAttributes', () => {
   it('rebinds when a `data-on:*` attribute is rewritten in place', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action"
         data-on:click="Foo -> target.fn('before')"></button>
       <div id="foo" data-component="Foo"></div>
@@ -567,7 +560,7 @@ describe('Action — live rebinding through watchAttributes', () => {
   });
 
   it('detaches the binding when its attribute is removed', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action"
         data-on:click="Foo -> target.fn()"
         data-on:mouseenter="Foo -> target.fn('hover')"></button>
@@ -591,7 +584,7 @@ describe('Action — live rebinding through watchAttributes', () => {
   });
 
   it('attaches a binding for an attribute added after mount', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action"></button>
       <div id="foo" data-component="Foo"></div>
     `);
@@ -609,7 +602,7 @@ describe('Action — live rebinding through watchAttributes', () => {
   });
 
   it('applies only the final value when one batch writes several times', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action"
         data-on:click="Foo -> target.fn('a')"></button>
       <div id="foo" data-component="Foo"></div>
@@ -626,7 +619,7 @@ describe('Action — live rebinding through watchAttributes', () => {
   });
 
   it('keeps the binding through a rewrite that nets out', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action"
         data-on:click="Foo -> target.fn('a')"></button>
       <div id="foo" data-component="Foo"></div>
@@ -643,7 +636,7 @@ describe('Action — live rebinding through watchAttributes', () => {
   });
 
   it('rebinds after a morph rewrites the attribute', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div id="host">
         <button id="action" data-component="Action MountProbe"
           data-on:click="Foo -> target.fn('before')"></button>
@@ -672,7 +665,7 @@ describe('Action — live rebinding through watchAttributes', () => {
   });
 
   it('stops watching once the element leaves the DOM', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action"
         data-on:click="Foo -> target.fn()"></button>
       <div id="foo" data-component="Foo"></div>
@@ -696,7 +689,7 @@ describe('Action — live rebinding through watchAttributes', () => {
 
 describe('Action — live rebinding of the option triple', () => {
   it('rebinds when the `effect` option changes', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action" data-option-target="Foo"
         data-option-effect="target.fn('before')"></button>
       <div id="foo" data-component="Foo"></div>
@@ -712,7 +705,7 @@ describe('Action — live rebinding of the option triple', () => {
   });
 
   it('rebinds to the new event when the `on` option changes', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action" data-option-target="Foo"
         data-option-effect="target.fn()"></button>
       <div id="foo" data-component="Foo"></div>
@@ -732,7 +725,7 @@ describe('Action — live rebinding of the option triple', () => {
   });
 
   it('rebinds to the new target when the `target` option changes', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action" data-option-target="Foo(#foo)"
         data-option-effect="target.fn()"></button>
       <div id="foo" data-component="Foo"></div>
@@ -751,7 +744,7 @@ describe('Action — live rebinding of the option triple', () => {
   });
 
   it('detaches when the `effect` option is removed', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action" data-option-target="Foo"
         data-option-effect="target.fn()"></button>
       <div id="foo" data-component="Foo"></div>
@@ -771,7 +764,7 @@ describe('Action — live rebinding of the option triple', () => {
   });
 
   it('attaches when an `effect` option is added after mount', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action"></button>
       <div id="foo" data-component="Foo"></div>
     `);
@@ -787,7 +780,7 @@ describe('Action — live rebinding of the option triple', () => {
   });
 
   it('produces one binding when two of the three options change together', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action" data-option-target="Foo"
         data-option-effect="target.fn('before')"></button>
       <div id="foo" data-component="Foo"></div>
@@ -807,7 +800,7 @@ describe('Action — live rebinding of the option triple', () => {
   });
 
   it('leaves the option binding alone when a `data-on:*` attribute changes', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button id="action" data-component="Action" data-option-target="Foo"
         data-option-effect="target.fn('option')"
         data-on:click="Foo -> target.fn('attribute')"></button>
@@ -828,7 +821,7 @@ describe('Action — interop with the ported Dialog', () => {
   let root: HTMLElement;
 
   beforeEach(async () => {
-    root = await render(`
+    root = await mount(`
       <button id="open" data-component="Action"
         data-on:click="Dialog(#modal) -> target.open()"></button>
       <button id="close" data-component="Action"

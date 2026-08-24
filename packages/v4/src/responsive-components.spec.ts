@@ -5,7 +5,7 @@ import { getInstances } from './instances.js';
 import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent, registerManifest } from './registry.js';
 import { BREAKPOINTS, setBreakpoints } from './services/breakpoint.js';
-import { resetDom, settle } from './test-utils.js';
+import { resetDom, settle } from './test/index.js';
 
 let counter = 0;
 

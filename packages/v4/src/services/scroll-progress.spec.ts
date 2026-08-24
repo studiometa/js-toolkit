@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, expectTypeOf, it } from 'vitest';
 import { Base } from '../Base.js';
-import { settle } from '../test-utils.js';
+import { settle } from '../test/index.js';
 import type { Toggle } from './toggle.js';
 import {
   useScrollProgress,

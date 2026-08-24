@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { defaultScheduler } from '../scheduler.js';
-import { frames } from '../test-utils.js';
+import { frames } from '../test/index.js';
 import { useRaf, type RafProps } from './raf.js';
 
 describe('useRaf', () => {

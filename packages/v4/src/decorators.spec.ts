@@ -15,7 +15,8 @@ import { createContext, signal, type Signal } from './context.js';
 import { children, component, inject, on, provide, read, write } from './decorators.js';
 import { registerComponent, registerComponents } from './registry.js';
 import { defaultScheduler } from './scheduler.js';
-import { getInstance, resetDom, settle, TodoItem } from './test-utils.js';
+import { getInstance, TodoItem } from './test-utils.js';
+import { resetDom, settle } from './test/index.js';
 
 const DecoContext = createContext<Signal<number>>('deco-context');
 

@@ -6,7 +6,7 @@ import { EVENTS } from './events.js';
 import { getInstances } from './instances.js';
 import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent, registerManifest } from './registry.js';
-import { resetDom, settle } from './test-utils.js';
+import { resetDom, settle } from './test/index.js';
 
 /** Positions used to control viewport strategies. */
 const OFFSCREEN = 'position:absolute;top:300vh;left:0;width:50px;height:50px';

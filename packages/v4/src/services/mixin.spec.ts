@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { Base } from '../Base.js';
 import { registerComponent } from '../registry.js';
-import { countRequestedFrames, frames, getInstance, resetDom, settle } from '../test-utils.js';
+import { countRequestedFrames, getInstance } from '../test-utils.js';
+import { frames, resetDom, settle } from '../test/index.js';
 import { useDrag, withDrag } from './drag.js';
 import { withRaf } from './raf.js';
 import { withResize } from './resize.js';

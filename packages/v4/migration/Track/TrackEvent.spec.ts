@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { registerComponents } from '../../src/index.js';
-import { getInstance, resetDom, settle } from '../../src/test-utils.js';
+import { getInstance } from '../../src/test-utils.js';
+import { mount, resetDom } from '../../src/test/index.js';
 import { parseEventDefinition } from '../event-modifiers.js';
 import { Track } from './Track.js';
 import { resolveDetailPlaceholders } from './TrackEvent.js';
@@ -13,12 +14,12 @@ beforeEach(() => {
   window.dataLayer = [];
 });
 
+/**
+ * Every assertion here dispatches at the `Track` element itself, so the wrapper
+ * `mount()` returns is not what the tests want — hence the one-line unwrap.
+ */
 async function render(html: string): Promise<HTMLElement> {
-  const root = document.createElement('div');
-  root.innerHTML = html;
-  document.body.append(root);
-  await settle();
-  return root.firstElementChild as HTMLElement;
+  return (await mount(html)).firstElementChild as HTMLElement;
 }
 
 function pushes(): Record<string, unknown>[] {

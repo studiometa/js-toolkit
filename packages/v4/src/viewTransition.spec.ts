@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { defaultScheduler, nextFrame } from './scheduler.js';
-import { resetDom } from './test-utils.js';
+import { resetDom } from './test/index.js';
 import { viewTransition, type ViewTransitionUpdate } from './viewTransition.js';
 
 let restoreStartViewTransition = () => {};

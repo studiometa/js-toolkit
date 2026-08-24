@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { registerComponents } from '../../src/index.js';
-import { getInstance, resetDom, settle } from '../../src/test-utils.js';
+import { getInstance } from '../../src/test-utils.js';
+import { mount, resetDom, settle } from '../../src/test/index.js';
 import { Track } from './Track.js';
 import { TrackContext } from './TrackContext.js';
 import { TrackShopify } from './TrackShopify.js';
@@ -34,14 +35,6 @@ beforeEach(() => {
   window.dataLayer = [];
 });
 
-async function render(html: string): Promise<HTMLElement> {
-  const root = document.createElement('div');
-  root.innerHTML = html;
-  document.body.append(root);
-  await settle();
-  return root;
-}
-
 /** Give the observer a few frames to deliver. */
 async function observed(): Promise<void> {
   for (let i = 0; i < 6; i += 1) {
@@ -61,7 +54,7 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 describe('Track — payload resolution', () => {
   it('pushes the resolved payload to window.dataLayer on click', async () => {
-    const root = await render(
+    const root = await mount(
       `<button data-component="Track" data-track:click='{"event": "cta_click", "location": "header"}'></button>`,
     );
 
@@ -72,7 +65,7 @@ describe('Track — payload resolution', () => {
   });
 
   it('treats a non-JSON attribute value as the event name', async () => {
-    const root = await render(
+    const root = await mount(
       `<button data-component="Track" data-track:click="add_to_cart"></button>`,
     );
 
@@ -82,7 +75,7 @@ describe('Track — payload resolution', () => {
   });
 
   it('fires an event declared with an empty value, carrying the context alone', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div data-component="TrackContext" data-option-context='{"page_type": "home"}'>
         <button data-component="Track" data-track:click=""></button>
       </div>
@@ -94,7 +87,7 @@ describe('Track — payload resolution', () => {
   });
 
   it('uses the `payload` option as the base payload', async () => {
-    const root = await render(
+    const root = await mount(
       `<button data-component="Track" data-track:click='{"event": "cta"}'
         data-option-payload='{"location": "header", "id": "1"}'></button>`,
     );
@@ -105,7 +98,7 @@ describe('Track — payload resolution', () => {
   });
 
   it('lets the `payload` option override the `payload` ref, keeping the rest', async () => {
-    const root = await render(`
+    const root = await mount(`
       <button data-component="Track" data-track:click='{"event": "cta"}'
         data-option-payload='{"source": "option"}'>
         <script data-ref="payload" type="application/json">{ "source": "ref", "kept": true }</script>
@@ -118,7 +111,7 @@ describe('Track — payload resolution', () => {
   });
 
   it('applies the precedence context < payload < per-event data', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div data-component="TrackContext" data-option-context='{"value": "context", "from_context": true}'>
         <button data-component="Track" data-track:click='{"event": "x", "value": "event"}'>
           <script data-ref="payload" type="application/json">{ "value": "payload", "from_payload": true }</script>
@@ -137,7 +130,7 @@ describe('Track — payload resolution', () => {
   });
 
   it('merges the whole ancestor TrackContext chain, the nearer winning', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div data-component="TrackContext" data-option-context='{"page_type": "product", "currency": "EUR", "product_id": "pdp"}'>
         <div data-component="TrackContext" data-option-context='{"variant_id": "v1", "product_id": "variant"}'>
           <button data-component="Track" data-track:click='{"event": "add_to_cart"}'></button>
@@ -157,7 +150,7 @@ describe('Track — payload resolution', () => {
   });
 
   it('replaces arrays on merge instead of concatenating them', async () => {
-    const root = await render(`
+    const root = await mount(`
       <div data-component="TrackContext" data-option-context='{"ecommerce": {"items": [{"id": "from-context"}]}}'>
         <button data-component="Track" data-track:click='{"event": "select_item", "ecommerce": {"items": [{"id": "from-event"}]}}'></button>
       </div>
@@ -170,7 +163,7 @@ describe('Track — payload resolution', () => {
   });
 
   it('never shares an array instance between two dispatches', async () => {
-    const root = await render(
+    const root = await mount(
       `<button data-component="Track" data-track:click='{"event": "e", "items": [1, 2]}'></button>`,
     );
     const button = root.querySelector('button') as HTMLButtonElement;
@@ -183,7 +176,7 @@ describe('Track — payload resolution', () => {
   });
 
   it('fires every data-track:* declared on one element', async () => {
-    const root = await render(
+    const root = await mount(
       `<button data-component="Track"
         data-track:click='{"event": "click_event"}'
         data-track:mousedown='{"event": "mousedown_event"}'></button>`,
@@ -200,7 +193,7 @@ describe('Track — payload resolution', () => {
 describe('Track — malformed declarations', () => {
   it('drops an event whose JSON cannot be parsed, without throwing', async () => {
     const log = recordDiagnostics();
-    const root = await render(
+    const root = await mount(
       `<button data-component="Track" data-track:click='{ not json }'></button>`,
     );
 
@@ -212,7 +205,7 @@ describe('Track — malformed declarations', () => {
 
   it('falls back to an empty payload when the `payload` ref is invalid JSON', async () => {
     const log = recordDiagnostics();
-    const root = await render(`
+    const root = await mount(`
       <button data-component="Track" data-track:click='{"event": "x"}'>
         <script data-ref="payload" type="application/json">{ broken </script>
       </button>
@@ -227,7 +220,7 @@ describe('Track — malformed declarations', () => {
 
   it('falls back to an empty payload when `data-option-payload` is invalid JSON', async () => {
     const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const root = await render(
+    const root = await mount(
       `<button data-component="Track" data-track:click='{"event": "x"}'
         data-option-payload='{ not json }'></button>`,
     );
@@ -240,7 +233,7 @@ describe('Track — malformed declarations', () => {
 
 describe('Track — the `mounted` pseudo-event', () => {
   it('dispatches once the batch has settled, with the resolved context', async () => {
-    await render(`
+    await mount(`
       <div data-component="TrackContext" data-option-context='{"page_type": "home"}'>
         <div data-component="Track" data-track:mounted='{"event": "page_view"}'></div>
       </div>
@@ -262,7 +255,7 @@ describe('Track — the `mounted` pseudo-event', () => {
   });
 
   it('applies timing modifiers to the mounted event', async () => {
-    await render(
+    await mount(
       `<div data-component="Track" data-track:mounted.debounce500='{"event": "page_view"}'></div>`,
     );
     await settle();
@@ -275,7 +268,7 @@ describe('Track — the `mounted` pseudo-event', () => {
   });
 
   it('dispatches again with the new context when the component moves under a scope', async () => {
-    const root = await render(
+    const root = await mount(
       `<div id="host"><div data-component="Track" data-track:mounted='{"event": "page_view"}'></div></div>`,
     );
     await settle();
@@ -295,7 +288,7 @@ describe('Track — the `mounted` pseudo-event', () => {
 
 describe('Track — the `view` pseudo-event', () => {
   it('dispatches when the element enters the viewport', async () => {
-    const root = await render(
+    const root = await mount(
       `<div data-component="Track" style="${OFFSCREEN}" data-track:view='{"event": "impression", "id": "123"}'></div>`,
     );
     await observed();
@@ -308,7 +301,7 @@ describe('Track — the `view` pseudo-event', () => {
   });
 
   it('dispatches on every entry without the `.once` modifier', async () => {
-    const root = await render(
+    const root = await mount(
       `<div data-component="Track" style="${ONSCREEN}" data-track:view='{"event": "impression"}'></div>`,
     );
     const el = root.firstElementChild as HTMLElement;
@@ -323,7 +316,7 @@ describe('Track — the `view` pseudo-event', () => {
   });
 
   it('dispatches once with the `.once` modifier and releases the subscription', async () => {
-    const root = await render(
+    const root = await mount(
       `<div data-component="Track" style="${ONSCREEN}" data-track:view.once='{"event": "impression"}'></div>`,
     );
     const el = root.firstElementChild as HTMLElement;
@@ -338,7 +331,7 @@ describe('Track — the `view` pseudo-event', () => {
   });
 
   it('dispatches for an element taller than the viewport at the default threshold', async () => {
-    await render(
+    await mount(
       `<div data-component="Track"
         style="position:absolute;top:0;left:0;width:50px;height:400vh"
         data-track:view='{"event": "impression"}'></div>`,
@@ -350,7 +343,7 @@ describe('Track — the `view` pseudo-event', () => {
 
   /** A tall element that cannot reach its threshold never intersects. */
   it('cannot dispatch for an element that can never reach its own threshold', async () => {
-    await render(
+    await mount(
       `<div data-component="Track" data-option-threshold="0.5"
         style="position:absolute;top:0;left:0;width:50px;height:400vh"
         data-track:view='{"event": "impression"}'></div>`,
@@ -361,7 +354,7 @@ describe('Track — the `view` pseudo-event', () => {
   });
 
   it('applies timing modifiers to the view event', async () => {
-    const root = await render(
+    const root = await mount(
       `<div data-component="Track" style="${ONSCREEN}" data-track:view.throttle1000='{"event": "impression"}'></div>`,
     );
     const el = root.firstElementChild as HTMLElement;
@@ -376,7 +369,7 @@ describe('Track — the `view` pseudo-event', () => {
   });
 
   it('releases the observer with the mount cycle', async () => {
-    const root = await render(
+    const root = await mount(
       `<div data-component="Track" style="${OFFSCREEN}" data-track:view='{"event": "impression"}'></div>`,
     );
     const el = root.firstElementChild as HTMLElement;
@@ -394,7 +387,7 @@ describe('Track — the `view` pseudo-event', () => {
 
 describe('Track — lifecycle', () => {
   it('stops dispatching a `.capture` binding after unmount and resumes on remount', async () => {
-    const root = await render(
+    const root = await mount(
       `<div data-component="Track" data-track:click.capture='{"event": "cta"}'></div>`,
     );
     const el = root.firstElementChild as HTMLElement;
@@ -413,7 +406,7 @@ describe('Track — lifecycle', () => {
   });
 
   it('cancels a pending debounced dispatch on unmount, even after a remount', async () => {
-    const root = await render(
+    const root = await mount(
       `<div data-component="Track" data-track:input.debounce50='{"event": "search"}'></div>`,
     );
     const el = root.firstElementChild as HTMLElement;
@@ -428,7 +421,7 @@ describe('Track — lifecycle', () => {
   });
 
   it('re-reads the declarations on every mount cycle', async () => {
-    const root = await render(
+    const root = await mount(
       `<div data-component="Track" data-track:click='{"event": "before"}'></div>`,
     );
     const el = root.firstElementChild as HTMLElement;
@@ -445,7 +438,7 @@ describe('Track — lifecycle', () => {
 
 describe('Track — live rebinding through watchAttributes', () => {
   it('follows a data-track:* attribute rewritten in place', async () => {
-    const root = await render(
+    const root = await mount(
       `<div data-component="Track" data-track:click='{"event": "before"}'></div>`,
     );
     const el = root.firstElementChild as HTMLElement;
@@ -459,7 +452,7 @@ describe('Track — live rebinding through watchAttributes', () => {
   });
 
   it('releases a binding whose attribute is removed', async () => {
-    const root = await render(
+    const root = await mount(
       `<div data-component="Track" data-track:click='{"event": "cta"}'></div>`,
     );
     const el = root.firstElementChild as HTMLElement;
@@ -475,7 +468,7 @@ describe('Track — live rebinding through watchAttributes', () => {
   });
 
   it('binds an attribute added after mount', async () => {
-    const root = await render(`<div data-component="Track"></div>`);
+    const root = await mount(`<div data-component="Track"></div>`);
     const el = root.firstElementChild as HTMLElement;
 
     el.setAttribute('data-track:click', '{"event": "late"}');
@@ -486,7 +479,7 @@ describe('Track — live rebinding through watchAttributes', () => {
   });
 
   it('binds once when several attributes change in one batch', async () => {
-    const root = await render(
+    const root = await mount(
       `<div data-component="Track" data-track:click='{"event": "a"}'></div>`,
     );
     const el = root.firstElementChild as HTMLElement;
@@ -502,7 +495,7 @@ describe('Track — live rebinding through watchAttributes', () => {
   });
 
   it('ends the subscription with the mount cycle', async () => {
-    const root = await render(
+    const root = await mount(
       `<div data-component="Track" data-track:click='{"event": "cta"}'></div>`,
     );
     const el = root.firstElementChild as HTMLElement;
@@ -548,7 +541,7 @@ describe('the intersection service under load', () => {
     ).join('');
 
     const built = await countObservers(async () => {
-      await render(markup);
+      await mount(markup);
       await observed();
     });
 
@@ -559,7 +552,7 @@ describe('the intersection service under load', () => {
 
   it('shares one observer between two declarations on the same element', async () => {
     const built = await countObservers(async () => {
-      await render(
+      await mount(
         `<div data-component="Track" style="${ONSCREEN}"
           data-track:view='{"event": "a"}'
           data-track:view.once='{"event": "b"}'></div>`,
@@ -577,7 +570,7 @@ describe('the intersection service under load', () => {
 
   it('gives two declarations with different thresholds two observers', async () => {
     const built = await countObservers(async () => {
-      await render(
+      await mount(
         `<div data-component="Track" style="${ONSCREEN}" data-track:view='{"event": "a"}'></div>
          <div data-component="Track" style="${ONSCREEN}" data-option-threshold="0.9" data-track:view='{"event": "b"}'></div>`,
       );
@@ -593,7 +586,7 @@ describe('the intersection service under load', () => {
     let secondRatio = -1;
 
     const built = await countObservers(async () => {
-      const root = await render(`<div style="${ONSCREEN};height:200px" id="probe"></div>`);
+      const root = await mount(`<div style="${ONSCREEN};height:200px" id="probe"></div>`);
       const el = root.querySelector('#probe') as HTMLElement;
       const { useInView } = await import('../../src/index.js');
 
@@ -619,7 +612,7 @@ describe('the intersection service under load', () => {
           data-track:view.once='{"event": "impression", "id": "${index}"}'></div>`,
     ).join('');
 
-    const root = await render(markup);
+    const root = await mount(markup);
     await observed();
     expect(pushes()).toHaveLength(CARDS);
 
@@ -628,7 +621,7 @@ describe('the intersection service under load', () => {
     window.dataLayer = [];
 
     const built = await countObservers(async () => {
-      await render(markup);
+      await mount(markup);
       await observed();
     });
     expect(built).toBe(CARDS);
@@ -641,7 +634,7 @@ describe('TrackShopify — the dispatch seam', () => {
     const publish = vi.fn();
     window.Shopify = { analytics: { publish } };
 
-    const root = await render(`
+    const root = await mount(`
       <div data-component="TrackContext" data-option-context='{"page_type": "product"}'>
         <button data-component="TrackShopify" data-track:click='{"event": "add_to_cart", "id": "1"}'></button>
       </div>
@@ -663,7 +656,7 @@ describe('TrackShopify — the dispatch seam', () => {
     window.Shopify = { analytics: { publish } };
     const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-    const root = await render(
+    const root = await mount(
       `<button data-component="TrackShopify" data-track:click='{"id": "1"}'></button>`,
     );
     root.querySelector('button')?.click();
@@ -675,7 +668,7 @@ describe('TrackShopify — the dispatch seam', () => {
 
   it('does not throw when the Shopify analytics API is absent', async () => {
     const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const root = await render(
+    const root = await mount(
       `<button data-component="TrackShopify" data-track:click='{"event": "x"}'></button>`,
     );
 

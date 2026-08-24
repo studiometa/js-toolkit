@@ -5,7 +5,7 @@ import { EVENTS } from './events.js';
 import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent } from './registry.js';
 import { SWAP_MODES, swap } from './swap.js';
-import { resetDom } from './test-utils.js';
+import { resetDom } from './test/index.js';
 
 let counter = 0;
 
