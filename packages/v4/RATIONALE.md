@@ -830,3 +830,53 @@ The `create<Area>Storage` presets are a different case and stay, because each re
 ### Why the adapters are tested against the platform
 
 `providers.spec.ts` drives each adapter through the six methods for real — the actual storage areas, the actual `location` and `history` — including the paths that only the platform has. To test `createStorage()` over the memory provider proves the storage. It proves nothing about the four adapters that touch the platform, which are the part that can fail.
+
+## 13. Testing
+
+### Why the helpers are a shipped module and not a documented snippet
+
+The recipe encodes two internals — how late a `MutationObserver` delivers, and in what order the scheduler drains its lanes — and a consumer has no way to derive either. A snippet in the documentation makes every consumer copy a number they cannot maintain; when a lane is added, their copy is silently wrong. The subpath makes the copy the framework's own, and the framework's own version is the one the framework's specs prove.
+
+The evidence is that the copying already happened inside the package: an identical seven-line `mount` in twelve spec files, the same settle loop in eleven, and three hand-copied `waitForClass` bodies. A helper duplicated by the people who wrote the scheduler will be duplicated worse by anyone else.
+
+### Why it depends on no test framework
+
+A helper that imports `vitest` is a helper only Vitest users can have, and it drags a runner into the dependency graph of a package that has none. Nothing here needs one: `settle()` awaits a timer and the scheduler, `mount()` writes to `document.body`, and `waitFor()` throws a plain `Error`. The three things a runner is genuinely needed for — spies, assertions and fixtures — are the three things the module refuses to ship.
+
+### Why it is a barrel and not one subpath per symbol
+
+Every other subpath in this package exists to keep one imported symbol from dragging a barrel's graph onto a page. A test file is not a page: it loads several of these helpers at once, it is never served to a browser as production code, and the whole module is smaller than the graph any splitting would save. `./utils` is split because a component imports one easing function; `./test` is not, for the same reason read the other way.
+
+### Why `waitFor()` returns its value
+
+The two questions a test asks about deferred DOM work are "is it true yet" and "what is it now", and they are the same poll. Returning the truthy value collapses them into one helper instead of a predicate version and a query version, and it removes the second lookup a guard-only version forces on the caller — a lookup which can observe a _different_ element from the one the guard passed on.
+
+### Why polling replaced `settle()` for transitions, and only in one direction
+
+This is the record of a defect. Three specs asserted a kept transition class after `settle()`, passed six-for-six in isolation, and failed roughly one run in three under full-suite load. Nothing was racing inside the components: `open()` and `close()` start a transition and do not return it, a kept end state lands several deferred steps later, and `settle()` is generous rather than deterministic. Reading a deferred write at a moment nothing promised is a flake even when everything it reads is correct.
+
+The asymmetry is what makes it a rule rather than a habit. `leaveTransition()` clears the other direction's `to` class synchronously, before its first await, so "the class is gone" is already true when nothing has happened yet — polling for an absence passes for the wrong reason, and would pass against a component that does nothing at all. An absence is asserted directly, after the awaited call which causes it.
+
+### Why a diagnostic is asserted on the channel and not on the console
+
+`vi.spyOn(console, 'warn')` appears forty times across the suite and twenty-six spec files touch diagnostics, several of them twice over: once to silence the console and once, separately, to add a listener that cancels the event. That the second call is what silences the first is the whole point, and it is not guessable from outside — a consumer would have to know the channel name, the detail shape, and that cancelling a cancelable diagnostic is what suppresses its default sink. `captureDiagnostics()` collapses the two into one call whose result is the thing worth asserting on.
+
+The spy is not merely redundant, it is the weaker assertion. It reads a formatted string, so it cannot tell `registry.conflict` from `registry.lazy-name-mismatch`, cannot see the severity or the reporting component, and breaks when the sink's wording changes — while a diagnostic reported with the wrong code passes it. Most of those forty sites therefore test the sink and believe they are testing the framework. The channel is public and stable precisely so that it, not the console, is what a test reads.
+
+One trap this uncovered, worth recording because it silently inverts an assertion: `mockRestore()` also clears the call history, so a spy restored before its own `expect` always looks unused. The module's own spec restores in an `afterEach` for that reason.
+
+### Why `resetRegistry()` is coarse, and why it is not `unregisterComponent(name)`
+
+The targeted form cannot be written correctly. Disposing one name's live triggers means finding the elements that hold them, and the element→controller map is a `WeakMap` by design: it cannot be enumerated, so nothing can walk it, and a `querySelectorAll()` sweep for the name would still miss every detached element still carrying a controller. A per-name inverse would be an API that looks precise and is not.
+
+The coarse form is correct for a reason outside itself: the mutation-observer path already disposes a controller as its element leaves the DOM, so once the DOM is empty there are no live triggers left to find. That is why the ordering — `resetDom()`, then `resetRegistry()` — is part of the contract rather than advice, and why the doc comment says outright that the `WeakMap` is not cleared instead of implying a clean slate.
+
+Its footgun is stated in the same place because the shape of a spec file guarantees someone will hit it: registrations happen at module top level, so `resetRegistry()` in an `afterEach` unregisters them for every later test in the file, and the failure appears in a test that looks unrelated. `resetDom()` deliberately does not call it.
+
+### What was refused
+
+`getInstance(el, name)` — the public `getInstances()` answers it, and a second spelling of a lookup is a second thing to keep true. A frame counter that patches `requestAnimationFrame` — one caller, and a global patch is a poor thing to hand out. Fetch stubs and pointer-event sequences — `vi.fn()` and `@vitest/browser`'s `userEvent` do both better, and each was shaped by the one spec that grew it.
+
+An event recorder was refused on that same list and then shipped as `recordEvents()`, which is worth recording as a reversal rather than quietly correcting. The refusal was right about `vi.fn()` replacing a _counter_ and wrong about what the seven spec files hand-rolling one were actually doing: they were recording `{ type, detail }` across several event names into one array, because the assertion is the sequence and its payloads, and that is the one thing a per-listener spy cannot express. Two shapes existed in the wild — `type` only, and `{ type, detail }` — and the richer one ships because mapping down is free and mapping up is impossible.
+
+A re-export shim in `test-utils.ts` was refused too. The old file keeps the fixtures and the two helpers that stay source-only, and the specs move onto the new module in one pass; a shim would be both a compatibility layer and a temporary solution meant to be replaced.

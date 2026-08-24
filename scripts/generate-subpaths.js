@@ -22,15 +22,24 @@ function paths(packageDir) {
 
 /**
  * The `exports` entries which are not one per symbol: the root barrel, the utils
- * barrel and the manifest itself. `./package.json` stays a plain string — it is
- * the same file under every condition.
+ * barrel, the test barrel and the manifest itself. `./package.json` stays a plain
+ * string — it is the same file under every condition.
  *
+ * `./test` is conditional on the barrel existing, because only v4 has one. It is
+ * a barrel rather than a set of per-symbol subpaths: a test file loads several of
+ * these helpers at once and none of them is on a page's critical path, so the
+ * tree-shaking argument that splits the other two does not apply.
+ *
+ * @param   {string} srcRoot The absolute path of the package's `src/` directory.
  * @returns {Record<string, unknown>}
  */
-function groupedExports() {
+function groupedExports(srcRoot) {
   return {
     '.': conditions('index'),
     './utils': conditions('utils/index'),
+    ...(existsSync(resolve(srcRoot, 'test/index.ts'))
+      ? { './test': conditions('test/index') }
+      : {}),
     './package.json': './package.json',
   };
 }
@@ -57,7 +66,7 @@ function expectedStubs(srcRoot) {
  * @returns {Record<string, unknown>}
  */
 function expectedExports(packageDir, srcRoot) {
-  const map = { ...groupedExports(), ...buildSubpathExports(srcRoot) };
+  const map = { ...groupedExports(srcRoot), ...buildSubpathExports(srcRoot) };
   // v4 publishes built artifacts only. Its export map must not point at omitted sources.
   if (packageDir === 'packages/v4') {
     for (const target of Object.values(map)) {

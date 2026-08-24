@@ -24,6 +24,7 @@ import transformDefault, { transform } from '@studiometa/js-toolkit-v4/utils/tra
 import easeOutQuadDefault, { easeOutQuad } from '@studiometa/js-toolkit-v4/utils/easeOutQuad';
 import randomIntDefault, { randomInt } from '@studiometa/js-toolkit-v4/utils/randomInt';
 import deepmergeDefault, { deepmerge } from '@studiometa/js-toolkit-v4/utils/deepmerge';
+import * as testHelpers from '@studiometa/js-toolkit-v4/test';
 
 assert.equal(Base, toolkit.Base);
 assert.equal(BaseDefault, Base);
@@ -115,5 +116,30 @@ assert.equal(utils.round(1.2345, 2), 1.23);
 assert.deepEqual(utils.createRange(0, 2, 1), [0, 1, 2]);
 assert.equal(typeof utils.debounce(() => {}), 'function');
 await utils.wait(1);
+
+// The `/test` subpath ships built and links to the packed scheduler and
+// registry. It stays out of the root barrel, and it loads outside a browser:
+// nothing reaches for the DOM until a helper that needs one is called.
+assert.deepEqual(Object.keys(testHelpers).sort(), [
+  'captureDiagnostics',
+  'frames',
+  'mount',
+  'recordEvents',
+  'resetDom',
+  'resetRegistry',
+  'settle',
+  'waitFor',
+]);
+assert.equal(toolkit.waitFor, undefined);
+assert.equal(toolkit.captureDiagnostics, undefined);
+assert.equal(toolkit.recordEvents, undefined);
+assert.equal(toolkit.resetRegistry, undefined);
+assert.equal(await testHelpers.waitFor(() => 'now'), 'now');
+await assert.rejects(
+  testHelpers.waitFor(() => false, { timeout: 0, message: 'never landed' }),
+  {
+    message: 'never landed',
+  },
+);
 
 console.log('Node packed consumer: root and public subpaths passed.');

@@ -285,7 +285,11 @@ try {
   const packOutput = await run('npm', ['pack', '--json', '--pack-destination', packRoot], {
     cwd: packageRoot,
   });
-  const [metadata] = JSON.parse(packOutput);
+  // `npm pack --json` answers with an array of packed packages up to npm 11,
+  // and with an object keyed by package name from npm 12 on. One package is
+  // packed either way: read its metadata out of whichever shape arrived.
+  const packed = JSON.parse(packOutput);
+  const [metadata] = Array.isArray(packed) ? packed : Object.values(packed);
   assert(metadata, 'npm pack returned no package metadata.');
 
   const packedFiles = assertPackageContent(metadata);

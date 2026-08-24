@@ -19,6 +19,10 @@
       "types": "./dist/utils/index.d.ts",
       "import": "./dist/utils/index.js"
     },
+    "./test": {
+      "types": "./dist/test/index.d.ts",
+      "import": "./dist/test/index.js"
+    },
     "./package.json": "./package.json",
     "./watchAttributeNamespace": {
       "types": "./dist/subpaths/watchAttributeNamespace.d.ts",
