@@ -15,6 +15,28 @@ interface PartialsModule {
   partials: PartialsApi;
 }
 
+/**
+ * The header names a `RequestInit` carries, lowercased.
+ *
+ * `RequestInit.headers` is a `HeadersInit`: a record, a list of tuples, or a
+ * `Headers` instance. Spreading it only sees the record — a `Headers` yields no
+ * own enumerable keys at all — so a custom header written that way used to pass
+ * the eligibility check below unnoticed and then be dropped, because the
+ * partials API forwards nothing but `{ url, signal }`.
+ */
+function headerNames(headers: HeadersInit | undefined): string[] {
+  if (!headers) {
+    return [];
+  }
+  if (headers instanceof Headers) {
+    return [...headers.keys()];
+  }
+  if (Array.isArray(headers)) {
+    return headers.map(([name]) => name.toLowerCase());
+  }
+  return Object.keys(headers).map((name) => name.toLowerCase());
+}
+
 export type FetchShopifyPartialProps = FetchProps & {
   $options: FetchProps['$options'] & { partials: string };
 };
@@ -109,16 +131,9 @@ export class FetchShopifyPartial<T extends BaseProps = BaseProps> extends Fetch<
    * submit and popstate flows still use partial rendering.
    */
   canUsePartials(requestInit: RequestInit): boolean {
-    const merged = {
-      ...this.requestInit,
-      ...requestInit,
-      headers: {
-        ...(this.requestInit.headers as Record<string, string>),
-        ...(requestInit.headers as Record<string, string> | undefined),
-      },
-    };
+    const method = requestInit.method ?? this.requestInit.method ?? 'get';
 
-    if ((merged.method ?? 'get').toLowerCase() !== 'get' || merged.body) {
+    if (method.toLowerCase() !== 'get' || requestInit.body || this.requestInit.body) {
       return false;
     }
 
@@ -130,8 +145,12 @@ export class FetchShopifyPartial<T extends BaseProps = BaseProps> extends Fetch<
     }
 
     const internalHeaders = new Set<string>(Object.values(HEADER_NAMES));
-    for (const header of Object.keys(merged.headers)) {
-      if (!internalHeaders.has(header.toLowerCase())) {
+    const declared = [
+      ...headerNames(this.requestInit.headers),
+      ...headerNames(requestInit.headers),
+    ];
+    for (const header of declared) {
+      if (!internalHeaders.has(header)) {
         return false;
       }
     }
@@ -180,8 +199,14 @@ export class FetchShopifyPartial<T extends BaseProps = BaseProps> extends Fetch<
       });
       // Fire-and-forget the apply phase, matching the base `Fetch.fetch`
       // lifecycle: an `apply()` failure must not be misattributed to the
-      // fetch phase and re-emit `AFTER_FETCH` a second time.
-      void this.applyPartials(normalizedUrl, init, update, partials);
+      // fetch phase and re-emit `AFTER_FETCH` a second time. It still needs a
+      // `catch`, or a rejected Shopify DOM update is an unhandled rejection
+      // with no observable failure at all.
+      void this.applyPartials(normalizedUrl, init, update, partials).catch(
+        (applyError: unknown) => {
+          this.error(normalizedUrl, init, applyError as Error);
+        },
+      );
     } catch (error) {
       this.$emit(FETCH_EVENTS.AFTER_FETCH, {
         instance: this,

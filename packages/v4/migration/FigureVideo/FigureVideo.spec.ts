@@ -95,6 +95,28 @@ describe('FigureVideo', () => {
     expect(instance.hasLoaded).toBe(true);
   });
 
+  it('settles and reports when the sources fail, instead of hanging forever', async () => {
+    const { el, video } = render(ONSCREEN);
+    const details: Array<Record<string, unknown>> = [];
+    const listener = (event: Event) => {
+      details.push((event as CustomEvent<Record<string, unknown>>).detail);
+      event.preventDefault();
+    };
+    document.addEventListener('js-toolkit:diagnostic', listener);
+
+    await settle();
+    // v3 waits on `loadeddata` alone, so this never settled and `mounted()`
+    // never returned.
+    video.dispatchEvent(new Event('error'));
+    await observed();
+
+    expect(details.map((detail) => detail.code)).toContain('figure-video.load-failed');
+    // Left un-loaded, so a later mount cycle can retry.
+    expect(getInstance<FigureVideo>(el, 'FigureVideo').hasLoaded).toBe(false);
+
+    document.removeEventListener('js-toolkit:diagnostic', listener);
+  });
+
   it('warns and does not throw when the video ref is missing', async () => {
     const root = document.createElement('div');
     root.innerHTML = `<div data-component="FigureVideo" style="${ONSCREEN}" data-option-lazy="true"></div>`;

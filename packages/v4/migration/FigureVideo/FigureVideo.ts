@@ -80,14 +80,26 @@ export class FigureVideo<T extends BaseProps = BaseProps> extends withTransition
       }
     }
 
-    return new Promise<void>((resolve) => {
-      video.addEventListener(
-        'loadeddata',
-        () => {
-          resolve();
-        },
-        { once: true },
-      );
+    /**
+     * Settled by either outcome, deliberately.
+     *
+     * v3 waits on `loadeddata` alone, so a video whose sources all fail never
+     * settles at all — and because `mounted()` awaits it, the component then
+     * never reaches its enter transition, its `load` event or `hasLoaded`. A
+     * media error is a real outcome and has to end the wait.
+     */
+    return new Promise<void>((resolve, reject) => {
+      const settle = (handler: () => void) => {
+        video.removeEventListener('loadeddata', onLoaded);
+        video.removeEventListener('error', onError);
+        handler();
+      };
+      const onLoaded = () => settle(resolve);
+      const onError = () =>
+        settle(() => reject(new Error(`Failed to load the sources of "${video.currentSrc}".`)));
+
+      video.addEventListener('loadeddata', onLoaded, { once: true });
+      video.addEventListener('error', onError, { once: true });
       video.load();
     });
   }
@@ -112,7 +124,15 @@ export class FigureVideo<T extends BaseProps = BaseProps> extends withTransition
       return;
     }
 
-    await this.load();
+    try {
+      await this.load();
+    } catch (error) {
+      // Reported and left un-loaded, so a later mount cycle retries rather
+      // than the component hanging on a promise that never settles.
+      this.$error('figure-video.load-failed', 'Failed to load the video.', error);
+      return;
+    }
+
     await this.enter();
     this.hasLoaded = true;
     this.$emit('load');

@@ -1315,7 +1315,7 @@ export class Base<T extends BaseProps = BaseProps> {
    * The counterpart to {@link $warn} for the case where something threw and
    * the component carried on: the original value is required, because a
    * reporter that cannot see the cause cannot do anything useful with it.
-   * Canceling suppresses the default `reportError()` call.
+   * Canceling suppresses the default error sink.
    */
   $error(code: ToolkitDiagnosticCode, message: string, error: unknown): void {
     reportDiagnostic(code, message, error, {

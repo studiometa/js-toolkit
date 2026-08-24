@@ -156,6 +156,73 @@ describe('FetchShopifyPartial', () => {
     expect(client).toHaveBeenCalledOnce();
   });
 
+  it('falls back for a custom header given as a Headers instance, not only as a record', async () => {
+    const client = stubClient();
+    const fetchPartials = vi.fn(async () => ({}));
+    stubPartials({ fetch: fetchPartials, apply: vi.fn() });
+    const { instance } = await mount(
+      `<a data-component="FetchShopifyPartial" href="/page" data-option-partials="main"><div id="a">old</div></a>`,
+    );
+
+    // Spreading a `Headers` yields no keys, so this used to pass the check.
+    await instance.fetch(instance.url, { headers: new Headers({ 'X-Custom': '1' }) });
+    await settle();
+
+    expect(fetchPartials).not.toHaveBeenCalled();
+    expect(client).toHaveBeenCalledOnce();
+  });
+
+  it('falls back for a custom header given as a list of tuples', async () => {
+    const client = stubClient();
+    const fetchPartials = vi.fn(async () => ({}));
+    stubPartials({ fetch: fetchPartials, apply: vi.fn() });
+    const { instance } = await mount(
+      `<a data-component="FetchShopifyPartial" href="/page" data-option-partials="main"><div id="a">old</div></a>`,
+    );
+
+    await instance.fetch(instance.url, { headers: [['X-Custom', '1']] });
+    await settle();
+
+    expect(fetchPartials).not.toHaveBeenCalled();
+    expect(client).toHaveBeenCalledOnce();
+  });
+
+  it('still uses partial rendering for an internal header given as a Headers instance', async () => {
+    const client = stubClient();
+    const fetchPartials = vi.fn(async () => ({}));
+    stubPartials({ fetch: fetchPartials, apply: vi.fn() });
+    const { instance } = await mount(
+      `<a data-component="FetchShopifyPartial" href="/page" data-option-partials="main"></a>`,
+    );
+
+    await instance.fetch(instance.url, { headers: new Headers({ 'X-Requested-By': 'x' }) });
+    await settle();
+
+    expect(fetchPartials).toHaveBeenCalledOnce();
+    expect(client).not.toHaveBeenCalled();
+  });
+
+  it('routes an apply() rejection through the error event instead of leaving it unhandled', async () => {
+    stubClient();
+    const failure = new Error('apply failed');
+    stubPartials({
+      fetch: async () => ({}),
+      apply: () => Promise.reject(failure),
+    });
+    const { root, instance } = await mount(
+      `<a data-component="FetchShopifyPartial" href="/page" data-option-partials="main"></a>`,
+    );
+    const errors: unknown[] = [];
+    root.addEventListener(FETCH_EVENTS.ERROR, (event) => {
+      errors.push((event as CustomEvent<{ error: unknown }>).detail.error);
+    });
+
+    await instance.fetch();
+    await settle();
+
+    expect(errors).toEqual([failure]);
+  });
+
   it('memoises the resolved partials module across calls', async () => {
     const loadSpy = vi.fn(async () => ({
       partials: { fetch: vi.fn(async () => ({})), apply: vi.fn() },
