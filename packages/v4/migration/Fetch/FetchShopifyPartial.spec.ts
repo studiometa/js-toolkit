@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getInstance, registerComponents } from '../../src/index.js';
-import { recordEvents, resetDom, settle } from '../../src/test/index.js';
+import { mount, recordEvents, resetDom, settle } from '../../src/test/index.js';
 import { FETCH_EVENTS } from './Fetch.js';
 import { FetchShopifyPartial } from './FetchShopifyPartial.js';
 
@@ -27,13 +27,15 @@ afterEach(async () => {
   await resetDom();
 });
 
-async function mount(html: string): Promise<{ root: HTMLElement; instance: FetchShopifyPartial }> {
-  const root = document.createElement('div');
-  root.innerHTML = html;
-  document.body.append(root);
-  await settle();
-  const el = root.firstElementChild as HTMLElement;
-  return { root, instance: getInstance<FetchShopifyPartial>(el, 'FetchShopifyPartial')! };
+/** {@link mount}, plus the one instance every test here goes on to drive. */
+async function mountWithInstance(
+  html: string,
+): Promise<{ root: HTMLElement; instance: FetchShopifyPartial }> {
+  const root = await mount(html);
+  return {
+    root,
+    instance: getInstance<FetchShopifyPartial>(root.firstElementChild, 'FetchShopifyPartial')!,
+  };
 }
 
 function stubClient(
@@ -54,7 +56,7 @@ function stubPartials(api: {
 describe('FetchShopifyPartial', () => {
   it('falls back to the base Fetch behaviour when no partials are configured', async () => {
     const client = stubClient();
-    const { root, instance } = await mount(
+    const { root, instance } = await mountWithInstance(
       `<a data-component="FetchShopifyPartial" href="/page" id="a"><div id="a">old</div></a>`,
     );
     const { events } = recordEvents(root, ...Object.values(FETCH_EVENTS));
@@ -71,7 +73,7 @@ describe('FetchShopifyPartial', () => {
     const apply = vi.fn();
     const fetchPartials = vi.fn(async () => ({ shape: 'partial-update' }));
     stubPartials({ fetch: fetchPartials, apply });
-    const { root, instance } = await mount(
+    const { root, instance } = await mountWithInstance(
       `<a data-component="FetchShopifyPartial" href="/page" data-option-partials="main, header"></a>`,
     );
     const { events } = recordEvents(root, ...Object.values(FETCH_EVENTS));
@@ -106,7 +108,7 @@ describe('FetchShopifyPartial', () => {
     FetchShopifyPartial.loadPartialsModule = async () => {
       throw new Error('not installed');
     };
-    const { instance } = await mount(
+    const { instance } = await mountWithInstance(
       `<a data-component="FetchShopifyPartial" href="/page" data-option-partials="main"><div id="a">old</div></a>`,
     );
 
@@ -120,7 +122,7 @@ describe('FetchShopifyPartial', () => {
     const client = stubClient();
     const fetchPartials = vi.fn(async () => ({}));
     stubPartials({ fetch: fetchPartials, apply: vi.fn() });
-    const { instance } = await mount(
+    const { instance } = await mountWithInstance(
       `<a data-component="FetchShopifyPartial" href="/page" data-option-partials="main"><div id="a">old</div></a>`,
     );
 
@@ -135,7 +137,7 @@ describe('FetchShopifyPartial', () => {
     const client = stubClient();
     const fetchPartials = vi.fn(async () => ({}));
     stubPartials({ fetch: fetchPartials, apply: vi.fn() });
-    const { instance } = await mount(
+    const { instance } = await mountWithInstance(
       `<a data-component="FetchShopifyPartial" href="/page" data-option-partials="main"><div id="a">old</div></a>`,
     );
 
@@ -150,7 +152,7 @@ describe('FetchShopifyPartial', () => {
     const client = stubClient();
     const fetchPartials = vi.fn(async () => ({}));
     stubPartials({ fetch: fetchPartials, apply: vi.fn() });
-    const { instance } = await mount(
+    const { instance } = await mountWithInstance(
       `<a data-component="FetchShopifyPartial" href="/page" data-option-partials="main"><div id="a">old</div></a>`,
     );
 
@@ -166,7 +168,7 @@ describe('FetchShopifyPartial', () => {
     const client = stubClient();
     const fetchPartials = vi.fn(async () => ({}));
     stubPartials({ fetch: fetchPartials, apply: vi.fn() });
-    const { instance } = await mount(
+    const { instance } = await mountWithInstance(
       `<a data-component="FetchShopifyPartial" href="/page" data-option-partials="main"><div id="a">old</div></a>`,
     );
 
@@ -181,7 +183,7 @@ describe('FetchShopifyPartial', () => {
     const client = stubClient();
     const fetchPartials = vi.fn(async () => ({}));
     stubPartials({ fetch: fetchPartials, apply: vi.fn() });
-    const { instance } = await mount(
+    const { instance } = await mountWithInstance(
       `<a data-component="FetchShopifyPartial" href="/page" data-option-partials="main"></a>`,
     );
 
@@ -199,7 +201,7 @@ describe('FetchShopifyPartial', () => {
       fetch: async () => ({}),
       apply: () => Promise.reject(failure),
     });
-    const { root, instance } = await mount(
+    const { root, instance } = await mountWithInstance(
       `<a data-component="FetchShopifyPartial" href="/page" data-option-partials="main"></a>`,
     );
     const errors: unknown[] = [];
@@ -215,7 +217,7 @@ describe('FetchShopifyPartial', () => {
 
   it('skips the history push for a popstate header given as a Headers instance', async () => {
     stubPartials({ fetch: async () => ({}), apply: vi.fn() });
-    const { instance } = await mount(
+    const { instance } = await mountWithInstance(
       `<a data-component="FetchShopifyPartial" href="/page" data-option-partials="main" data-option-history></a>`,
     );
     const before = window.history.length;
@@ -232,7 +234,7 @@ describe('FetchShopifyPartial', () => {
 
   it('still pushes history for a request that is not popstate-triggered', async () => {
     stubPartials({ fetch: async () => ({}), apply: vi.fn() });
-    const { instance } = await mount(
+    const { instance } = await mountWithInstance(
       `<a data-component="FetchShopifyPartial" href="/page" data-option-partials="main" data-option-history></a>`,
     );
     const before = window.history.length;
@@ -248,7 +250,7 @@ describe('FetchShopifyPartial', () => {
       partials: { fetch: vi.fn(async () => ({})), apply: vi.fn() },
     }));
     FetchShopifyPartial.loadPartialsModule = loadSpy;
-    const { instance } = await mount(
+    const { instance } = await mountWithInstance(
       `<a data-component="FetchShopifyPartial" href="/page" data-option-partials="main"></a>`,
     );
 

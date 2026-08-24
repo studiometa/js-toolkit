@@ -1,33 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { getInstance, registerComponents } from '../../src/index.js';
-import { resetDom, settle } from '../../src/test/index.js';
+import { resetDom, settle, waitFor } from '../../src/test/index.js';
 import { Toast } from './Toast.js';
 
 registerComponents(Toast);
 
 afterEach(resetDom);
-
-function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-/**
- * `viewTransition()` chains onto a module-level tail the scheduler does not
- * track: `defaultScheduler`'s write task that flushes it returns as soon as
- * `document.startViewTransition(...).finished` is *requested*, not once it
- * settles, so `settle()` gives no guarantee the DOM mutation inside it has
- * run yet. A real headless compositor can also take longer than usual to
- * finish one. Poll instead of trusting a fixed wait.
- */
-async function waitFor(predicate: () => boolean, timeout = 1000): Promise<void> {
-  const deadline = Date.now() + timeout;
-  while (!predicate()) {
-    if (Date.now() > deadline) {
-      throw new Error('waitFor: timed out');
-    }
-    await wait(10);
-  }
-}
 
 function renderUnmounted(attributes = ''): HTMLElement {
   const root = document.createElement('div');
