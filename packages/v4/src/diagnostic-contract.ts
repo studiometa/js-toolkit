@@ -94,7 +94,28 @@ export type ToolkitDiagnosticSeverity = 'warning' | 'error';
 type NestedValue<T> = T extends string ? T : { [K in keyof T]: NestedValue<T[K]> }[keyof T];
 
 /** One stable value from {@link DIAGNOSTICS}. */
-export type ToolkitDiagnosticCode = NestedValue<typeof DIAGNOSTICS>;
+export type ToolkitCoreDiagnosticCode = NestedValue<typeof DIAGNOSTICS>;
+
+/**
+ * A code minted outside core, in the same `namespace.detail` shape.
+ *
+ * The channel is only worth having if a consumer can be told apart on it: a
+ * listener filters by code, so a component reporting through a shared generic
+ * code would be unfilterable, and one reporting through a core code would be
+ * indistinguishable from core itself. The template literal is the loosest
+ * thing that still keeps the shape a filter can rely on — `startsWith('figure.')`
+ * works because the namespace is mandatory.
+ */
+export type ToolkitConsumerDiagnosticCode = `${string}.${string}`;
+
+/**
+ * A diagnostic code: one of core's own, or a consumer's namespaced one.
+ *
+ * Core's set stays enumerated and documented as {@link DIAGNOSTICS}; the union
+ * with the wider shape is what lets a component outside core report on the same
+ * channel rather than reaching for `console.warn`.
+ */
+export type ToolkitDiagnosticCode = ToolkitCoreDiagnosticCode | ToolkitConsumerDiagnosticCode;
 
 interface ToolkitDiagnosticBaseDetail {
   readonly code: ToolkitDiagnosticCode;

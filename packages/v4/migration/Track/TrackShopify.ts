@@ -1,6 +1,5 @@
 import type { BaseConfig, BaseProps } from '../../src/index.js';
 import { AbstractTrack, type AbstractTrackProps } from './AbstractTrack.js';
-import { warn } from './utils.js';
 
 declare global {
   interface Window {
@@ -24,12 +23,18 @@ export class TrackShopify<T extends BaseProps = BaseProps> extends AbstractTrack
     const analytics = window.Shopify?.analytics;
 
     if (typeof analytics?.publish !== 'function') {
-      warn('`window.Shopify.analytics.publish` is not available.');
+      this.$warn(
+        'track.shopify-unavailable',
+        '`window.Shopify.analytics.publish` is not available.',
+      );
       return;
     }
 
     if (typeof payload.event !== 'string') {
-      warn('Cannot publish a tracking event without a string `event` name.');
+      this.$warn(
+        'track.missing-event-name',
+        'Cannot publish a tracking event without a string `event` name.',
+      );
       return;
     }
 

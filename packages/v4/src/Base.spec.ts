@@ -1760,3 +1760,107 @@ describe('lifecycle', () => {
     expect(calls).toEqual(['cleanup:1', 'cleanup:2']);
   });
 });
+
+describe('$warn and $error', () => {
+  class Reporter extends Base {
+    static config: BaseConfig = { name: 'DiagnosticReporter' };
+  }
+
+  function mount(): Reporter {
+    const el = document.createElement('div');
+    document.body.append(el);
+    return new Reporter(el).$mount();
+  }
+
+  function record(): {
+    details: ToolkitDiagnosticDetail[];
+    targets: EventTarget[];
+    stop: () => void;
+  } {
+    const details: ToolkitDiagnosticDetail[] = [];
+    const targets: EventTarget[] = [];
+    const listener = (event: Event) => {
+      details.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
+      targets.push(event.target as EventTarget);
+    };
+    document.addEventListener('js-toolkit:diagnostic', listener);
+    return {
+      details,
+      targets,
+      stop: () => document.removeEventListener('js-toolkit:diagnostic', listener),
+    };
+  }
+
+  it('fills the component name and the element in, so a listener can filter', () => {
+    const instance = mount();
+    const log = record();
+    const sink = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    instance.$warn('reporter.something-off', 'Something is off.');
+
+    expect(log.details).toEqual([
+      {
+        severity: 'warning',
+        code: 'reporter.something-off',
+        message: 'Something is off.',
+        component: 'DiagnosticReporter',
+      },
+    ]);
+    // Started on the element, so a listener scoped to a subtree hears it.
+    expect(log.targets[0]).toBe(instance.$el);
+    expect(sink).toHaveBeenCalledOnce();
+
+    sink.mockRestore();
+    log.stop();
+  });
+
+  it('lets a listener cancel the default console sink', () => {
+    const instance = mount();
+    const sink = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const cancel = (event: Event) => event.preventDefault();
+    document.addEventListener('js-toolkit:diagnostic', cancel);
+
+    instance.$warn('reporter.something-off', 'Something is off.');
+
+    expect(sink).not.toHaveBeenCalled();
+
+    document.removeEventListener('js-toolkit:diagnostic', cancel);
+    sink.mockRestore();
+  });
+
+  it('carries the original value on $error, which a reporter needs', () => {
+    const instance = mount();
+    const log = record();
+    const cancel = (event: Event) => event.preventDefault();
+    document.addEventListener('js-toolkit:diagnostic', cancel);
+    const cause = new Error('the cause');
+
+    instance.$error('reporter.load-failed', 'Loading failed.', cause);
+
+    expect(log.details).toEqual([
+      {
+        severity: 'error',
+        code: 'reporter.load-failed',
+        message: 'Loading failed.',
+        component: 'DiagnosticReporter',
+        error: cause,
+      },
+    ]);
+
+    document.removeEventListener('js-toolkit:diagnostic', cancel);
+    log.stop();
+  });
+
+  it('accepts a code from the enumerated core set too', () => {
+    const instance = mount();
+    const log = record();
+    const sink = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    instance.$warn(DIAGNOSTICS.ref.mismatch, 'A declared ref is missing.');
+
+    expect(log.details[0].code).toBe('ref.mismatch');
+
+    sink.mockRestore();
+    log.stop();
+  });
+});

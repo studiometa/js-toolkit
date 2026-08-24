@@ -15,6 +15,8 @@
  * wrote and leaves the fallback to the caller.
  */
 
+import { warn } from '../src/index.js';
+
 /** Every modifier a declaration may carry. */
 export const MODIFIERS = Object.freeze({
   /** `event.preventDefault()` before the effect runs. */
@@ -59,10 +61,6 @@ export interface ParsedEventDefinition {
   delay: (modifier: Modifier) => number | undefined;
 }
 
-function warn(...args: unknown[]): void {
-  console.warn('[event]', ...args);
-}
-
 /**
  * Split an event definition into its event and its modifiers.
  *
@@ -99,6 +97,7 @@ export function parseEventDefinition(definition: string): ParsedEventDefinition 
       // Unknown modifiers used to be pushed through as if they were real, so a
       // typo silently did nothing on a listener that still bound.
       warn(
+        'event-modifiers.unknown-modifier',
         `\`${part}\` in \`${definition}\` names no modifier — known names: ${MODIFIER_NAMES.join(', ')}.`,
       );
       continue;

@@ -1,6 +1,5 @@
 import { Base, type BaseConfig, type BaseProps } from '../../src/index.js';
 import { deepmerge } from '../../src/utils/deepmerge.js';
-import { warn } from './utils.js';
 
 export type TrackContextProps = BaseProps & {
   $refs: {
@@ -41,7 +40,7 @@ export class TrackContext<T extends BaseProps = BaseProps> extends Base<TrackCon
     try {
       return (JSON.parse(script.textContent || '{}') as Record<string, unknown> | null) ?? {};
     } catch (error) {
-      warn('Invalid JSON in the `context` ref:', error);
+      this.$error('track.invalid-json', 'Invalid JSON in the `context` ref.', error);
       return {};
     }
   }
@@ -54,7 +53,11 @@ export class TrackContext<T extends BaseProps = BaseProps> extends Base<TrackCon
     try {
       return this.$options.context ?? {};
     } catch (error) {
-      warn('Invalid JSON in the `data-option-context` attribute:', error);
+      this.$error(
+        'track.invalid-json',
+        'Invalid JSON in the `data-option-context` attribute.',
+        error,
+      );
       return {};
     }
   }

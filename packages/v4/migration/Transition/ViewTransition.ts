@@ -1,5 +1,5 @@
-import { Base, viewTransition } from '../../src/index.js';
-import type { Transitionable } from './Transition.js';
+import { Base, viewTransition, type BaseProps } from '../../src/index.js';
+import type { Transitionable } from './withTransition.js';
 
 export interface ViewTransitionProps {
   $options: { viewTransitionName: string; enterTo: string; leaveTo: string };
@@ -13,8 +13,20 @@ export interface ViewTransitionProps {
   };
 }
 
-/** Implements `Transitionable` with the native View Transitions API. */
-export class ViewTransition extends Base<ViewTransitionProps> implements Transitionable {
+/**
+ * Implements `Transitionable` with the native View Transitions API.
+ *
+ * It shares the contract with `withTransition()` and none of the
+ * implementation — the browser owns the animation, and the event names are
+ * its own (`enter`, not `transition-enter`) — so it stays a direct
+ * implementation of the interface rather than a consumer of the mixin.
+ * Generic for the same reason every other extensible class here is: a
+ * subclass has to be able to add its own props.
+ */
+export class ViewTransition<T extends BaseProps = BaseProps>
+  extends Base<ViewTransitionProps & T>
+  implements Transitionable
+{
   static config = {
     name: 'ViewTransition',
     options: {

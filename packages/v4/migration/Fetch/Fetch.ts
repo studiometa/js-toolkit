@@ -44,6 +44,40 @@ export const HEADER_NAMES = Object.freeze({
   USER_AGENT: 'user-agent',
 } as const);
 
+/**
+ * Read a `RequestInit`'s headers without assuming which form they took.
+ *
+ * `HeadersInit` is a record, a list of tuples, or a `Headers` instance, and
+ * only the record answers to indexing or spreading — a `Headers` has no own
+ * enumerable keys at all. Everything below is built on this one reader, and it
+ * is allocation-light and, unlike `new Headers(init)`, does not throw on a
+ * malformed name: an eligibility check and a history guard must give an
+ * answer, not raise.
+ */
+export function headerEntries(headers: HeadersInit | undefined): Array<[string, string]> {
+  if (!headers) {
+    return [];
+  }
+  if (headers instanceof Headers) {
+    return [...headers.entries()];
+  }
+  if (Array.isArray(headers)) {
+    return headers.map(([name, value]) => [name.toLowerCase(), value]);
+  }
+  return Object.entries(headers).map(([name, value]) => [name.toLowerCase(), value]);
+}
+
+/** The header names a `RequestInit` carries, lowercased. */
+export function headerNames(headers: HeadersInit | undefined): string[] {
+  return headerEntries(headers).map(([name]) => name);
+}
+
+/** One header's value, across the same three forms. Names compare case-insensitively. */
+export function headerValue(headers: HeadersInit | undefined, name: string): string | undefined {
+  const wanted = name.toLowerCase();
+  return headerEntries(headers).find(([candidate]) => candidate === wanted)?.[1];
+}
+
 /** One parser for every instance: it holds no state between calls. */
 const domParser = new DOMParser();
 
@@ -335,13 +369,22 @@ export class Fetch<T extends BaseProps = BaseProps> extends Base<FetchProps & T>
    * @protected
    */
   mergeRequestInit(requestInit: RequestInit, signal: AbortSignal): RequestInit {
+    // Merged through `headerEntries()` rather than spread: spreading a
+    // `Headers` instance or a tuple array yields nothing, so a caller's
+    // `fetch(url, { headers: new Headers(…) })` used to be dropped on the
+    // floor before the request was ever built.
+    const headers: Record<string, string> = {};
+    for (const [name, value] of headerEntries(this.requestInit.headers)) {
+      headers[name] = value;
+    }
+    for (const [name, value] of headerEntries(requestInit.headers)) {
+      headers[name] = value;
+    }
+
     return {
       ...this.requestInit,
       ...requestInit,
-      headers: {
-        ...(this.requestInit.headers as Record<string, string>),
-        ...(requestInit.headers as Record<string, string> | undefined),
-      },
+      headers,
       signal,
     };
   }
@@ -415,11 +458,7 @@ export class Fetch<T extends BaseProps = BaseProps> extends Base<FetchProps & T>
     const fragment = domParser.parseFromString(content, 'text/html');
 
     if (history) {
-      if (
-        (requestInit.headers as Record<string, string> | undefined)?.[
-          HEADER_NAMES.X_TRIGGERED_BY
-        ] !== 'popstate'
-      ) {
+      if (headerValue(requestInit.headers, HEADER_NAMES.X_TRIGGERED_BY) !== 'popstate') {
         historyPush({ path: url.pathname, search: url.searchParams });
       }
       this.$write(() => {

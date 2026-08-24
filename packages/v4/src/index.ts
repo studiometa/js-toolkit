@@ -38,10 +38,13 @@ export { subscribeContext, type ContextCallback } from './context-subscription.j
 export { children, component, inject, on, provide, read, write } from './decorators.js';
 export {
   DIAGNOSTICS,
+  type ToolkitConsumerDiagnosticCode,
+  type ToolkitCoreDiagnosticCode,
   type ToolkitDiagnosticCode,
   type ToolkitDiagnosticDetail,
   type ToolkitDiagnosticSeverity,
 } from './diagnostic-contract.js';
+export { reportDiagnostic, warn } from './diagnostics.js';
 export {
   watchAttributes,
   whenDOMSettled,

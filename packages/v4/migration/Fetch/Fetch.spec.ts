@@ -100,6 +100,36 @@ function stubViewTransition(): { spy: ReturnType<typeof vi.fn>; restore: () => v
   };
 }
 
+describe('Fetch — headers across every HeadersInit form', () => {
+  it('forwards a caller Headers instance instead of dropping it', async () => {
+    const client = stubClient();
+    const { instance } = await mountFetch(
+      `<a data-component="Fetch" href="/page"><div id="fetch-h">old</div></a>`,
+    );
+
+    // Spreading a `Headers` yields no keys, so this used to reach `fetch()` as
+    // an empty header set.
+    await instance.fetch(instance.url, { headers: new Headers({ 'x-custom': '1' }) });
+    await settle();
+
+    const [, init] = client.mock.calls[0] as [unknown, RequestInit];
+    expect((init.headers as Record<string, string>)['x-custom']).toBe('1');
+  });
+
+  it('forwards a caller tuple array too, with the per-call value winning', async () => {
+    const client = stubClient();
+    const { instance } = await mountFetch(
+      `<a data-component="Fetch" href="/page" data-option-headers='{"x-custom": "element"}'><div id="fetch-h">old</div></a>`,
+    );
+
+    await instance.fetch(instance.url, { headers: [['X-Custom', 'call']] });
+    await settle();
+
+    const [, init] = client.mock.calls[0] as [unknown, RequestInit];
+    expect((init.headers as Record<string, string>)['x-custom']).toBe('call');
+  });
+});
+
 describe('Fetch — request resolution', () => {
   it('reads the url of a link', async () => {
     const { instance } = await mountFetch(

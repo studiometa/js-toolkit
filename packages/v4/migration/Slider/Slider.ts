@@ -190,7 +190,10 @@ export class Slider extends withResize(Base)<SliderProps> {
       return states;
     }
 
-    console.warn('[Slider] The `center` mode is not compatible with the `contain` mode.');
+    this.$warn(
+      'slider.incompatible-modes',
+      'The `center` mode is not compatible with the `contain` mode.',
+    );
     return states;
   }
 

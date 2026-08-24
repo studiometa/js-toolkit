@@ -43,7 +43,13 @@ function dispatchDiagnostic(
   return event;
 }
 
-/** @internal */
+/**
+ * Report a recovered failure on the diagnostic channel.
+ *
+ * A component reports through {@link Base.$error}, which fills in its own name
+ * and element. This is the form for code with no instance to report as — a
+ * module-level helper, or a class which is not a `Base`.
+ */
 export function reportDiagnostic(
   code: ToolkitDiagnosticCode,
   message: string,
@@ -76,7 +82,13 @@ export function isolateCallbackFailure(
   }
 }
 
-/** @internal */
+/**
+ * Report a warning on the diagnostic channel.
+ *
+ * A component reports through {@link Base.$warn}, which fills in its own name
+ * and element. This is the form for code with no instance to report as — a
+ * module-level helper, or a class which is not a `Base`.
+ */
 export function warn(
   code: ToolkitDiagnosticCode,
   message: string,

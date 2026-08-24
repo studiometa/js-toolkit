@@ -39,10 +39,6 @@ export type DataBindProps = BaseProps & {
   $options: DataBindOptions;
 };
 
-function warn(...args: unknown[]): void {
-  console.warn('[data]', ...args);
-}
-
 /**
  * The namespace a virtual binding is declared by. Its qualifier head is finite
  * — the six binding types — while the name a `prop`, `attr`, `class` or `style`
@@ -370,7 +366,8 @@ export class DataBind<T extends BaseProps = DataBindProps>
     const { target } = this;
 
     if (!(target instanceof HTMLTemplateElement)) {
-      warn(
+      this.$warn(
+        'data-bind.invalid-if-target',
         'The data-bind:if binding can only be used on a <template> element. Use data-bind:attr.hidden to show or hide an element in place.',
       );
       return;
@@ -412,7 +409,10 @@ export class DataBind<T extends BaseProps = DataBindProps>
       return true;
     }
 
-    warn(`The ${method}() method can not be used with this component.`);
+    this.$warn(
+      'data-bind.unsupported-mutation',
+      `The ${method}() method can not be used with this component.`,
+    );
     return false;
   }
 
@@ -426,7 +426,10 @@ export class DataBind<T extends BaseProps = DataBindProps>
       isCheckbox(this.target) && (typeof onValue !== 'boolean' || typeof offValue !== 'boolean');
 
     if (isRadio || hasCustomCheckboxValues) {
-      warn('The toggle() values can not be represented by this input.');
+      this.$warn(
+        'data-bind.unrepresentable-toggle',
+        'The toggle() values can not be represented by this input.',
+      );
       return;
     }
 
@@ -439,7 +442,10 @@ export class DataBind<T extends BaseProps = DataBindProps>
     }
 
     if (isInput(this.target) && this.target.type === 'date') {
-      warn('The increment() method can not be used with date inputs.');
+      this.$warn(
+        'data-bind.unsupported-mutation',
+        'The increment() method can not be used with date inputs.',
+      );
       return;
     }
 
