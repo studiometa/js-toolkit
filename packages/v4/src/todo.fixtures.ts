@@ -6,10 +6,11 @@
  * so a spec about any one of them can be written against a shape that is
  * already familiar rather than against a new one per file.
  *
- * It lives outside `test-utils.ts` because the two are different kinds of
- * thing: `test-utils.ts` holds helpers that read the framework, while this
- * module *is* a component tree, registered on import. Both are excluded from
- * the build — see `scripts/build.js` and `scripts/check-package.js`.
+ * It lives here rather than next to the shipped test helpers because it is a
+ * different kind of thing: `src/test/index.ts` holds helpers that read the
+ * framework, while this module *is* a component tree, registered on import.
+ * The `.fixtures.ts` suffix is what keeps it out of the build — see
+ * `scripts/build.js` and `scripts/check-package.js`.
  */
 
 import { Base } from './Base.js';

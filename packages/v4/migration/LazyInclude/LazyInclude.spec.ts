@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Base, registerComponents, type BaseConfig } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { Base, getInstance, registerComponents, type BaseConfig } from '../../src/index.js';
 import { captureDiagnostics, mount, resetDom, settle, waitFor } from '../../src/test/index.js';
 import { LazyInclude } from './LazyInclude.js';
 
@@ -180,7 +179,10 @@ describe('LazyInclude', () => {
     const root = await mount(
       `<div data-component="LazyInclude" data-option-src="/lazy.html" data-option-terminate-on-load></div>`,
     );
-    const instance = getInstance<LazyInclude>(root.firstElementChild as HTMLElement, 'LazyInclude');
+    const instance = getInstance<LazyInclude>(
+      root.firstElementChild as HTMLElement,
+      'LazyInclude',
+    )!;
     expect(instance.hasLoaded).toBe(false);
 
     deferred.resolve('<p>remote</p>');
@@ -197,7 +199,10 @@ describe('LazyInclude', () => {
     const root = await mount(
       `<div data-component="LazyInclude" data-option-src="/lazy.html"></div>`,
     );
-    const instance = getInstance<LazyInclude>(root.firstElementChild as HTMLElement, 'LazyInclude');
+    const instance = getInstance<LazyInclude>(
+      root.firstElementChild as HTMLElement,
+      'LazyInclude',
+    )!;
 
     deferred.resolve('<p>remote</p>');
     await quiet();
@@ -274,7 +279,7 @@ describe('LazyInclude', () => {
     );
     const el = root.firstElementChild as HTMLElement;
     await waitFor(() => client.mock.calls.length === 1);
-    expect(getInstance<LazyInclude>(el, 'LazyInclude').hasLoaded).toBe(false);
+    expect(getInstance<LazyInclude>(el, 'LazyInclude')!.hasLoaded).toBe(false);
 
     const other = document.createElement('section');
     document.body.append(other);
@@ -291,7 +296,7 @@ describe('LazyInclude', () => {
       `<div data-component="LazyInclude" data-option-src="/lazy.html" data-option-terminate-on-load></div>`,
     );
     const el = root.firstElementChild as HTMLElement;
-    await waitFor(() => getInstance<LazyInclude>(el, 'LazyInclude').hasLoaded);
+    await waitFor(() => getInstance<LazyInclude>(el, 'LazyInclude')!.hasLoaded);
 
     const other = document.createElement('section');
     document.body.append(other);

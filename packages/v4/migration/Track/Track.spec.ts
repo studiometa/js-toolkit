@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { captureDiagnostics, mount, resetDom, settle, waitFor } from '../../src/test/index.js';
 import { Track } from './Track.js';
 import { TrackContext } from './TrackContext.js';
@@ -387,7 +386,7 @@ describe('Track — lifecycle', () => {
       `<div data-component="Track" data-track:click.capture='{"event": "cta"}'></div>`,
     );
     const el = root.firstElementChild as HTMLElement;
-    const track = getInstance(el, 'Track');
+    const track = getInstance(el, 'Track')!;
 
     el.click();
     expect(pushes()).toHaveLength(1);
@@ -406,7 +405,7 @@ describe('Track — lifecycle', () => {
       `<div data-component="Track" data-track:input.debounce50='{"event": "search"}'></div>`,
     );
     const el = root.firstElementChild as HTMLElement;
-    const track = getInstance(el, 'Track');
+    const track = getInstance(el, 'Track')!;
 
     el.dispatchEvent(new Event('input'));
     track.$unmount();
@@ -421,7 +420,7 @@ describe('Track — lifecycle', () => {
       `<div data-component="Track" data-track:click='{"event": "before"}'></div>`,
     );
     const el = root.firstElementChild as HTMLElement;
-    const track = getInstance(el, 'Track');
+    const track = getInstance(el, 'Track')!;
 
     track.$unmount();
     el.setAttribute('data-track:click', '{"event": "after"}');
@@ -495,7 +494,7 @@ describe('Track — live rebinding through watchAttributes', () => {
       `<div data-component="Track" data-track:click='{"event": "cta"}'></div>`,
     );
     const el = root.firstElementChild as HTMLElement;
-    const track = getInstance(el, 'Track');
+    const track = getInstance(el, 'Track')!;
 
     track.$unmount();
     el.setAttribute('data-track:click', '{"event": "ignored"}');

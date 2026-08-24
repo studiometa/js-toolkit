@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { resetDom, settle, waitFor } from '../../src/test/index.js';
 import { Figure } from './Figure.js';
 
@@ -79,6 +78,6 @@ describe('Figure (AbstractFigure)', () => {
     // Polled, not assumed: `mounted()` fire-and-forgets the transition, and a
     // kept end state lands a few frames after the image has loaded.
     await waitFor(() => img.classList.contains('visible'));
-    expect(getInstance<Figure>(el, 'Figure').state).toBe('entering');
+    expect(getInstance<Figure>(el, 'Figure')!.state).toBe('entering');
   });
 });

@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { EVENTS, registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { EVENTS, getInstance, registerComponents } from '../../src/index.js';
 import { captureDiagnostics, mount, resetDom, settle } from '../../src/test/index.js';
 import { DataBind } from './DataBind.js';
 import { DataComputed } from './DataComputed.js';
@@ -68,7 +67,7 @@ function el<T extends HTMLElement = HTMLElement>(root: HTMLElement, selector: st
 }
 
 function at<T>(root: HTMLElement, selector: string, name: string): T {
-  return getInstance<never>(root.querySelector(selector), name) as T;
+  return getInstance<never>(root.querySelector(selector)!, name)! as T;
 }
 
 describe('DataBind — the element half', () => {

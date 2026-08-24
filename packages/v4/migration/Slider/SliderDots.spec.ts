@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { frames, resetDom, settle } from '../../src/test/index.js';
 import { Slider } from './Slider.js';
 import { SliderDots } from './SliderDots.js';
@@ -38,8 +37,8 @@ async function ready(root: HTMLElement) {
   await frames(4);
   const dotsEl = root.querySelector('[data-component="SliderDots"]') as HTMLElement;
   return {
-    slider: getInstance<Slider>(root, 'Slider'),
-    dots: getInstance<SliderDots>(dotsEl, 'SliderDots'),
+    slider: getInstance<Slider>(root, 'Slider')!,
+    dots: getInstance<SliderDots>(dotsEl, 'SliderDots')!,
     buttons: [...dotsEl.querySelectorAll<HTMLButtonElement>('[data-ref="dots[]"]')],
   };
 }
@@ -91,7 +90,7 @@ describe('SliderDots', () => {
 
     buttons[1].click();
     await frames(4);
-    expect(getInstance<Slider>(root, 'Slider').currentIndex).toBe(0);
+    expect(getInstance<Slider>(root, 'Slider')!.currentIndex).toBe(0);
   });
 
   it('picks up a dot added after mount', async () => {

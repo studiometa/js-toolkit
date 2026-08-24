@@ -566,30 +566,33 @@ class Slider extends Base {
 - No global instance registry is added. The subscription stays active through unmount and mount cycles, for the whole life of the watching instance.
 - Unmounted instances announce from `document`, so one lazy, realm-shared listener serves every watcher and the document holds nothing but weak references to them. A listener per watcher would make every watching component immortal, since the document outlives the page's components.
 
-### The page-wide lookup — `getInstances()`
+### The page-wide lookup — `getInstances()` and its three siblings
 
 ```js
-getInstances('Dialog').forEach((dialog) => dialog.close()); // page-wide
-getInstances('Dialog', section); // one region
-getInstances(el); // everything mounted on one element
+getMountedInstances('Dialog').forEach((dialog) => dialog.close()); // the live ones
+getInstances('Dialog', section); // every one built in a region
+getUnmountedInstances('Dialog'); // built, then stood down
+getInstance(el, 'Dialog'); // the one on this element, mounted or not
+getInstances(el); // everything on one element
 ```
 
 It derives the answer from the DOM. It keeps no registry of instances.
 
-- A matching element with no instance is skipped.
-- The filter is `$isMounted`, so an unmounted instance is never returned.
+- **The name says which population it answers.** `getInstances()` returns every instance that exists; `getMountedInstances()` is the safe list to call a method on; `getUnmountedInstances()` is what a reversible `in-view` or `media:` strategy has stood down, plus a construct-then-mount-failure. The three take the same two overloads.
+- **A matching element with no instance is skipped, and that is the whole narrowing.** `selectorFor(name)` over-matches on purpose — it lists the responsive spellings of `data-component` too — and the instance-map read is what removes an inactive declaration, because a breakpoint-withdrawn component is destroyed _and_ deleted from the map. A mount filter never did that work, which is why it is gone.
+- **There is no `getMountedInstance`.** The singular returns one object; a caller reads `.$isMounted` on it.
 - `root` is a `ParentNode` and the call is `querySelectorAll`, so an element root searches its descendants and never matches itself.
 - `selectorFor(name)` on `/utils` is the one place that writes the name-to-selector contract.
 
 ### Where the instances live
 
-An element publishes its instances under `Symbol.for('@studiometa/js-toolkit-v4/instances')`. It is not public API; `getInstances()` is. In a console, read them with one line:
+An element publishes its instances under `Symbol.for('@studiometa/js-toolkit-v4/instances')`. It is not public API; the four lookups are, and between them they express every read the map answers. In a console, read them with one line:
 
 ```js
 $0[Symbol.for('@studiometa/js-toolkit-v4/instances')];
 ```
 
-The element overload `getInstances(el)` answers "what is mounted here", in mount order and with the `$isMounted` filter.
+The element overload `getInstances(el)` answers "what is here", in mount order. It reads the map directly and never the DOM, so it is the only form that reaches a **detached** element — the string form cannot, since `document.querySelectorAll()` does not see one. Pass the detached root as `root` when a name lookup has to reach inside it.
 
 ### Shared state — provide/inject
 
@@ -1068,7 +1071,7 @@ See [RATIONALE.md — 12. Storage](./RATIONALE.md#12-storage).
 
 ## 13. Testing — the `/test` subpath
 
-`@studiometa/js-toolkit-v4/test` ships the eight helpers a test of a component cannot write for itself: `mount(html)`, `settle()`, `frames(count?)`, `waitFor(predicate, options?)`, `resetDom()`, `captureDiagnostics(target?)`, `recordEvents(target, ...types)` and `resetRegistry()`.
+`@studiometa/js-toolkit-v4/test` ships the nine helpers a test of a component cannot write for itself: `mount(html)`, `settle()`, `frames(count?)`, `countRequestedFrames(during)`, `waitFor(predicate, options?)`, `resetDom()`, `captureDiagnostics(target?)`, `recordEvents(target, ...types)` and `resetRegistry()`.
 
 - **The subpath exists because the timing recipe is not derivable.** "Has this component mounted and finished its writes?" is answered by five rounds of a 10ms timer followed by `defaultScheduler.whenIdle()`, and those two numbers encode the mount observer's delivery latency and the scheduler's lane order. Neither half works alone: `whenIdle()` can resolve before the observer has reported the element, and a timer can return between two lanes. `defaultScheduler` and `nextFrame` were already public, so the pieces shipped and the recipe did not.
 - **It depends on no test framework.** Nothing in the module imports a runner, an assertion library or a spy; it reads the DOM and the scheduler only, so it runs under Vitest, under Playwright and on a plain browser page. That is also why it is not on the root barrel: a page has no use for it, and the root export count stays what it was.
@@ -1078,7 +1081,8 @@ See [RATIONALE.md — 12. Storage](./RATIONALE.md#12-storage).
 - **`captureDiagnostics()` reads the channel, and asserting on `console.warn` does not.** A recovered failure is reported on a cancelable event whose _default behaviour_ is the console line; a spy on that line cannot see the code, the severity or the reporting component, and it passes for the wrong diagnostic. The helper cancels each event as it arrives, which is the same act that suppresses the sink — so collecting and silencing are one step, not two, and no spy is involved. `target` defaults to `document`, which sees everything a connected element reported, because diagnostics bubble and compose.
 - **`recordEvents(target, ...types)` keeps the order and the payloads.** A component's contract is "`open` came before `opened`, and `opened` carried the height it measured", and a call-counting spy throws both away. Recording several types into one array is the only place their relative order is visible; the richer `{ type, detail }` shape ships because a caller wanting names alone can map, and the reverse is impossible. `$emit` dispatches synchronously but is almost never _called_ synchronously, so the count is awaited with `waitFor`, not read.
 - **`resetRegistry()` is the inverse `registerComponent()` deliberately lacks.** A page registers once and keeps it; a test suite is the one caller for which a page-wide registry surviving `resetDom()` is wrong, and the workaround it forces is a counter minting `Widget-1`, `Widget-2`. It is coarse rather than a targeted `unregisterComponent(name)` because the element→controller map is a `WeakMap`: it cannot be enumerated, so nothing can walk it to dispose live triggers, and a `querySelectorAll()` sweep would still miss detached elements. Clearing everything works because the mutation-observer path already disposes a controller as its element leaves the DOM — hence the call belongs _after_ `resetDom()`, and **never in an `afterEach`**, which would unregister the module-top-level registrations for every later test in the file.
-- **What is deliberately not in it**: an instance lookup (`getInstances()` already answers it), frame counters, fetch stubs and pointer sequences. Each is either specific to one spec or already served by `vi.fn()` and `@vitest/browser`'s `userEvent`.
+- **`countRequestedFrames(during)` patches a global, and says so.** It swaps `globalThis.requestAnimationFrame` for a counting wrapper that forwards to the original, and restores it in a `finally` — so it comes back whether `during` returns or throws. It is here despite the patch because the assertion it serves, "this did not schedule a frame per event", has no other seam: the framework's own scheduler makes the calls, so there is nothing of the component's for a spy to sit on. Two concurrent calls would nest their wrappers; do not.
+- **What is deliberately not in it**: an instance lookup (`getInstance()` and `getInstances()` on the root barrel answer it), fetch stubs and pointer sequences. Each is either specific to one spec or already served by `vi.fn()` and `@vitest/browser`'s `userEvent`.
 
 See [RATIONALE.md — 13. Testing](./RATIONALE.md#13-testing).
 

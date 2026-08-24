@@ -53,7 +53,12 @@ export {
 } from './dom-mutations.js';
 export { EVENTS } from './events.js';
 export { createGroup, type Group, type GroupMember } from './group.js';
-export { getInstances } from './instances.js';
+export {
+  getInstance,
+  getInstances,
+  getMountedInstances,
+  getUnmountedInstances,
+} from './instances.js';
 export {
   defineManifest,
   fromMetaGlob,

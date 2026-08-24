@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { mount, resetDom, settle, waitFor } from '../../src/test/index.js';
 import { AbstractPrefetch } from './AbstractPrefetch.js';
 import { PrefetchOnInteraction } from './PrefetchOnInteraction.js';
@@ -57,7 +56,7 @@ describe('AbstractPrefetch — is the URL prefetchable', () => {
     const instance = getInstance<AbstractPrefetch>(
       root.firstElementChild as HTMLElement,
       'AbstractPrefetch',
-    );
+    )!;
 
     expect(instance.isPrefetchable).toBe(true);
     expect(instance.url?.href).toBe(href);
@@ -70,7 +69,7 @@ describe('AbstractPrefetch — is the URL prefetchable', () => {
     const instance = getInstance<AbstractPrefetch>(
       root.firstElementChild as HTMLElement,
       'AbstractPrefetch',
-    );
+    )!;
 
     expect(instance.isPrefetchable).toBe(false);
   });
@@ -82,7 +81,7 @@ describe('AbstractPrefetch — is the URL prefetchable', () => {
     const instance = getInstance<AbstractPrefetch>(
       root.firstElementChild as HTMLElement,
       'AbstractPrefetch',
-    );
+    )!;
 
     expect(instance.isPrefetchable).toBe(false);
   });
@@ -92,7 +91,7 @@ describe('AbstractPrefetch — is the URL prefetchable', () => {
     const instance = getInstance<AbstractPrefetch>(
       root.firstElementChild as HTMLElement,
       'AbstractPrefetch',
-    );
+    )!;
 
     expect(instance.isPrefetchable).toBe(false);
   });
@@ -104,7 +103,7 @@ describe('AbstractPrefetch — is the URL prefetchable', () => {
     const instance = getInstance<AbstractPrefetch>(
       root.firstElementChild as HTMLElement,
       'AbstractPrefetch',
-    );
+    )!;
 
     expect(instance.isPrefetchable).toBe(false);
   });
@@ -118,7 +117,7 @@ describe('AbstractPrefetch — is the URL prefetchable', () => {
     const instance = getInstance<AbstractPrefetch>(
       root.firstElementChild as HTMLElement,
       'AbstractPrefetch',
-    );
+    )!;
 
     expect(instance.url).toBeNull();
     expect(instance.isPrefetchable).toBe(false);
@@ -133,7 +132,7 @@ describe('AbstractPrefetch — the hint', () => {
     const instance = getInstance<AbstractPrefetch>(
       root.firstElementChild as HTMLElement,
       'AbstractPrefetch',
-    );
+    )!;
 
     instance.prefetch();
     await waitFor(() => hasPrefetchLink(href));
@@ -149,7 +148,7 @@ describe('AbstractPrefetch — the hint', () => {
     const instance = getInstance<AbstractPrefetch>(
       root.firstElementChild as HTMLElement,
       'AbstractPrefetch',
-    );
+    )!;
 
     instance.prefetch();
     await quiet();
@@ -163,7 +162,7 @@ describe('AbstractPrefetch — the hint', () => {
     const instance = getInstance<AbstractPrefetch>(
       root.firstElementChild as HTMLElement,
       'AbstractPrefetch',
-    );
+    )!;
     let detail: { url: URL } | undefined;
     document.addEventListener('prefetched', (event) => {
       detail = (event as CustomEvent<{ url: URL }>).detail;
@@ -186,7 +185,7 @@ describe('AbstractPrefetch — the hint', () => {
       <a data-component="AbstractPrefetch" href="${href}"></a>
     `);
     const [first, second] = [...root.children].map((el) =>
-      getInstance<AbstractPrefetch>(el as HTMLElement, 'AbstractPrefetch'),
+      getInstance<AbstractPrefetch>(el as HTMLElement, 'AbstractPrefetch')!,
     );
 
     first.prefetch();
@@ -208,7 +207,7 @@ describe('AbstractPrefetch — the hint', () => {
       <a data-component="AbstractPrefetch" href="${href}"></a>
     `);
     const instances = [...root.children].map((el) =>
-      getInstance<AbstractPrefetch>(el as HTMLElement, 'AbstractPrefetch'),
+      getInstance<AbstractPrefetch>(el as HTMLElement, 'AbstractPrefetch')!,
     );
     let count = 0;
     document.addEventListener('prefetched', () => {
@@ -229,7 +228,7 @@ describe('AbstractPrefetch — the hint', () => {
     const instance = getInstance<AbstractPrefetch>(
       root.firstElementChild as HTMLElement,
       'AbstractPrefetch',
-    );
+    )!;
     let count = 0;
     document.addEventListener('prefetched', () => {
       count += 1;
@@ -280,7 +279,7 @@ describe('PrefetchOnInteraction', () => {
       getInstance<PrefetchOnInteraction>(
         root.firstElementChild as HTMLElement,
         'PrefetchOnInteraction',
-      ),
+      )!,
     ).toBeUndefined();
     expect(hasPrefetchLink(href)).toBe(false);
   });
@@ -310,7 +309,7 @@ describe('PrefetchWhenVisible', () => {
       getInstance<PrefetchWhenVisible>(
         root.firstElementChild as HTMLElement,
         'PrefetchWhenVisible',
-      ),
+      )!,
     ).toBeUndefined();
     expect(hasPrefetchLink(href)).toBe(false);
   });
@@ -335,7 +334,7 @@ describe('PrefetchWhenVisible', () => {
     );
     const el = root.firstElementChild as HTMLElement;
     const instance = await waitFor(() =>
-      getInstance<PrefetchWhenVisible>(el, 'PrefetchWhenVisible'),
+      getInstance<PrefetchWhenVisible>(el, 'PrefetchWhenVisible')!,
     );
     expect(instance?.$isMounted).toBe(true);
 

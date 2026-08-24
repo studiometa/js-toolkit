@@ -59,7 +59,7 @@ assert.equal(createGroup, toolkit.createGroup);
 assert.equal(createGroupDefault, createGroup);
 // Keep in step with the same count in `src/exports.spec.ts`. This one runs
 // under `check:package`, which `npm test` does not cover.
-assert.equal(Object.keys(toolkit).length, 86);
+assert.equal(Object.keys(toolkit).length, 89);
 // The diagnostic channel is reachable by a consumer with no instance to
 // report as, and both halves have to survive packing.
 assert.equal(typeof toolkit.warn, 'function');
@@ -122,6 +122,7 @@ await utils.wait(1);
 // nothing reaches for the DOM until a helper that needs one is called.
 assert.deepEqual(Object.keys(testHelpers).sort(), [
   'captureDiagnostics',
+  'countRequestedFrames',
   'frames',
   'mount',
   'recordEvents',
@@ -134,6 +135,7 @@ assert.equal(toolkit.waitFor, undefined);
 assert.equal(toolkit.captureDiagnostics, undefined);
 assert.equal(toolkit.recordEvents, undefined);
 assert.equal(toolkit.resetRegistry, undefined);
+assert.equal(toolkit.countRequestedFrames, undefined);
 assert.equal(await testHelpers.waitFor(() => 'now'), 'now');
 await assert.rejects(
   testHelpers.waitFor(() => false, { timeout: 0, message: 'never landed' }),

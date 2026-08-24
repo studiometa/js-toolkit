@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { registerComponents, type ElementPointerProps, type RafProps } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import {
+  getInstance,
+  registerComponents,
+  type ElementPointerProps,
+  type RafProps,
+} from '../../src/index.js';
 import { resetDom, settle } from '../../src/test/index.js';
 import { Hoverable } from './Hoverable.js';
 
@@ -20,7 +24,7 @@ async function render(attributes = ''): Promise<{ el: HTMLElement; instance: Hov
   document.body.append(root);
   await settle();
   const el = root.firstElementChild as HTMLElement;
-  return { el, instance: getInstance<Hoverable>(el, 'Hoverable') };
+  return { el, instance: getInstance<Hoverable>(el, 'Hoverable')! };
 }
 
 function progress(x: number, y: number): ElementPointerProps {

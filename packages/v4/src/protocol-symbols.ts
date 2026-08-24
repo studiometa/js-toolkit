@@ -13,9 +13,12 @@ export const HANDLER_REGISTRATIONS: unique symbol = Symbol.for(
  * `$unmount()` on it. `Symbol.for` is realm-global, so evaluated copies of
  * this package still agree on the key.
  *
- * Not public API — `getInstances()` is how consumers resolve instances, by
- * name or by element. From a devtools console, where there is nothing to
- * import, the realm-global key is the whole recipe:
+ * Not public API — `getInstance()`, `getInstances()`,
+ * `getMountedInstances()` and `getUnmountedInstances()` are how consumers
+ * resolve instances, by name, by element, or both. Between them they express
+ * every read this map answers, so nothing has to reach for the symbol. From a
+ * devtools console, where there is nothing to import, the realm-global key is
+ * the whole recipe:
  * `$0[Symbol.for('@studiometa/js-toolkit-v4/instances')]`.
  */
 export const INSTANCES: unique symbol = Symbol.for('@studiometa/js-toolkit-v4/instances');

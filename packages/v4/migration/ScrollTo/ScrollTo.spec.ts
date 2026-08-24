@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { resetDom, settle } from '../../src/test/index.js';
 import { ScrollTo } from './ScrollTo.js';
 
@@ -27,7 +26,7 @@ async function render(href: string): Promise<{ el: HTMLAnchorElement; instance: 
   document.body.append(root);
   await settle();
   const el = root.querySelector('[data-component="ScrollTo"]') as HTMLAnchorElement;
-  return { el, instance: getInstance<ScrollTo>(el, 'ScrollTo') };
+  return { el, instance: getInstance<ScrollTo>(el, 'ScrollTo')! };
 }
 
 // Calling `onClick` directly, rather than dispatching a real click on a live

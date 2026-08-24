@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { resetDom, settle, waitFor } from '../../src/test/index.js';
 import { Carousel } from './Carousel.js';
 import { CarouselBtn } from './CarouselBtn.js';
@@ -49,7 +48,7 @@ async function render({
   return {
     root,
     el,
-    carousel: getInstance<Carousel>(el, 'Carousel'),
+    carousel: getInstance<Carousel>(el, 'Carousel')!,
     wrapper: el.querySelector('[data-component~="CarouselWrapper"]') as HTMLElement,
   };
 }
@@ -88,7 +87,7 @@ describe('getClosestIndex', () => {
 describe('slide positions', () => {
   it('centres each slide in its scroller, clamped to the scroll range', async () => {
     const { el } = await render({ count: 3 });
-    const carousel = getInstance<Carousel>(el, 'Carousel');
+    const carousel = getInstance<Carousel>(el, 'Carousel')!;
 
     // Each slide fills the scroller, so centring is the same as aligning —
     // and the arithmetic is core's now, through `scrollPosition({ align })`.

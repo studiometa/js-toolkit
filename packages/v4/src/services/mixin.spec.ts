@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { Base } from '../Base.js';
+import { getInstance } from '../instances.js';
 import { registerComponent } from '../registry.js';
-import { countRequestedFrames, getInstance } from '../test-utils.js';
-import { frames, resetDom, settle } from '../test/index.js';
+import { countRequestedFrames, frames, resetDom, settle } from '../test/index.js';
 import { useDrag, withDrag } from './drag.js';
 import { withRaf } from './raf.js';
 import { withResize } from './resize.js';
@@ -170,7 +170,7 @@ describe('service mixins', () => {
     el.setAttribute('data-component', 'Ticker');
     await settle();
 
-    const instance = getInstance<Ticker>(el, 'Ticker');
+    const instance = getInstance<Ticker>(el, 'Ticker')!;
     await frames(3);
     expect(instance.ticks).toBeGreaterThan(0);
 

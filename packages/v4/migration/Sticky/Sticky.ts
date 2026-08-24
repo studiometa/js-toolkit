@@ -1,7 +1,7 @@
 import {
   Base,
   component,
-  getInstances,
+  getMountedInstances,
   withResize,
   withScroll,
   write,
@@ -67,7 +67,7 @@ export class Sticky<T extends BaseProps = BaseProps> extends withResize(withScro
    * and `unmounted()` — core's registry already answers this live.
    */
   get instances(): Sticky[] {
-    return getInstances<Sticky>('Sticky');
+    return getMountedInstances<Sticky>('Sticky');
   }
 
   set y(value: number) {

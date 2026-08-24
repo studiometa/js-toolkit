@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { mount, recordEvents, resetDom, settle } from '../../src/test/index.js';
 import { Fetch, FETCH_EVENTS, type FetchEmits } from './Fetch.js';
 import { FetchShopifySection } from './FetchShopifySection.js';
@@ -42,7 +41,7 @@ async function mountFetch<T extends Fetch = Fetch>(
 ): Promise<{ root: HTMLElement; instance: T }> {
   const root = await mount(html);
   const el = root.firstElementChild as HTMLElement;
-  return { root, instance: getInstance<T>(el, name) };
+  return { root, instance: getInstance<T>(el, name)! };
 }
 
 /** Replace `window.fetch` and record every call. */

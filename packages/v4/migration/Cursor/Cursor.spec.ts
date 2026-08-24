@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { countRequestedFrames, getInstance } from '../../src/test-utils.js';
-import { mount, resetDom, settle, waitFor } from '../../src/test/index.js';
+import { getInstance, registerComponents } from '../../src/index.js';
+import { countRequestedFrames, mount, resetDom, settle, waitFor } from '../../src/test/index.js';
 import { Cursor } from './Cursor.js';
 
 registerComponents(Cursor);
@@ -19,7 +18,7 @@ async function mountCursor(
   const root = await mount(
     `<div data-component="Cursor" style="position:fixed;top:0;left:0;width:20px;height:20px" ${attributes}>${inner}</div>`,
   );
-  return { root, instance: getInstance<Cursor>(root.firstElementChild as HTMLElement, 'Cursor') };
+  return { root, instance: getInstance<Cursor>(root.firstElementChild as HTMLElement, 'Cursor')! };
 }
 
 function movePointer(target: EventTarget, x: number, y: number, buttons = 0): void {
@@ -190,7 +189,7 @@ describe('Cursor', () => {
     other.append(root.firstElementChild as HTMLElement);
     await settle();
 
-    const moved = getInstance<Cursor>(other.firstElementChild as HTMLElement, 'Cursor');
+    const moved = getInstance<Cursor>(other.firstElementChild as HTMLElement, 'Cursor')!;
     expect(moved.motion().x).toBe(0);
     expect(moved.$el.style.transform).toContain('matrix(0, 0, 0, 0, 0, 0)');
   });

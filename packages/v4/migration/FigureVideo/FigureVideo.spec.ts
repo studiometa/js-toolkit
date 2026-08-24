@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { captureDiagnostics, resetDom, settle, waitFor } from '../../src/test/index.js';
 import { FigureVideo } from './FigureVideo.js';
 
@@ -86,7 +85,7 @@ describe('FigureVideo', () => {
     fireLoadedData(video);
     const instance = await waitFor(() =>
       getInstance<FigureVideo>(el, 'FigureVideo')?.hasLoaded
-        ? getInstance<FigureVideo>(el, 'FigureVideo')
+        ? getInstance<FigureVideo>(el, 'FigureVideo')!
         : null,
     );
     const spy = vi.spyOn(instance, 'load');
@@ -116,7 +115,7 @@ describe('FigureVideo', () => {
 
     expect(details.map((detail) => detail.code)).toContain('figure-video.load-failed');
     // Left un-loaded, so a later mount cycle can retry.
-    expect(getInstance<FigureVideo>(el, 'FigureVideo').hasLoaded).toBe(false);
+    expect(getInstance<FigureVideo>(el, 'FigureVideo')!.hasLoaded).toBe(false);
 
     document.removeEventListener('js-toolkit:diagnostic', listener);
   });

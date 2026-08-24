@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { frames, recordEvents, resetDom, settle } from '../../src/test/index.js';
 import { Slider } from './Slider.js';
 import { SliderDrag } from './SliderDrag.js';
@@ -38,8 +37,8 @@ async function ready(root: HTMLElement) {
   await frames(4);
   const track = root.querySelector('[data-component="SliderDrag"]') as HTMLElement;
   return {
-    slider: getInstance<Slider>(root, 'Slider'),
-    drag: getInstance<SliderDrag>(track, 'SliderDrag'),
+    slider: getInstance<Slider>(root, 'Slider')!,
+    drag: getInstance<SliderDrag>(track, 'SliderDrag')!,
     track,
   };
 }

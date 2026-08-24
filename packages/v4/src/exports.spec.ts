@@ -180,9 +180,10 @@ describe('the package entry points', () => {
   it('keeps the framework on the root entry, without the utils or removed exports', async () => {
     expect(typeof Base).toBe('function');
     const root = (await import('@studiometa/js-toolkit-v4')) as Record<string, unknown>;
-    // 84, plus `warn` and `reportDiagnostic`: the diagnostic channel is now
-    // reachable by a consumer with no instance to report as.
-    expect(Object.keys(root)).toHaveLength(86);
+    // 86, plus `getInstance`, `getMountedInstances` and
+    // `getUnmountedInstances`: the instance lookup now says at the call site
+    // which population it answers for, instead of filtering silently.
+    expect(Object.keys(root)).toHaveLength(89);
     expect(root.clamp).toBeUndefined();
     expect(root.smoothTo).toBeUndefined();
     for (const removed of [

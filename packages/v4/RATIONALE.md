@@ -319,6 +319,20 @@ The document already knows where the components are, and a second index of it ca
 
 There is no selector-strategy seam behind it. v4 resolves components through `data-component` alone, so name-to-selector is the only lookup shape that there will ever be, and `selectorFor(name)` is the one place that writes it down.
 
+### Why one lookup became four
+
+`getInstances()` shipped with a silent `$isMounted` filter, and the filter was wrong twice over. It was invisible at the call site — `getInstances('Foo')` returning 2 where three elements declare `Foo`, one of them below its `media:` breakpoint, is not debuggable from the name — and it made the primitive unreachable, because the raw map read it hid had no public spelling. Fifty-two spec files answered that by importing a private `getInstance()` from `test-utils.ts`, which is the same finding `Action` produced one level up: a caller reaching past the public surface to write a lookup core could write in ten lines.
+
+So the population is named at the call site instead: `getInstances()`, `getMountedInstances()`, `getUnmountedInstances()`, and the singular `getInstance(el, name)`. One internal `collect()` does the traversal and a predicate does the difference, so DOM order, mount order and the map read are written once.
+
+**Dropping the filter resurrects nothing**, which is the fact the whole change rests on. The string form narrows three times — `querySelectorAll(selectorFor(name))`, then the `INSTANCES` read, then the mount check — and the middle step already does the work the last one is credited with. An inactive declaration has no instance, and a breakpoint-withdrawn one is destroyed _and_ deleted from the map by `reconcileElement()`. What the filter did hide was real, and small: the instances a reversible `in-view` or `media:` strategy stands down and keeps for the crossing back. That population now has a name.
+
+`selectorFor()`'s own doc comment credited the narrowing to the mount check, so it is rewritten. A comment that misattributes an invariant is how the filter comes back.
+
+There is no `getMountedInstance()`. The singular already returns one object, and a mounted-only variant would have to fold "no instance" and "not mounted" into the same `undefined`.
+
+The element form is the only one that reaches a detached element. `document.querySelectorAll()` does not see one, but the instance is still on it — so the asymmetry is documented rather than left to be discovered, and the escape hatch is passing the detached root as `root`.
+
 ### Why the instances live under a symbol
 
 v3 stores `Map<string, Base | 'terminated'>` under `el.__base__`. v4 stored `Map<string, Base>` under the same name. Two versions in one document then read the map of the other as their own: the teardown of v4 called `$unmount()` on the instances of v3 and on the `'terminated'` string that v3 leaves behind, which is a `TypeError`, while the child resolution of v3 accepted a v4 instance as one of its children. That blocked any migration page by page. `src/coexistence.spec.ts` mounts both versions in one document and holds the line.
@@ -875,8 +889,14 @@ Its footgun is stated in the same place because the shape of a spec file guarant
 
 ### What was refused
 
-`getInstance(el, name)` — the public `getInstances()` answers it, and a second spelling of a lookup is a second thing to keep true. A frame counter that patches `requestAnimationFrame` — one caller, and a global patch is a poor thing to hand out. Fetch stubs and pointer-event sequences — `vi.fn()` and `@vitest/browser`'s `userEvent` do both better, and each was shaped by the one spec that grew it.
+Fetch stubs and pointer-event sequences — `vi.fn()` and `@vitest/browser`'s `userEvent` do both better, and each was shaped by the one spec that grew it. Those two refusals hold.
+
+Two others did not, and both are recorded here as reversals rather than quietly corrected.
+
+`getInstance(el, name)` was refused because "the public `getInstances()` answers it, and a second spelling of a lookup is a second thing to keep true". `getInstances()` did not answer it: it answered a filtered, plural version of it, and the fifty-two spec files importing a private `getInstance()` from `test-utils.ts` are the measurement. The refusal was also aiming at the wrong module — the fix was not a test helper but a missing core export, and it ships from the root barrel next to the plural forms. See "Why one lookup became four".
+
+A frame counter that patches `requestAnimationFrame` was refused for "one caller, and a global patch is a poor thing to hand out". The caller count was four by the time the module shipped, and the argument about the patch answered the wrong question. The patch is not a convenience a consumer could write around: the framework's own scheduler owns the `requestAnimationFrame` calls, so a component exposes no seam for a spy, and "this did not schedule a frame per event" has no other spelling. `countRequestedFrames()` ships on `./test` with the patch stated in its first line and restored in a `finally`.
 
 An event recorder was refused on that same list and then shipped as `recordEvents()`, which is worth recording as a reversal rather than quietly correcting. The refusal was right about `vi.fn()` replacing a _counter_ and wrong about what the seven spec files hand-rolling one were actually doing: they were recording `{ type, detail }` across several event names into one array, because the assertion is the sequence and its payloads, and that is the one thing a per-listener spy cannot express. Two shapes existed in the wild — `type` only, and `{ type, detail }` — and the richer one ships because mapping down is free and mapping up is impossible.
 
-A re-export shim in `test-utils.ts` was refused too. The old file keeps the fixtures and the two helpers that stay source-only, and the specs move onto the new module in one pass; a shim would be both a compatibility layer and a temporary solution meant to be replaced.
+A re-export shim in `test-utils.ts` was refused too, and that refusal held all the way to the file's deletion. The specs moved onto the new module in one pass; a shim would have been both a compatibility layer and a temporary solution meant to be replaced. `test-utils.ts` is gone now — the waits went to `src/test/index.ts`, the todo tree to `src/todo.fixtures.ts`, `getInstance()` to core and `countRequestedFrames()` to `./test` — and the two build-script exclusions that named the file went with it.

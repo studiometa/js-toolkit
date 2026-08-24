@@ -17,8 +17,10 @@
  * The rest answer the questions whose right answer is not the obvious one.
  * {@link captureDiagnostics} reads the diagnostic channel instead of the
  * console sink it happens to write to; {@link recordEvents} keeps the order and
- * the payloads a call-counting spy throws away; and `resetRegistry()` undoes a
- * registration the framework has no other way to undo.
+ * the payloads a call-counting spy throws away;
+ * {@link countRequestedFrames} counts the frames the framework's own scheduler
+ * requested, which no seam of the component's exposes; and `resetRegistry()`
+ * undoes a registration the framework has no other way to undo.
  */
 
 import { type ToolkitDiagnosticDetail } from '../diagnostic-contract.js';
@@ -73,6 +75,37 @@ export async function frames(count = 3): Promise<void> {
   for (let i = 0; i < count; i += 1) {
     await nextFrame();
   }
+}
+
+/**
+ * Count the animation frames requested while `during` runs.
+ *
+ * **This patches a global.** For the duration of the callback,
+ * `globalThis.requestAnimationFrame` is replaced by a wrapper that increments
+ * a counter and forwards to the original, and the original is put back in a
+ * `finally` — so it is restored whether `during` returns or throws. Nothing
+ * else observes the swap, because the wrapper calls through and returns the
+ * real handle, but two overlapping calls would nest their wrappers, so do not
+ * run them concurrently.
+ *
+ * The assertion it serves is "this did not schedule a frame per event", which
+ * a spy cannot answer: the framework's own scheduler owns the calls, so there
+ * is no seam of the component's to spy on. Assert the count, not the timing —
+ * {@link frames} is for the timing.
+ */
+export async function countRequestedFrames(during: () => Promise<void> | void): Promise<number> {
+  const original = globalThis.requestAnimationFrame;
+  let requested = 0;
+  globalThis.requestAnimationFrame = (callback: FrameRequestCallback) => {
+    requested += 1;
+    return original.call(globalThis, callback);
+  };
+  try {
+    await during();
+  } finally {
+    globalThis.requestAnimationFrame = original;
+  }
+  return requested;
 }
 
 /**

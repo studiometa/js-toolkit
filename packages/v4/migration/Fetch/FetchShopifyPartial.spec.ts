@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { recordEvents, resetDom, settle } from '../../src/test/index.js';
 import { FETCH_EVENTS } from './Fetch.js';
 import { FetchShopifyPartial } from './FetchShopifyPartial.js';
@@ -34,7 +33,7 @@ async function mount(html: string): Promise<{ root: HTMLElement; instance: Fetch
   document.body.append(root);
   await settle();
   const el = root.firstElementChild as HTMLElement;
-  return { root, instance: getInstance<FetchShopifyPartial>(el, 'FetchShopifyPartial') };
+  return { root, instance: getInstance<FetchShopifyPartial>(el, 'FetchShopifyPartial')! };
 }
 
 function stubClient(

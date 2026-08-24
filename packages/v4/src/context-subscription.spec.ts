@@ -4,8 +4,8 @@ import { subscribeContext } from './context-subscription.js';
 import { createContext, provideContext, provideRootContext, type ContextKey } from './context.js';
 import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
 import { EVENTS } from './events.js';
+import { getInstance } from './instances.js';
 import { registerComponent } from './registry.js';
-import { getInstance } from './test-utils.js';
 import { resetDom, settle } from './test/index.js';
 
 afterEach(resetDom);
@@ -130,7 +130,7 @@ describe('subscribeContext', () => {
     `);
     await settle();
 
-    const member = getInstance<Member>(root.querySelector('span'), 'ReanswerMember');
+    const member = getInstance<Member>(root.querySelector('span')!, 'ReanswerMember')!;
     expect(member.seen).toEqual(['page']);
 
     root.querySelector('#scope')?.setAttribute('data-component', 'ReanswerScope');
@@ -165,7 +165,7 @@ describe('subscribeContext', () => {
     `);
     await settle();
 
-    const member = getInstance<Member>(root.querySelector('span'), 'DistanceMember');
+    const member = getInstance<Member>(root.querySelector('span')!, 'DistanceMember')!;
     expect(member.seen).toEqual(['inner']);
 
     root.querySelector('#outer')?.setAttribute('data-component', 'DistanceScope');

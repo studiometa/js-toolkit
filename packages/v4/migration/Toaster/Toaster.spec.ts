@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { resetDom, settle } from '../../src/test/index.js';
 import { Toast } from './Toast.js';
 import { Toaster } from './Toaster.js';
@@ -42,7 +41,7 @@ async function render(): Promise<{ root: HTMLElement; instance: Toaster }> {
   await settle();
   return {
     root,
-    instance: getInstance<Toaster>(root.querySelector('[data-component="Toaster"]'), 'Toaster'),
+    instance: getInstance<Toaster>(root.querySelector('[data-component="Toaster"]')!, 'Toaster')!,
   };
 }
 
@@ -84,7 +83,7 @@ describe('Toaster', () => {
     // written: the negated attribute name is what actually turns it off.
     expect(toast.hasAttribute('data-option-no-autostart')).toBe(true);
 
-    const toastInstance = getInstance<Toast>(toast, 'Toast');
+    const toastInstance = getInstance<Toast>(toast, 'Toast')!;
     expect(toastInstance.timerId).toBeNull();
   });
 

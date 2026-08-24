@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { resetDom, settle } from '../../src/test/index.js';
 import { AnchorNavLink } from './AnchorNavLink.js';
 
@@ -24,7 +23,7 @@ async function render(): Promise<AnchorNavLink> {
   root.innerHTML = `<a data-component="AnchorNavLink" href="#section-one" ${OPTIONS_ATTRS}></a>`;
   document.body.append(root);
   await settle();
-  return getInstance<AnchorNavLink>(root.firstElementChild, 'AnchorNavLink');
+  return getInstance<AnchorNavLink>(root.firstElementChild!, 'AnchorNavLink')!;
 }
 
 describe('AnchorNavLink', () => {

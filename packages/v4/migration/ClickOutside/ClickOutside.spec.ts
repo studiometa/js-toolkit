@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { Base, registerComponents, type BaseConfig, type DelegatedEvent } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import {
+  Base,
+  getInstance,
+  registerComponents,
+  type BaseConfig,
+  type DelegatedEvent,
+} from '../../src/index.js';
 import { resetDom, settle } from '../../src/test/index.js';
 import { ClickOutside } from './ClickOutside.js';
 
@@ -44,7 +49,7 @@ async function render(): Promise<{
     root,
     outside: root.querySelector('button:not([data-ref])') as HTMLElement,
     inside: el.querySelector('[data-ref="inner"]') as HTMLElement,
-    instance: getInstance<ClickOutside>(el, 'ClickOutside'),
+    instance: getInstance<ClickOutside>(el, 'ClickOutside')!,
     events,
   };
 }
@@ -74,9 +79,9 @@ describe('ClickOutside', () => {
     outside.click();
 
     const dropdown = getInstance<Dropdown>(
-      root.querySelector('[data-component="Dropdown"]'),
+      root.querySelector('[data-component="Dropdown"]')!,
       'Dropdown',
-    );
+    )!;
     expect(dropdown.closed).toHaveLength(1);
     expect(dropdown.closed[0].target).toBeInstanceOf(ClickOutside);
     expect(dropdown.closed[0].payload.event.type).toBe('click');

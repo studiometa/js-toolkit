@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponents } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponents } from '../../src/index.js';
 import { resetDom, settle } from '../../src/test/index.js';
 import { MenuBtn } from './MenuBtn.js';
 
@@ -14,7 +13,7 @@ async function render(): Promise<{ el: HTMLElement; instance: MenuBtn }> {
   document.body.append(root);
   await settle();
   const el = root.firstElementChild as HTMLElement;
-  return { el, instance: getInstance<MenuBtn>(el, 'MenuBtn') };
+  return { el, instance: getInstance<MenuBtn>(el, 'MenuBtn')! };
 }
 
 describe('MenuBtn', () => {

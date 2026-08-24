@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { registerComponent } from '../../src/index.js';
-import { getInstance } from '../../src/test-utils.js';
+import { getInstance, registerComponent } from '../../src/index.js';
 import { resetDom, settle } from '../../src/test/index.js';
 import { Accordion } from './Accordion.js';
 import { AccordionItem } from './AccordionItem.js';
@@ -27,7 +26,7 @@ function render(): HTMLElement {
 
 function items(root: HTMLElement): AccordionItem[] {
   return [...root.querySelectorAll('[data-component="AccordionItem"]')].map((el) =>
-    getInstance<AccordionItem>(el, 'AccordionItem'),
+    getInstance<AccordionItem>(el, 'AccordionItem')!,
   );
 }
 
@@ -36,7 +35,7 @@ describe('Accordion', () => {
     const root = render();
     await settle();
 
-    const accordion = getInstance<Accordion>(root, 'Accordion');
+    const accordion = getInstance<Accordion>(root, 'Accordion')!;
     expect(accordion.items.size).toBe(3);
     expect(accordion.items.items.every((item) => item instanceof AccordionItem)).toBe(true);
   });
@@ -140,7 +139,7 @@ describe('Accordion', () => {
     const root = render();
     await settle();
 
-    const accordion = getInstance<Accordion>(root, 'Accordion');
+    const accordion = getInstance<Accordion>(root, 'Accordion')!;
     root.querySelector('[data-component="AccordionItem"]')?.remove();
     await settle();
     expect(accordion.items.size).toBe(2);
