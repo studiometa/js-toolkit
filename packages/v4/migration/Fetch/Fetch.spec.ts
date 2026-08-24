@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { registerComponents } from '../../src/index.js';
 import { getInstance } from '../../src/test-utils.js';
-import { mount, resetDom, settle } from '../../src/test/index.js';
+import { mount, recordEvents, resetDom, settle } from '../../src/test/index.js';
 import { Fetch, FETCH_EVENTS, type FetchEmits } from './Fetch.js';
 import { FetchShopifySection } from './FetchShopifySection.js';
 
@@ -60,15 +60,6 @@ function stubClient(
 }
 
 /** Collect every `Fetch` event dispatched under `root`, in order. */
-function recordEvents(root: EventTarget): Array<{ type: string; detail: unknown }> {
-  const events: Array<{ type: string; detail: unknown }> = [];
-  for (const type of Object.values(FETCH_EVENTS)) {
-    root.addEventListener(type, (event) => {
-      events.push({ type, detail: (event as CustomEvent).detail });
-    });
-  }
-  return events;
-}
 
 /** Take over `document.startViewTransition` and count the calls. */
 function stubViewTransition(): { spy: ReturnType<typeof vi.fn>; restore: () => void } {
@@ -374,7 +365,7 @@ describe('Fetch — the request', () => {
     const { root, instance } = await mountFetch(
       `<a data-component="Fetch" href="#a" data-option-no-view-transition></a>`,
     );
-    const events = recordEvents(root);
+    const { events } = recordEvents(root, ...Object.values(FETCH_EVENTS));
 
     await instance.fetch();
     await settle();
@@ -429,7 +420,7 @@ describe('Fetch — the request', () => {
         }),
     );
     const { root, instance } = await mountFetch(`<a data-component="Fetch" href="#a"></a>`);
-    const events = recordEvents(root);
+    const { events } = recordEvents(root, ...Object.values(FETCH_EVENTS));
 
     void instance.fetch();
     await settle();
@@ -443,7 +434,7 @@ describe('Fetch — the request', () => {
   it('emits `fetch-abort` when `abort()` is called', async () => {
     stubClient(async () => new Promise<Response>(() => {}));
     const { root, instance } = await mountFetch(`<a data-component="Fetch" href="#a"></a>`);
-    const events = recordEvents(root);
+    const { events } = recordEvents(root, ...Object.values(FETCH_EVENTS));
 
     void instance.fetch();
     instance.abort('because');
@@ -470,7 +461,7 @@ describe('Fetch — the request', () => {
   it('emits `fetch-error` when the response is not ok', async () => {
     stubClient(async () => new Response('nope', { status: 500 }));
     const { root, instance } = await mountFetch(`<a data-component="Fetch" href="#a"></a>`);
-    const events = recordEvents(root);
+    const { events } = recordEvents(root, ...Object.values(FETCH_EVENTS));
 
     await instance.fetch();
 
@@ -483,7 +474,7 @@ describe('Fetch — the request', () => {
       throw new Error('network down');
     });
     const { root, instance } = await mountFetch(`<a data-component="Fetch" href="#a"></a>`);
-    const events = recordEvents(root);
+    const { events } = recordEvents(root, ...Object.values(FETCH_EVENTS));
 
     await instance.fetch();
 

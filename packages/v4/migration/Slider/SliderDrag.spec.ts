@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { registerComponents } from '../../src/index.js';
 import { getInstance } from '../../src/test-utils.js';
-import { frames, resetDom, settle } from '../../src/test/index.js';
+import { frames, recordEvents, resetDom, settle } from '../../src/test/index.js';
 import { Slider } from './Slider.js';
 import { SliderDrag } from './SliderDrag.js';
 import type { DragMode } from '../../src/index.js';
@@ -67,41 +67,34 @@ function release(): void {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/** Collect the events SliderDrag re-emits, which bubble past the Slider. */
-function record(): { modes: string[]; stop: () => void } {
-  const modes: string[] = [];
-  const names: DragMode[] = ['idle', 'start', 'drag', 'drop', 'inertia', 'stop'];
-  const listeners = names.map((name) => {
-    const listener = () => modes.push(name);
-    document.addEventListener(name, listener);
-    return () => document.removeEventListener(name, listener);
-  });
-  return { modes, stop: () => listeners.forEach((off) => off()) };
-}
+/** Every drag mode is an event name; the events bubble past the Slider. */
+const DRAG_MODES: DragMode[] = ['idle', 'start', 'drag', 'drop', 'inertia', 'stop'];
 
 describe('SliderDrag', () => {
   it('re-emits the drag lifecycle, and never the idle mode', async () => {
     const root = render();
     const { track } = await ready(root);
-    const { modes, stop } = record();
+    const log = recordEvents(document, ...DRAG_MODES);
+    // Only the order of the modes is asserted, so the payloads drop out.
+    const modes = () => log.events.map(({ type }) => type);
 
     grab(track, 50);
-    expect(modes).toEqual(['start']);
+    expect(modes()).toEqual(['start']);
 
     // One pixel, so the coast this releases is short enough to watch end.
     move(49);
-    expect(modes.at(-1)).toBe('drag');
+    expect(modes().at(-1)).toBe('drag');
 
     release();
-    expect(modes).toContain('drop');
+    expect(modes()).toContain('drop');
 
     // The coast runs on the scheduler tick, so real frames finish it.
     await frames(40);
-    stop();
+    log.stop();
 
-    expect(modes.at(-1)).toBe('stop');
-    expect(modes).toContain('inertia');
-    expect(modes).not.toContain('idle');
+    expect(modes().at(-1)).toBe('stop');
+    expect(modes()).toContain('inertia');
+    expect(modes()).not.toContain('idle');
   });
 
   it('moves every slide with the pointer', async () => {

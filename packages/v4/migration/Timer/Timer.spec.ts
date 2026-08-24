@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { registerComponents } from '../../src/index.js';
 import { getInstance } from '../../src/test-utils.js';
-import { resetDom, settle } from '../../src/test/index.js';
+import { recordEvents, resetDom, settle } from '../../src/test/index.js';
 import { Timer } from './Timer.js';
 
 registerComponents(Timer);
@@ -31,12 +31,10 @@ async function render(attributes = ''): Promise<{ el: HTMLElement; instance: Tim
   return { el, instance: getInstance<Timer>(el, 'Timer') };
 }
 
-function record(el: HTMLElement, ...types: string[]): string[] {
-  const events: string[] = [];
-  for (const type of types) {
-    el.addEventListener(type, () => events.push(type));
-  }
-  return events;
+/** Only the order of the names is asserted here, so the payloads drop out. */
+function record(el: HTMLElement, ...types: string[]): () => string[] {
+  const log = recordEvents(el, ...types);
+  return () => log.events.map(({ type }) => type);
 }
 
 describe('Timer', () => {
@@ -47,7 +45,7 @@ describe('Timer', () => {
 
     await wait(60);
 
-    expect(events).toEqual(['timer-start', 'timer-end']);
+    expect(events()).toEqual(['timer-start', 'timer-end']);
   });
 
   it('does not start on mount when autostart is disabled', async () => {
@@ -55,11 +53,11 @@ describe('Timer', () => {
     const events = record(el, 'timer-start', 'timer-end');
 
     await wait(60);
-    expect(events).toEqual([]);
+    expect(events()).toEqual([]);
 
     instance.start();
     await wait(60);
-    expect(events).toEqual(['timer-start', 'timer-end']);
+    expect(events()).toEqual(['timer-start', 'timer-end']);
   });
 
   it('pauses and resumes, preserving the remaining time', async () => {
@@ -72,15 +70,15 @@ describe('Timer', () => {
     const remainingAtPause = instance.remaining;
 
     await wait(50);
-    expect(events).toEqual(['timer-pause']);
+    expect(events()).toEqual(['timer-pause']);
     expect(instance.timerId).toBeNull();
 
     instance.resume();
-    expect(events).toEqual(['timer-pause', 'timer-resume']);
+    expect(events()).toEqual(['timer-pause', 'timer-resume']);
     expect(instance.remaining).toBeCloseTo(remainingAtPause, 0);
 
     await wait(120);
-    expect(events).toEqual(['timer-pause', 'timer-resume', 'timer-end']);
+    expect(events()).toEqual(['timer-pause', 'timer-resume', 'timer-end']);
   });
 
   it('is a no-op to pause an idle timer or resume a running one', async () => {
@@ -88,11 +86,11 @@ describe('Timer', () => {
     const events = record(el, 'timer-pause', 'timer-resume');
 
     instance.resume();
-    expect(events).toEqual([]);
+    expect(events()).toEqual([]);
 
     instance.stop();
     instance.pause();
-    expect(events).toEqual([]);
+    expect(events()).toEqual([]);
   });
 
   it('stops without completing', async () => {
@@ -102,7 +100,7 @@ describe('Timer', () => {
     instance.stop();
     await wait(60);
 
-    expect(events).toEqual(['timer-stop']);
+    expect(events()).toEqual(['timer-stop']);
     expect(instance.remaining).toBe(0);
   });
 
@@ -114,7 +112,7 @@ describe('Timer', () => {
     await wait(30);
     instance.restart();
 
-    expect(events).toEqual(['timer-start', 'timer-start']);
+    expect(events()).toEqual(['timer-start', 'timer-start']);
     expect(instance.remaining).toBeCloseTo(100, 0);
   });
 
@@ -128,7 +126,7 @@ describe('Timer', () => {
 
     await wait(150);
 
-    expect(events).toEqual(['timer-start', 'timer-end', 'timer-tick', 'timer-start']);
+    expect(events()).toEqual(['timer-start', 'timer-end', 'timer-tick', 'timer-start']);
   });
 
   it('cancels the pending countdown when unmounted', async () => {
@@ -138,6 +136,6 @@ describe('Timer', () => {
     instance.$unmount();
     await wait(60);
 
-    expect(events).toEqual([]);
+    expect(events()).toEqual([]);
   });
 });

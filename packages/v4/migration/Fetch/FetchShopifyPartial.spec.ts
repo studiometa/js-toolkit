@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { registerComponents } from '../../src/index.js';
 import { getInstance } from '../../src/test-utils.js';
-import { resetDom, settle } from '../../src/test/index.js';
+import { recordEvents, resetDom, settle } from '../../src/test/index.js';
 import { FETCH_EVENTS } from './Fetch.js';
 import { FetchShopifyPartial } from './FetchShopifyPartial.js';
 
@@ -52,23 +52,13 @@ function stubPartials(api: {
   FetchShopifyPartial.loadPartialsModule = async () => ({ partials: api });
 }
 
-function recordEvents(root: EventTarget): Array<{ type: string; detail: unknown }> {
-  const events: Array<{ type: string; detail: unknown }> = [];
-  for (const type of Object.values(FETCH_EVENTS)) {
-    root.addEventListener(type, (event) => {
-      events.push({ type, detail: (event as CustomEvent).detail });
-    });
-  }
-  return events;
-}
-
 describe('FetchShopifyPartial', () => {
   it('falls back to the base Fetch behaviour when no partials are configured', async () => {
     const client = stubClient();
     const { root, instance } = await mount(
       `<a data-component="FetchShopifyPartial" href="/page" id="a"><div id="a">old</div></a>`,
     );
-    const events = recordEvents(root);
+    const { events } = recordEvents(root, ...Object.values(FETCH_EVENTS));
 
     await instance.fetch();
     await settle();
@@ -85,7 +75,7 @@ describe('FetchShopifyPartial', () => {
     const { root, instance } = await mount(
       `<a data-component="FetchShopifyPartial" href="/page" data-option-partials="main, header"></a>`,
     );
-    const events = recordEvents(root);
+    const { events } = recordEvents(root, ...Object.values(FETCH_EVENTS));
 
     await instance.fetch();
     await settle();

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { Base, registerComponents, type BaseConfig } from '../../src/index.js';
 import { INSTANCES } from '../../src/protocol-symbols.js';
-import { resetDom, settle, waitFor } from '../../src/test/index.js';
+import { recordEvents, resetDom, settle, waitFor } from '../../src/test/index.js';
 import { InView } from './InView.js';
 import { InViewOnce } from './InViewOnce.js';
 
@@ -40,25 +40,14 @@ function render(name: string, style: string, attributes: Record<string, string> 
   return el;
 }
 
-/** Record events on `document` because the component may not exist before entry. */
-function record(): { events: string[]; stop: () => void } {
-  const events: string[] = [];
-  const listener = (event: Event) => events.push(event.type);
-  document.addEventListener('in-view', listener);
-  document.addEventListener('out-of-view', listener);
-  return {
-    events,
-    stop() {
-      document.removeEventListener('in-view', listener);
-      document.removeEventListener('out-of-view', listener);
-    },
-  };
-}
+// Recorded on `document`, because the component may not exist before entry.
+let log: ReturnType<typeof recordEvents>;
 
-let log: ReturnType<typeof record>;
+/** Only the order of the names is asserted here, so the payloads drop out. */
+const types = () => log.events.map(({ type }) => type);
 
 beforeEach(() => {
-  log = record();
+  log = recordEvents(document, 'in-view', 'out-of-view');
 });
 
 afterEach(() => {
@@ -69,12 +58,12 @@ describe('InView', () => {
   it('emits `in-view` when the element enters the viewport', async () => {
     const el = render('InView', OFFSCREEN);
     await quiet();
-    expect(log.events).toEqual([]);
+    expect(types()).toEqual([]);
 
     el.setAttribute('style', ONSCREEN);
     await waitFor(() => log.events.length > 0);
 
-    expect(log.events).toEqual(['in-view']);
+    expect(types()).toEqual(['in-view']);
   });
 
   it('emits `out-of-view` when the element leaves the viewport', async () => {
@@ -84,7 +73,7 @@ describe('InView', () => {
     el.setAttribute('style', OFFSCREEN);
     await waitFor(() => log.events.length > 1);
 
-    expect(log.events).toEqual(['in-view', 'out-of-view']);
+    expect(types()).toEqual(['in-view', 'out-of-view']);
   });
 
   it('re-emits `in-view` on each re-entry, from the same instance', async () => {
@@ -97,7 +86,7 @@ describe('InView', () => {
     el.setAttribute('style', ONSCREEN);
     await waitFor(() => log.events.length > 2);
 
-    expect(log.events).toEqual(['in-view', 'out-of-view', 'in-view']);
+    expect(types()).toEqual(['in-view', 'out-of-view', 'in-view']);
     expect(el[INSTANCES]?.get('InView')).toBe(instance);
   });
 
@@ -117,7 +106,7 @@ describe('InViewOnce', () => {
     el.setAttribute('style', ONSCREEN);
     await waitFor(() => log.events.length > 0);
 
-    expect(log.events).toEqual(['in-view']);
+    expect(types()).toEqual(['in-view']);
   });
 
   it('never emits `out-of-view`, and does not re-emit on a later entry', async () => {
@@ -129,7 +118,7 @@ describe('InViewOnce', () => {
     el.setAttribute('style', ONSCREEN);
     await quiet();
 
-    expect(log.events).toEqual(['in-view']);
+    expect(types()).toEqual(['in-view']);
   });
 
   it('stays mounted after leaving the viewport, where v3 terminated', async () => {
@@ -149,7 +138,7 @@ describe('InViewOnce', () => {
     el.remove();
     await quiet();
 
-    expect(log.events).toEqual(['in-view']);
+    expect(types()).toEqual(['in-view']);
   });
 });
 
@@ -158,12 +147,12 @@ describe('mount strategy gaps found by the port', () => {
   it('accepts a rootMargin in the per-element strategy', async () => {
     const el = render('InView', OFFSCREEN, { 'data-mount': 'in-view:400px' });
     await quiet();
-    expect(log.events).toEqual([]);
+    expect(types()).toEqual([]);
 
     el.setAttribute('style', ONSCREEN);
     await waitFor(() => log.events.length > 0);
 
-    expect(log.events).toEqual(['in-view']);
+    expect(types()).toEqual(['in-view']);
     expect(el[INSTANCES]?.get('InView')?.$isMounted).toBe(true);
   });
 
@@ -191,7 +180,7 @@ describe('the strategy is per element, which the decorator never was', () => {
     await waitFor(() => el[INSTANCES]?.get('InView')?.$isMounted);
 
     expect(el[INSTANCES]?.get('InView')?.$isMounted).toBe(true);
-    expect(log.events).toEqual(['in-view']);
+    expect(types()).toEqual(['in-view']);
   });
 
   it('lets `data-mount="in-view"` give the strategy to a component that never asked', async () => {

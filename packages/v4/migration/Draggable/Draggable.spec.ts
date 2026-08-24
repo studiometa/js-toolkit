@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { registerComponents } from '../../src/index.js';
 import { getInstance } from '../../src/test-utils.js';
-import { resetDom, settle, waitFor } from '../../src/test/index.js';
-import { Draggable, type DraggablePosition } from './Draggable.js';
+import { recordEvents, resetDom, settle, waitFor } from '../../src/test/index.js';
+import { Draggable } from './Draggable.js';
 
 registerComponents(Draggable);
 
@@ -71,24 +71,16 @@ async function quiet(count = 12): Promise<void> {
   }
 }
 
-/** Collect the drag lifecycle events the component emits. */
-function record(root: EventTarget): Array<{ type: string; detail: DraggablePosition }> {
-  const events: Array<{ type: string; detail: DraggablePosition }> = [];
-  for (const type of [
-    'drag-start',
-    'drag-drag',
-    'drag-drop',
-    'drag-inertia',
-    'drag-stop',
-    'drag-fit',
-    'drag-render',
-  ]) {
-    root.addEventListener(type, (event) => {
-      events.push({ type, detail: { ...(event as CustomEvent<DraggablePosition>).detail } });
-    });
-  }
-  return events;
-}
+/** The drag lifecycle the component emits, in no particular order. */
+const DRAG_EVENTS = [
+  'drag-start',
+  'drag-drag',
+  'drag-drop',
+  'drag-inertia',
+  'drag-stop',
+  'drag-fit',
+  'drag-render',
+];
 
 describe('Draggable — geometry', () => {
   it('reads a single margin value into all four sides', async () => {
@@ -166,7 +158,7 @@ describe('Draggable — geometry', () => {
 describe('Draggable — the drag', () => {
   it('emits the drag lifecycle, never the idle mode', async () => {
     const { el, target } = await render();
-    const events = record(el);
+    const { events } = recordEvents(el, ...DRAG_EVENTS);
 
     grab(target, 10, 10);
     move(60, 40);
@@ -277,7 +269,7 @@ describe('Draggable — the bounds', () => {
    */
   it('animates back inside the bounds on drop with `fitBounds`', async () => {
     const { el, target, instance } = await render('data-option-fit-bounds');
-    const events = record(el);
+    const { events } = recordEvents(el, ...DRAG_EVENTS);
 
     grab(target, 0, 0);
     move(900, 0);
