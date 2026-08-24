@@ -11,7 +11,6 @@ import {
 import { deepmerge } from '../../src/utils/deepmerge.js';
 import { TrackContext } from './TrackContext.js';
 import { TRACK_PSEUDO_EVENTS, TrackEvent } from './TrackEvent.js';
-import { warn } from './utils.js';
 
 /**
  * The namespace one `TrackEvent` is declared by. Its qualifiers are any DOM
@@ -104,7 +103,7 @@ export class AbstractTrack<T extends BaseProps = BaseProps> extends Base<Abstrac
     try {
       return (JSON.parse(script.textContent || '{}') as Record<string, unknown> | null) ?? {};
     } catch (error) {
-      warn('Invalid JSON in the `payload` ref:', error);
+      this.$error('track.invalid-json', 'Invalid JSON in the `payload` ref.', error);
       return {};
     }
   }
@@ -116,7 +115,7 @@ export class AbstractTrack<T extends BaseProps = BaseProps> extends Base<Abstrac
     try {
       return this.$options.payload ?? {};
     } catch (error) {
-      warn('Invalid JSON in the `payload` option:', error);
+      this.$error('track.invalid-json', 'Invalid JSON in the `payload` option.', error);
       return {};
     }
   }
@@ -180,7 +179,7 @@ export class AbstractTrack<T extends BaseProps = BaseProps> extends Base<Abstrac
     try {
       return new TrackEvent(this, qualifier, parseEventValue(value));
     } catch (error) {
-      warn(`Invalid JSON in ${name}:`, error);
+      this.$error('track.invalid-json', `Invalid JSON in ${name}.`, error);
       return null;
     }
   }

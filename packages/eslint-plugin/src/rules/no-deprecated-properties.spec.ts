@@ -25,6 +25,18 @@ describe('no-deprecated-properties', () => {
                  }`,
           options: [{ version: 'v3' }],
         },
+        // v4 has $warn and $error again: they report on the cancelable
+        // diagnostic channel rather than writing to the console.
+        {
+          code: `class Slider extends Base {
+                   static config = { name: 'Slider' };
+                   mounted() {
+                     this.$warn('slider.off', 'Off.');
+                     this.$error('slider.failed', 'Failed.', new Error('why'));
+                   }
+                 }`,
+          options: v4,
+        },
         // v4 keeps $services — only its two switches are gone.
         {
           code: `class Slider extends Base {
@@ -75,14 +87,6 @@ describe('no-deprecated-properties', () => {
           code: `class Slider extends Base {
                    static config = { name: 'Slider' };
                    mounted() { this.$log('a'); }
-                 }`,
-          options: v4,
-          errors: [{ messageId: 'removed' }],
-        },
-        {
-          code: `class Slider extends Base {
-                   static config = { name: 'Slider' };
-                   mounted() { this.$warn('a'); }
                  }`,
           options: v4,
           errors: [{ messageId: 'removed' }],

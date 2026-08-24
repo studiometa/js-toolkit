@@ -2,11 +2,6 @@ import { Base, type BaseConfig, type BaseProps } from '../../src/index.js';
 import { loadImage } from '../../src/utils/load.js';
 import { withTransition, type TransitionProps } from '../Transition/index.js';
 
-/** Gap: core ships no `$warn`. */
-function warn(...args: unknown[]): void {
-  console.warn('[FigureVideo]', ...args);
-}
-
 export type FigureVideoProps = BaseProps &
   TransitionProps & {
     $refs: { video: HTMLVideoElement };
@@ -66,8 +61,12 @@ export class FigureVideo<T extends BaseProps = BaseProps> extends withTransition
     try {
       await loadImage(video.dataset.poster);
       video.poster = video.dataset.poster;
-    } catch {
-      warn(`Failed to load poster "${video.dataset.poster}".`);
+    } catch (error) {
+      this.$error(
+        'figure-video.poster-load-failed',
+        `Failed to load poster "${video.dataset.poster}".`,
+        error,
+      );
     }
   }
 
@@ -102,7 +101,10 @@ export class FigureVideo<T extends BaseProps = BaseProps> extends withTransition
     const { video } = this.$refs;
 
     if (!video || !(video instanceof HTMLVideoElement)) {
-      warn('The `video` ref is missing or not a `<video>` element.');
+      this.$warn(
+        'figure-video.invalid-ref',
+        'The `video` ref is missing or not a `<video>` element.',
+      );
       return;
     }
 

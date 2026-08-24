@@ -14,10 +14,6 @@ const DEFAULT_DEBOUNCE_DELAY = 100;
 /** A resolved target: one entry, keyed by the component's name. */
 export type ActionTarget = Record<string, Base>;
 
-function warn(...args: unknown[]): void {
-  console.warn('[action]', ...args);
-}
-
 /** One runtime event binding from an attribute or the option triple. */
 export class ActionEvent {
   static targetSeparator = ' ';
@@ -170,7 +166,9 @@ export class ActionEvent {
           (value as EffectFunction).apply(action.$el, args);
         }
       } catch (error) {
-        warn(error);
+        // Reported as the `Action` this binding belongs to, which is the
+        // component a listener would want to filter on.
+        this.action.$error('action.effect-failed', 'An action effect threw.', error);
       }
     }
   }

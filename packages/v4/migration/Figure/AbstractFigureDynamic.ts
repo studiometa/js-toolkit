@@ -2,11 +2,6 @@ import { withResize, type BaseConfig, type BaseProps } from '../../src/index.js'
 import { loadImage } from '../../src/utils/load.js';
 import { AbstractFigure, type AbstractFigureProps } from './AbstractFigure.js';
 
-/** Gap: core ships no `$warn`. */
-function warn(...args: unknown[]): void {
-  console.warn('[Figure]', ...args);
-}
-
 export type AbstractFigureDynamicProps = AbstractFigureProps & {
   $options: AbstractFigureProps['$options'] & { disable: boolean; step: number };
 };
@@ -61,8 +56,8 @@ export class AbstractFigureDynamic<T extends BaseProps = BaseProps> extends with
 
     try {
       await loadImage(original);
-    } catch {
-      warn(`Failed to load image "${original}".`);
+    } catch (error) {
+      this.$error('figure.load-failed', `Failed to load image "${original}".`, error);
       return;
     }
 

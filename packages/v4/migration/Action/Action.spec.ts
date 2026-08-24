@@ -461,16 +461,31 @@ describe('Action — the component', () => {
     expect(el.id).toBe('foo');
   });
 
-  it('warns instead of throwing when the effect fails', async () => {
+  it('reports on the diagnostic channel instead of throwing when the effect fails', async () => {
     const root = await render(`
       <div id="action" data-component="Action" data-on:click="() => consol.log()"></div>
     `);
-    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const details: Array<Record<string, unknown>> = [];
+    // Canceling suppresses the default sink, so the failure does not reach
+    // `reportError()` and fail the run.
+    const listener = (event: Event) => {
+      details.push((event as CustomEvent<Record<string, unknown>>).detail);
+      event.preventDefault();
+    };
+    document.addEventListener('js-toolkit:diagnostic', listener);
 
     click(root.querySelector('#action') as Element);
 
-    expect(spy).toHaveBeenCalledTimes(1);
-    spy.mockRestore();
+    expect(details).toHaveLength(1);
+    expect(details[0]).toMatchObject({
+      severity: 'error',
+      code: 'action.effect-failed',
+      component: 'Action',
+    });
+    // The cause survives, which a bare `console.warn` never carried.
+    expect(details[0].error).toBeInstanceOf(Error);
+
+    document.removeEventListener('js-toolkit:diagnostic', listener);
   });
 });
 

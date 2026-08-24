@@ -1,10 +1,5 @@
 import { Base, component, on, swap, type BaseProps } from '../../src/index.js';
 
-/** Gap 10: core ships no `$warn`. */
-function warn(...args: unknown[]): void {
-  console.warn('[LazyInclude]', ...args);
-}
-
 export type LazyIncludeProps = BaseProps & {
   $refs: {
     loading?: HTMLElement;
@@ -60,7 +55,10 @@ export class LazyInclude<T extends BaseProps = BaseProps> extends Base<LazyInclu
     }
 
     if (!this.$options.src) {
-      warn('The `src` option is missing. Define it with the `data-option-src` attribute');
+      this.$warn(
+        'lazy-include.missing-src',
+        'The `src` option is missing. Define it with the `data-option-src` attribute.',
+      );
       return;
     }
 

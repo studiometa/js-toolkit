@@ -8,11 +8,6 @@ import {
 import { normalizeSize } from '../Figure/utils.js';
 import { FigureVideo, type FigureVideoProps } from './FigureVideo.js';
 
-/** Gap: core ships no `$warn`. */
-function warn(...args: unknown[]): void {
-  console.warn('[FigureVideoTwicpics]', ...args);
-}
-
 export type FigureVideoTwicpicsProps = FigureVideoProps & {
   $options: FigureVideoProps['$options'] & {
     transform: string;
@@ -105,8 +100,12 @@ export class FigureVideoTwicpics<T extends BaseProps = BaseProps> extends withRe
     try {
       await loadImage(twicPoster);
       video.poster = twicPoster;
-    } catch {
-      warn(`Failed to load poster "${twicPoster}".`);
+    } catch (error) {
+      this.$error(
+        'figure-video.poster-load-failed',
+        `Failed to load poster "${twicPoster}".`,
+        error,
+      );
     }
   }
 

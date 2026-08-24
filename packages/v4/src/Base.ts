@@ -10,7 +10,8 @@ import { BASE_BRAND } from './component-brand.js';
 import { componentTokens } from './component-declarations.js';
 import { registerChildrenWatcher, type ChildrenWatcher } from './children-watchers.js';
 import { injectContext, injectContextSync, provideContext, type ContextKey } from './context.js';
-import { reportDiagnostic, warnOnce } from './diagnostics.js';
+import type { ToolkitDiagnosticCode } from './diagnostic-contract.js';
+import { reportDiagnostic, warn, warnOnce } from './diagnostics.js';
 import { compareDocumentOrder } from './document-order.js';
 import { domVersion } from './dom-mutations.js';
 import { EVENTS } from './events.js';
@@ -1286,6 +1287,41 @@ export class Base<T extends BaseProps = BaseProps> {
         this.#runOptionEffect(name, reader, previousRawValue, false);
       }
     }
+  }
+
+  /**
+   * Report a warning on the diagnostic channel, as this component.
+   *
+   * The component name and the element are filled in from the instance, which
+   * is the whole reason this exists on `Base` rather than being a bare
+   * function a component imports: those two are what a listener filters and
+   * inspects on, and a component is the one thing that always knows both.
+   *
+   * The code is namespaced — `'figure.load-failed'` — so a listener can select
+   * one component's diagnostics without matching on message text. Core's own
+   * codes are enumerated in `DIAGNOSTICS`; a code outside that set is a
+   * consumer's, and the shape is all that is required of it.
+   *
+   * Canceling the event suppresses the default `console.warn` and nothing
+   * else, so a host application can route these into its own reporter.
+   */
+  $warn(code: ToolkitDiagnosticCode, message: string): void {
+    warn(code, message, { component: this.$config.name, target: this.$el });
+  }
+
+  /**
+   * Report a recovered failure on the diagnostic channel, as this component.
+   *
+   * The counterpart to {@link $warn} for the case where something threw and
+   * the component carried on: the original value is required, because a
+   * reporter that cannot see the cause cannot do anything useful with it.
+   * Canceling suppresses the default `reportError()` call.
+   */
+  $error(code: ToolkitDiagnosticCode, message: string, error: unknown): void {
+    reportDiagnostic(code, message, error, {
+      component: this.$config.name,
+      target: this.$el,
+    });
   }
 
   /** Schedule a DOM read; canceled automatically when the instance unmounts. */

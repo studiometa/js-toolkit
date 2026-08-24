@@ -273,11 +273,14 @@ describe('DataBind — the element half', () => {
 
   it('warns for a binding type that names nothing', async () => {
     const details: string[] = [];
-    document.addEventListener(EVENTS.diagnostic, (event) => {
+    // Removed at the end: this listener cancels the default sink, and leaking
+    // it silenced every later diagnostic in the file.
+    const listener = (event: Event) => {
       const { detail } = event as CustomEvent<{ code: string; message: string }>;
       details.push(detail.code);
       event.preventDefault();
-    });
+    };
+    document.addEventListener(EVENTS.diagnostic, listener);
 
     const root = await render(`
       <div id="d" data-component="DataBind" data-option-group="${uniqueGroup('v')}"
@@ -287,6 +290,8 @@ describe('DataBind — the element half', () => {
     // The typo used to be an attribute that silently did nothing at all.
     expect(details).toContain('attribute.unknown-qualifier');
     expect(at<DataBind>(root, '#d', 'DataBind').hasVirtualBindings).toBe(false);
+
+    document.removeEventListener(EVENTS.diagnostic, listener);
   });
 
   it('fails quietly when a virtual expression throws', async () => {

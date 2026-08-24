@@ -1,6 +1,7 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import {
   DIAGNOSTICS,
+  type ToolkitCoreDiagnosticCode,
   type ToolkitDiagnosticCode,
   type ToolkitDiagnosticDetail,
   type ToolkitDiagnosticSeverity,
@@ -58,7 +59,7 @@ describe('diagnostics', () => {
       expect(Object.isFrozen(group)).toBe(true);
     }
     expectTypeOf<ToolkitDiagnosticSeverity>().toEqualTypeOf<'warning' | 'error'>();
-    expectTypeOf<ToolkitDiagnosticCode>().toEqualTypeOf<
+    expectTypeOf<ToolkitCoreDiagnosticCode>().toEqualTypeOf<
       | 'attribute.unknown-qualifier'
       | 'callback.signal-failed'
       | 'callback.context-subscription-failed'
@@ -91,6 +92,21 @@ describe('diagnostics', () => {
       | 'storage.serialize-failed'
       | 'swap.self-ignored'
     >();
+  });
+
+  /**
+   * The channel is open to codes core does not own, so a component outside
+   * core can be told apart on it rather than reaching for `console.warn`.
+   * Core's own set stays enumerated above; what is required of a consumer's
+   * is only the namespace a listener filters on.
+   */
+  it('accepts a namespaced consumer code alongside its own', () => {
+    expectTypeOf<'figure.load-failed'>().toExtend<ToolkitDiagnosticCode>();
+    expectTypeOf<'ref.mismatch'>().toExtend<ToolkitDiagnosticCode>();
+    // A code with no namespace has nothing to filter on.
+    expectTypeOf<'unnamespaced'>().not.toExtend<ToolkitDiagnosticCode>();
+    // Core's enumerated set is still exactly itself.
+    expectTypeOf<'figure.load-failed'>().not.toExtend<ToolkitCoreDiagnosticCode>();
   });
 
   it('dispatches warning details before the standardized default sink', () => {

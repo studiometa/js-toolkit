@@ -2,11 +2,6 @@ import { Base, type BaseConfig, type BaseProps } from '../../src/index.js';
 import { loadImage } from '../../src/utils/load.js';
 import { withTransition, type TransitionProps } from '../Transition/index.js';
 
-/** Gap: core ships no `$warn`. */
-function warn(...args: unknown[]): void {
-  console.warn('[Figure]', ...args);
-}
-
 export type AbstractFigureProps = BaseProps &
   TransitionProps & {
     $refs: { img: HTMLImageElement };
@@ -58,7 +53,7 @@ export class AbstractFigure<T extends BaseProps = BaseProps> extends withTransit
     const { img } = this.$refs;
 
     if (!img || !(img instanceof HTMLImageElement)) {
-      warn('The `img` ref is missing or not an `<img>` element.');
+      this.$warn('figure.invalid-ref', 'The `img` ref is missing or not an `<img>` element.');
       return;
     }
 
@@ -67,8 +62,8 @@ export class AbstractFigure<T extends BaseProps = BaseProps> extends withTransit
     if (this.$options.lazy && src && src !== this.src) {
       try {
         await loadImage(src);
-      } catch {
-        warn(`Failed to load image "${src}".`);
+      } catch (error) {
+        this.$error('figure.load-failed', `Failed to load image "${src}".`, error);
         return;
       }
 

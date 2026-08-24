@@ -96,6 +96,14 @@
       "types": "./dist/subpaths/DIAGNOSTICS.d.ts",
       "import": "./dist/subpaths/DIAGNOSTICS.js"
     },
+    "./reportDiagnostic": {
+      "types": "./dist/subpaths/reportDiagnostic.d.ts",
+      "import": "./dist/subpaths/reportDiagnostic.js"
+    },
+    "./warn": {
+      "types": "./dist/subpaths/warn.d.ts",
+      "import": "./dist/subpaths/warn.js"
+    },
     "./watchAttributes": {
       "types": "./dist/subpaths/watchAttributes.d.ts",
       "import": "./dist/subpaths/watchAttributes.js"

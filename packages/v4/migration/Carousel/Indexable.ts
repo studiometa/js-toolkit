@@ -2,11 +2,6 @@ import { Base, type BaseConfig, type BaseProps } from '../../src/index.js';
 import { clamp, fold, wrap } from '../../src/utils/maths.js';
 import { randomInt } from '../../src/utils/random.js';
 
-/** Gap 10: core ships no `$warn`. */
-function warn(...args: unknown[]): void {
-  console.warn('[Indexable]', ...args);
-}
-
 export const INDEXABLE_BOUNDARIES = Object.freeze({
   CLAMP: 'clamp',
   LOOP: 'loop',
@@ -173,13 +168,13 @@ export class Indexable<T extends BaseProps = BaseProps> extends Base<IndexablePr
         case INDEXABLE_INSTRUCTIONS.RANDOM:
           return this.goTo(randomInt(this.minIndex, this.maxIndex));
         default:
-          warn('Invalid goto instruction.');
+          this.$warn('indexable.invalid-instruction', 'Invalid goto instruction.');
           return Promise.resolve();
       }
     }
 
     if (!Number.isFinite(indexOrInstruction)) {
-      warn('Invalid goto index.');
+      this.$warn('indexable.invalid-index', 'Invalid goto index.');
       return Promise.resolve();
     }
 

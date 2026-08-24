@@ -7,6 +7,24 @@ import { TrackShopify } from './TrackShopify.js';
 
 registerComponents(Track, TrackContext, TrackShopify);
 
+/**
+ * Record diagnostics and cancel their default sink.
+ *
+ * A malformed declaration is reported with `$error`, because v3 passed the
+ * caught `SyntaxError` too and its position info is the useful part — so the
+ * default sink is `reportError()`, not `console.warn`, and the assertion goes
+ * to the channel rather than to the console.
+ */
+function recordDiagnostics(): { codes: string[]; stop: () => void } {
+  const codes: string[] = [];
+  const listener = (event: Event) => {
+    codes.push((event as CustomEvent<{ code: string }>).detail.code);
+    event.preventDefault();
+  };
+  document.addEventListener('js-toolkit:diagnostic', listener);
+  return { codes, stop: () => document.removeEventListener('js-toolkit:diagnostic', listener) };
+}
+
 const OFFSCREEN = 'position:absolute;top:300vh;left:0;width:50px;height:50px';
 const ONSCREEN = 'position:absolute;top:0;left:0;width:50px;height:50px';
 
@@ -181,19 +199,19 @@ describe('Track — payload resolution', () => {
 
 describe('Track — malformed declarations', () => {
   it('drops an event whose JSON cannot be parsed, without throwing', async () => {
-    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = recordDiagnostics();
     const root = await render(
       `<button data-component="Track" data-track:click='{ not json }'></button>`,
     );
 
     expect(() => root.querySelector('button')?.click()).not.toThrow();
     expect(pushes()).toHaveLength(0);
-    expect(spy).toHaveBeenCalled();
-    spy.mockRestore();
+    expect(log.codes).toContain('track.invalid-json');
+    log.stop();
   });
 
   it('falls back to an empty payload when the `payload` ref is invalid JSON', async () => {
-    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const log = recordDiagnostics();
     const root = await render(`
       <button data-component="Track" data-track:click='{"event": "x"}'>
         <script data-ref="payload" type="application/json">{ broken </script>
@@ -203,8 +221,8 @@ describe('Track — malformed declarations', () => {
     root.querySelector('button')?.click();
 
     expect(lastPush()).toEqual({ event: 'x' });
-    expect(spy).toHaveBeenCalled();
-    spy.mockRestore();
+    expect(log.codes).toContain('track.invalid-json');
+    log.stop();
   });
 
   it('falls back to an empty payload when `data-option-payload` is invalid JSON', async () => {

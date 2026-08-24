@@ -24,7 +24,10 @@ const V4_REMOVED = new Map([
   ['$root', '$closest()'],
   ['$children', '$watchChildren()'],
   ['$update', 'nothing — $refs and $options read the DOM on every access'],
-  ['$warn', 'console.warn()'],
+  // `$warn` is not listed: v4 has one again, and it is a different thing from
+  // v3's logger — it reports on the cancelable diagnostic channel, filling in
+  // the component name and element, rather than writing to the console. See
+  // `$error` for the counterpart that carries a cause.
   ['$log', 'console.log()'],
   ['$terminate', '$destroy()'],
 ]);
