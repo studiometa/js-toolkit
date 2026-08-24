@@ -4,7 +4,8 @@ import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract
 import { EVENTS } from './events.js';
 import { INSTANCES } from './protocol-symbols.js';
 import { registerComponent } from './registry.js';
-import { getInstance, renderTodoList, TodoItem, TodoList } from './test-utils.js';
+import { getInstance } from './test-utils.js';
+import { renderTodoList, TodoItem, TodoList } from './todo.fixtures.js';
 import { captureDiagnostics, resetDom, settle } from './test/index.js';
 
 afterEach(resetDom);

@@ -15,7 +15,8 @@ import { Base, type BaseConfig, type BaseProps } from './Base.js';
 import { component } from './decorators.js';
 import { DIAGNOSTICS } from './diagnostic-contract.js';
 import { registerComponent } from './registry.js';
-import { getInstance, TodoItem } from './test-utils.js';
+import { getInstance } from './test-utils.js';
+import { TodoItem } from './todo.fixtures.js';
 import { captureDiagnostics, resetDom, settle } from './test/index.js';
 
 afterEach(resetDom);
