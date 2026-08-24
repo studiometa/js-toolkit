@@ -383,7 +383,7 @@ describe('withMutation', () => {
 
     observerOf(el).deliver([recordFor(el)]);
     expect(seen).toEqual([1]);
-    instance.$destroy();
+    instance.$unmount();
   });
 
   it('supports the stage-3 decorator form', () => {
@@ -403,7 +403,7 @@ describe('withMutation', () => {
     expect(initOf(el)).toEqual(resolvedInit({ attributes: true, attributeFilter: ['data-state'] }));
     observerOf(el).deliver([recordFor(el, 'attributes')]);
     expect(seen).toEqual([1]);
-    instance.$destroy();
+    instance.$unmount();
   });
 
   it('resolves a custom target and forwards only MutationObserverInit fields', () => {
@@ -431,7 +431,7 @@ describe('withMutation', () => {
     expect(initOf(target)).not.toHaveProperty('target');
     expect(initOf(target)).not.toHaveProperty('manual');
     expect(initOf(target)).not.toHaveProperty('immediate');
-    instance.$destroy();
+    instance.$unmount();
   });
 
   it('releases each automatic mount cycle and observes again on remount', () => {
@@ -450,7 +450,7 @@ describe('withMutation', () => {
     first.deliver([recordFor(el)]);
     expect(seen).toHaveLength(1);
 
-    instance.$destroy();
+    instance.$unmount();
     expect(first.disconnects).toBe(1);
 
     instance.$mount();
@@ -460,11 +460,11 @@ describe('withMutation', () => {
     second?.deliver([recordFor(el)]);
     expect(seen).toHaveLength(2);
 
-    instance.$destroy();
+    instance.$unmount();
     expect(second?.disconnects).toBe(1);
   });
 
-  it('leaves a manual hook stopped on mount and releases starts on destroy', () => {
+  it('leaves a manual hook stopped on mount and releases starts on unmount', () => {
     const seen: number[] = [];
 
     class Watcher extends withMutation(Base, { manual: true }) {
@@ -486,9 +486,9 @@ describe('withMutation', () => {
     observer.deliver([recordFor(el)]);
     expect(seen).toHaveLength(1);
 
-    instance.$destroy();
+    instance.$unmount();
     expect(instance.$services.mutated.isActive).toBe(false);
     expect(observer.disconnects).toBe(1);
-    instance.$destroy();
+    instance.$unmount();
   });
 });

@@ -10,7 +10,7 @@ export const HANDLER_REGISTRATIONS: unique symbol = Symbol.for(
  * A symbol rather than a string property: v3 keeps its own map under
  * `el.__base__` and stores a `'terminated'` string in it, so a v4 registry
  * reading that map found a string where an instance belongs and called
- * `$destroy()` on it. `Symbol.for` is realm-global, so evaluated copies of
+ * `$unmount()` on it. `Symbol.for` is realm-global, so evaluated copies of
  * this package still agree on the key.
  *
  * Not public API — `getInstances()` is how consumers resolve instances, by

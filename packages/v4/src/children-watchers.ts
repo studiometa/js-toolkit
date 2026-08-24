@@ -10,7 +10,7 @@ export type ChildrenWatcher = (instance: Base) => void;
 
 interface ChildrenWatcherRuntimeState {
   watcherIndex: Set<WeakRef<ChildrenWatcher>>;
-  isDestroyListenerAttached: boolean;
+  isUnmountListenerAttached: boolean;
 }
 
 const watcherState = /* @__PURE__ */ getSharedRuntimeSlot<ChildrenWatcherRuntimeState>(
@@ -18,7 +18,7 @@ const watcherState = /* @__PURE__ */ getSharedRuntimeSlot<ChildrenWatcherRuntime
   1,
   () => ({
     watcherIndex: new Set(),
-    isDestroyListenerAttached: false,
+    isUnmountListenerAttached: false,
   }),
 );
 const { watcherIndex } = watcherState;
@@ -31,11 +31,11 @@ const { watcherIndex } = watcherState;
 // decides when one dies.
 
 /**
- * Tell every live watcher about a destroyed instance, and forget the watchers
+ * Tell every live watcher about an unmounted instance, and forget the watchers
  * whose owner has been collected. Pruning happens here because a discarded
  * watcher has no teardown to run: its owner simply stopped existing.
  */
-function onComponentDestroyed(event: Event): void {
+function onComponentUnmounted(event: Event): void {
   const { instance } = (event as CustomEvent<LifecycleEventDetail>).detail;
   // Snapshot because a callback can add or release a watcher, and because dead
   // references are deleted during this pass.
@@ -51,10 +51,10 @@ function onComponentDestroyed(event: Event): void {
 }
 
 /**
- * Route destroyed instances to one watcher.
+ * Route unmounted instances to one watcher.
  *
- * Destroyed events are dispatched from `document`, because the element of a
- * destroyed instance can already be detached. One lazy, shared listener serves
+ * Unmounted events are dispatched from `document`, because the element of an
+ * unmounted instance can already be detached. One lazy, shared listener serves
  * every watcher in this realm and every evaluated copy of the package, so the
  * number of listeners on the document does not grow with the number of
  * watchers.
@@ -66,8 +66,8 @@ function onComponentDestroyed(event: Event): void {
 export function registerChildrenWatcher(watcher: ChildrenWatcher): void {
   watcherIndex.add(new WeakRef(watcher));
 
-  if (!watcherState.isDestroyListenerAttached) {
-    watcherState.isDestroyListenerAttached = true;
-    document.addEventListener(EVENTS.component.destroyed, onComponentDestroyed);
+  if (!watcherState.isUnmountListenerAttached) {
+    watcherState.isUnmountListenerAttached = true;
+    document.addEventListener(EVENTS.component.unmounted, onComponentUnmounted);
   }
 }

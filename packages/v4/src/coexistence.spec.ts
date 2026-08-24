@@ -3,7 +3,7 @@
  *
  * Both versions used to key their per-element instance map with the same
  * string, `el.__base__`, so each read the other's entries as its own: v4's
- * teardown called `$destroy()` on v3 instances, and on the `'terminated'`
+ * teardown called `$unmount()` on v3 instances, and on the `'terminated'`
  * string v3 leaves behind, while v3's child resolution accepted a v4 instance
  * as one of its own children. v4 now keys its map with `INSTANCES`, and these
  * specs are the proof.
@@ -12,8 +12,8 @@
  * is the pre-rename state — fails all four:
  *
  * - the terminated-instance spec records
- *   `TypeError: instance.$destroy is not a function`, thrown by
- *   `destroyWithin` on the `'terminated'` string;
+ *   `TypeError: instance.$unmount is not a function`, thrown by
+ *   `unmountWithin` on the `'terminated'` string;
  * - the reconcile spec finds v4 terminated the v3 instance instead of its own;
  * - the shared-name specs find one instance where two belong, the last writer
  *   having overwritten the other.
@@ -43,13 +43,13 @@ class V3Widget extends BaseV3 {
   static config: BaseConfigV3 = { name: 'Widget' };
 }
 
-let v4Destroys = 0;
+let v4Unmounts = 0;
 
 class V4Widget extends Base {
   static config = { name: 'V4Widget' };
 
-  destroyed() {
-    v4Destroys += 1;
+  unmounted() {
+    v4Unmounts += 1;
   }
 }
 
@@ -82,7 +82,7 @@ function v3Instances(el: Element): Map<string, unknown> | undefined {
 }
 
 afterEach(() => {
-  v4Destroys = 0;
+  v4Unmounts = 0;
   resetDom();
   // v3's registry is a plain map on `globalThis`; emptying it leaves its
   // observer attached with nothing to mount, which is as absent as v3 gets.
@@ -116,7 +116,7 @@ describe('v3 and v4 sharing a document', () => {
     window.removeEventListener('error', record);
 
     expect(errors).toEqual([]);
-    expect(v4Destroys).toBe(1);
+    expect(v4Unmounts).toBe(1);
     // v3's marker survives untouched — v4 never looked at that map.
     expect(v3Instances(v3El)?.get('Widget')).toBe('terminated');
   });

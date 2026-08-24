@@ -134,7 +134,7 @@ function apply(
 
     /**
      * One read pass calling the hook, one write pass running whatever it
-     * returned. Scheduled on the instance, so a destroyed component never
+     * returned. Scheduled on the instance, so an unmounted component never
      * writes to a detached element.
      */
     renderScrollInView(): void {
@@ -225,18 +225,18 @@ function apply(
       ];
     }
 
-    destroyed(): void {
-      super.destroyed();
+    unmounted(): void {
+      super.unmounted();
       // Snap to the target before the component leaves the viewport.
       const props = this.__scrollInViewProps;
       props.dampedCurrentX = props.currentX;
       props.dampedCurrentY = props.currentY;
       props.dampedProgressX = props.progressX;
       props.dampedProgressY = props.progressY;
-      // `$destroy()` cancels the instance's pending tasks before it runs the
-      // cleanups and `destroyed()`, so the instance lane is still live here
+      // `$unmount()` cancels the instance's pending tasks before it runs the
+      // cleanups and `unmounted()`, so the instance lane is still live here
       // and the snap render survives — while staying cancelable by a later
-      // destroy, which the global scheduler never was.
+      // unmount, which the global scheduler never was.
       this.$read(() => {
         // Called through the optional-call so the hook stays bound to `this`.
         const render = (this as unknown as ScrolledInViewHook).scrolledInView?.(props);

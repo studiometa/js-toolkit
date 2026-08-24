@@ -21,7 +21,7 @@ export class InView extends Base<InViewProps> {
     this.$emit('in-view');
   }
 
-  destroyed(): void {
+  unmounted(): void {
     this.$emit('out-of-view');
   }
 }

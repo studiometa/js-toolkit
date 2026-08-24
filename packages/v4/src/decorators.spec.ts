@@ -743,7 +743,7 @@ describe('@on', () => {
     expect(parent.clicks).toBe(0);
   });
 
-  it('unbinds a global target on destroy and rebinds it on remount', async () => {
+  it('unbinds a global target on unmount and rebinds it on remount', async () => {
     const root = render();
     await settle();
 
@@ -876,7 +876,7 @@ describe('@on', () => {
     expect(OnOverloads.config.name).toBe('OnOverloads');
   });
 
-  it('unbinds on destroy and rebinds on remount', async () => {
+  it('unbinds on unmount and rebinds on remount', async () => {
     const root = render();
     await settle();
 
@@ -924,7 +924,7 @@ describe('@children', () => {
     expect(parent.family.items).toEqual([alpha, beta]);
     expect(parent.added).toEqual([alpha, beta]);
 
-    alpha.$destroy();
+    alpha.$unmount();
     expect(parent.family.items).toEqual([beta]);
     expect(parent.removed).toEqual([alpha]);
   });
@@ -960,7 +960,7 @@ describe('@read / @write', () => {
     expect(order).toEqual(['read', 'write:a']);
   });
 
-  it('cancels a scheduled body when the instance is destroyed', async () => {
+  it('cancels a scheduled body when the instance is unmounted', async () => {
     let ran = false;
 
     class Late extends Base {
@@ -977,7 +977,7 @@ describe('@read / @write', () => {
     const instance = new Late(el).$mount();
 
     instance.paint();
-    instance.$destroy();
+    instance.$unmount();
     await defaultScheduler.whenIdle();
     expect(ran).toBe(false);
   });
@@ -1021,7 +1021,7 @@ describe('@read / @write', () => {
     await defaultScheduler.whenIdle();
     expect(order).toEqual(['child:now']);
 
-    child.$destroy();
+    child.$unmount();
   });
 });
 

@@ -357,7 +357,7 @@ describe('a group of disclosures', () => {
     await settle();
 
     // The same instance changed hands: the subscription was re-answered, the
-    // member was not destroyed and rebuilt.
+    // member was not unmounted and rebuilt.
     expect(disclosure(root, 'b')).toBe(b);
     expect(outer.members).toEqual([disclosure(root, 'a')]);
     expect(group(root, 'inner').members).toEqual([disclosure(root, 'b')]);

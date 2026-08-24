@@ -903,7 +903,7 @@ export class Base<T extends BaseProps = BaseProps> {
    * Unique, stable instance id (`<ComponentName>-<sequence>`).
    *
    * Generated once during construction from the resolved component name. It
-   * stays unchanged across destroy and remount cycles, so a component can use
+   * stays unchanged across unmount and remount cycles, so a component can use
    * it for persistent ARIA relationships without changing the DOM id itself.
    */
   declare readonly $id: string;
@@ -936,11 +936,11 @@ export class Base<T extends BaseProps = BaseProps> {
 
   #isMounted = false;
 
-  /** Per-mount-cycle listeners, removed on every `$destroy()`. */
+  /** Per-mount-cycle listeners, removed on every `$unmount()`. */
   #listeners: Array<[string, EventListener, EventTarget, boolean]> = [];
 
   /** Per-mount-cycle cleanups (service unsubscriptions, `mounted()` return values). */
-  #destroyCallbacks: Array<() => void> = [];
+  #unmountCallbacks: Array<() => void> = [];
 
   /**
    * The reader behind each declared option, built with the `$options` view.
@@ -958,7 +958,7 @@ export class Base<T extends BaseProps = BaseProps> {
   #mountCycle = 0;
 
   /**
-   * The `$watchChildren()` watchers this instance owns. The shared destroy
+   * The `$watchChildren()` watchers this instance owns. The shared unmount
    * listener only holds weak references to them, so this field is what keeps
    * them alive — and what lets them die with their owner.
    */
@@ -999,7 +999,7 @@ export class Base<T extends BaseProps = BaseProps> {
 
   /**
    * Lifecycle hook, meant to be overridden. May return a cleanup function
-   * (or an array of them) that runs on the next `$destroy()` — sync or
+   * (or an array of them) that runs on the next `$unmount()` — sync or
    * async:
    *
    *     async mounted() {
@@ -1016,12 +1016,18 @@ export class Base<T extends BaseProps = BaseProps> {
    */
   mounted(): MountedReturn {}
 
-  destroyed(): void {}
+  /**
+   * Lifecycle hook, meant to be overridden. Runs at the end of `$unmount()`,
+   * after the `mounted()` cleanups, and returns nothing: a teardown that
+   * belongs to a specific piece of setup is better written as the cleanup
+   * `mounted()` returns, next to the setup it undoes.
+   */
+  unmounted(): void {}
 
   /**
-   * Mount the instance. Mounting is reversible: `$destroy()` is its inverse
-   * and the same instance can mount again — this is what happens when an
-   * element is moved or re-inserted in the DOM.
+   * Mount the instance. `$unmount()` is its inverse and the same instance can
+   * mount again — this is what happens when an element is moved or
+   * re-inserted in the DOM.
    */
   $mount(): this {
     if (this.#isMounted) {
@@ -1052,12 +1058,12 @@ export class Base<T extends BaseProps = BaseProps> {
   }
 
   /**
-   * Unmount the instance — the reversible inverse of `$mount()`. Removes the
-   * per-cycle listeners, leaves the services, cancels the scheduler tasks the
-   * cycle left pending, runs the `mounted()` cleanups and calls the
-   * `destroyed()` hook. The instance stays on its element and can mount again.
+   * End the mount cycle. Removes the per-cycle listeners, leaves the
+   * services, cancels the scheduler tasks the cycle left pending, runs the
+   * `mounted()` cleanups and calls the `unmounted()` hook. The instance stays
+   * on its element and `$mount()` starts a new cycle.
    */
-  $destroy(): this {
+  $unmount(): this {
     if (!this.#isMounted) {
       return this;
     }
@@ -1072,18 +1078,18 @@ export class Base<T extends BaseProps = BaseProps> {
     for (const task of pending) {
       task.cancel();
     }
-    const callbacks = this.#destroyCallbacks;
-    this.#destroyCallbacks = [];
+    const callbacks = this.#unmountCallbacks;
+    this.#unmountCallbacks = [];
     for (const callback of callbacks) {
       this.#guard('A mount cleanup failed.', callback);
     }
     this.#clearOptionEffects();
-    this.#guard('`destroyed()` failed.', () => this.destroyed());
+    this.#guard('`unmounted()` failed.', () => this.unmounted());
     // The element may already be detached, so a bubbling event would reach
     // nobody: announce from the document instead.
     const detail: LifecycleEventDetail = { instance: this };
     document.dispatchEvent(
-      new CustomEvent(EVENTS.component.destroyed, { cancelable: false, detail }),
+      new CustomEvent(EVENTS.component.unmounted, { cancelable: false, detail }),
     );
     return this;
   }
@@ -1195,7 +1201,7 @@ export class Base<T extends BaseProps = BaseProps> {
         add(instance);
       }
     };
-    // Destroyed instances announce from `document`, because their elements can
+    // Unmounted instances announce from `document`, because their elements can
     // be detached. The instance keeps its own watchers, and the shared listener
     // reaches them weakly, so watching children adds no reference from the
     // document to this component.
@@ -1207,7 +1213,7 @@ export class Base<T extends BaseProps = BaseProps> {
     this.#childrenWatchers.push(watcher);
     registerChildrenWatcher(watcher);
     // Instance-lifetime, so neither registration is released: the collection
-    // survives destroy and mount cycles, and both ends die with the instance —
+    // survives unmount and mount cycles, and both ends die with the instance —
     // the mount listener with the element it sits on, the watcher with the
     // field above.
     this.$el.addEventListener(EVENTS.component.mounted, onMounted);
@@ -1230,7 +1236,7 @@ export class Base<T extends BaseProps = BaseProps> {
    * The nearest provider wins.
    *
    * The provider sits on the element, not on the mount cycle, so it answers
-   * through every destroy and mount. Nothing releases it early: a component
+   * through every unmount and mount. Nothing releases it early: a component
    * whose declaration is withdrawn keeps providing until its element goes.
    */
   $provide<V>(key: ContextKey<V>, value: V): V {
@@ -1239,11 +1245,11 @@ export class Base<T extends BaseProps = BaseProps> {
   }
 
   /**
-   * Resolve the nearest value now or when a provider appears. The request remains pending without a provider and is canceled on destroy.
+   * Resolve the nearest value now or when a provider appears. The request remains pending without a provider and is canceled on unmount.
    */
   $inject<V>(key: ContextKey<V>): Promise<V> {
     const { promise, cancel } = injectContext(this.$el, key);
-    this.#destroyCallbacks.push(cancel);
+    this.#unmountCallbacks.push(cancel);
     return promise;
   }
 
@@ -1253,7 +1259,7 @@ export class Base<T extends BaseProps = BaseProps> {
   }
 
   /**
-   * Apply one mutation batch after declaration reconciliation. Option cleanup runs before the next value and on destroy. Only resolved value changes trigger effects.
+   * Apply one mutation batch after declaration reconciliation. Option cleanup runs before the next value and on unmount. Only resolved value changes trigger effects.
    *
    * @internal
    */
@@ -1465,7 +1471,7 @@ export class Base<T extends BaseProps = BaseProps> {
   #collectCleanup(result: MountedReturn, cycle: number): void {
     if (typeof result === 'function') {
       if (this.#isActiveMountCycle(cycle)) {
-        this.#destroyCallbacks.push(result);
+        this.#unmountCallbacks.push(result);
       } else {
         // The originating mount cycle ended while an async result was pending:
         // run the cleanup right away instead of leaking.

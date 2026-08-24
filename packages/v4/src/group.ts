@@ -49,7 +49,7 @@ export interface Group<T extends GroupMember = GroupMember> {
  * Create an empty group.
  *
  * A member leaves through the function `join()` returned; nothing sweeps
- * disconnected elements, because v4 destroys a component when its element
+ * disconnected elements, because v4 unmounts a component when its element
  * leaves the DOM and the member's own teardown is what removes it.
  */
 export function createGroup<T extends GroupMember = GroupMember>(): Group<T> {

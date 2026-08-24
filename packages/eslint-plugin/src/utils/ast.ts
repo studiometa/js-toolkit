@@ -245,6 +245,10 @@ const COMPONENT_MEMBERS = new Set([
   '$read',
   '$write',
   '$mount',
+  '$unmount',
+  // v4 renamed `$destroy()` to `$unmount()`. The old name stays in this set
+  // while unmigrated code exists, so that `no-destroy-lifecycle` still reads a
+  // class whose only framework signal is the call it is there to rewrite.
   '$destroy',
   '$services',
 ]);

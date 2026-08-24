@@ -17,7 +17,7 @@ export type ToastProps = TimerProps & {
  * animates itself out through the shared `viewTransition` scheduler when
  * dismissed.
  *
- * It is mounted automatically when a `Toaster` inserts it, and destroyed
+ * It is mounted automatically when a `Toaster` inserts it, and unmounted
  * automatically when it removes itself — so a `Toaster` never has to track
  * or tear down individual toasts.
  *
@@ -69,7 +69,7 @@ export class Toast<T extends TimerProps = TimerProps> extends Timer<T & ToastPro
 
   /**
    * Animate the toast out and remove it from the DOM; the registry then
-   * destroys this component (and `Timer`'s `mounted()` cleanup clears any
+   * unmounts this component (and `Timer`'s `mounted()` cleanup clears any
    * pending countdown).
    */
   dismiss(): void {

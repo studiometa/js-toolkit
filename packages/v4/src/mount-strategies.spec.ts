@@ -41,14 +41,14 @@ function defineTracked(config: Omit<BaseConfig, 'name'> = {}) {
     static config: BaseConfig = { name, ...config };
 
     mounts = 0;
-    destroys = 0;
+    unmounts = 0;
 
     mounted(): void {
       this.mounts += 1;
     }
 
-    destroyed(): void {
-      this.destroys += 1;
+    unmounted(): void {
+      this.unmounts += 1;
     }
   }
 
@@ -131,7 +131,7 @@ describe('data-mount="in-view"', () => {
     el.setAttribute('style', OFFSCREEN);
     await observed();
     expect(instance?.$isMounted).toBe(false);
-    expect(instance?.destroys).toBe(1);
+    expect(instance?.unmounts).toBe(1);
 
     el.setAttribute('style', ONSCREEN);
     await observed();
@@ -475,7 +475,7 @@ describe('teardown', () => {
     await observed();
     expect(instanceOf(el, name)).toBe(instance);
     expect(instance?.$isMounted).toBe(true);
-    expect(instance?.destroys).toBe(1);
+    expect(instance?.unmounts).toBe(1);
     expect(instance?.mounts).toBe(2);
     expect(el.parentElement).toBe(to);
   });

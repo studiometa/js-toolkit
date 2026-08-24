@@ -60,7 +60,7 @@ export class Timer<T extends BaseProps = BaseProps> extends Base<TimerProps & T>
     return this.$options.delay * 1000;
   }
 
-  /** Start the countdown on mount unless `autostart` is disabled, cancel it on destroy. */
+  /** Start the countdown on mount unless `autostart` is disabled, cancel it on unmount. */
   mounted(): MountedReturn {
     if (this.$options.autostart) {
       this.start();

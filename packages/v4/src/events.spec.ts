@@ -6,7 +6,7 @@ describe('EVENTS', () => {
     expect(EVENTS).toEqual({
       component: {
         mounted: 'js-toolkit:component:mounted',
-        destroyed: 'js-toolkit:component:destroyed',
+        unmounted: 'js-toolkit:component:unmounted',
       },
       dom: { update: 'js-toolkit:dom:update' },
       diagnostic: 'js-toolkit:diagnostic',
@@ -20,7 +20,7 @@ describe('EVENTS', () => {
     expectTypeOf(EVENTS).toEqualTypeOf<{
       readonly component: {
         readonly mounted: 'js-toolkit:component:mounted';
-        readonly destroyed: 'js-toolkit:component:destroyed';
+        readonly unmounted: 'js-toolkit:component:unmounted';
       };
       readonly dom: { readonly update: 'js-toolkit:dom:update' };
       readonly diagnostic: 'js-toolkit:diagnostic';

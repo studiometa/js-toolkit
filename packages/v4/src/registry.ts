@@ -475,9 +475,9 @@ function mountPair(
   }
 }
 
-function destroyPair(el: HTMLElement, name: string, controller: PairController): void {
+function unmountPair(el: HTMLElement, name: string, controller: PairController): void {
   if (isCurrentPair(el, name, controller)) {
-    el[INSTANCES]?.get(name)?.$destroy();
+    el[INSTANCES]?.get(name)?.$unmount();
   }
 }
 
@@ -508,10 +508,10 @@ function hooksFor(el: HTMLElement, name: string, controller: PairController): Mo
   if (isBaseConstructor(source)) {
     return {
       mount: () => mountPair(el, name, source, controller),
-      destroy: () => destroyPair(el, name, controller),
+      unmount: () => unmountPair(el, name, controller),
     };
   }
-  return { mount: () => importPair(el, name, controller), destroy() {} };
+  return { mount: () => importPair(el, name, controller), unmount() {} };
 }
 
 function disposeController(el: Element, name: string): void {
@@ -610,13 +610,15 @@ function reconcileElement(el: HTMLElement): void {
     if (!tokens.has(name) && (registry.has(name) || manifest.has(name))) {
       disposeController(el, name);
       // Removing a declaration while the element remains is not a
-      // disconnection: it withdraws the component identity from the element,
-      // so the instance is torn down and dropped rather than retained for a
-      // later insertion. Declaring the name again builds a new instance,
-      // which is what the responsive crossing back expects.
+      // disconnection: it withdraws the component identity from the element.
+      // The two steps below say that in order — leave the mount cycle, then
+      // drop the identity — where a disconnection only does the first and
+      // keeps the instance for a later insertion. Declaring the name again
+      // builds a new instance, which is what the responsive crossing back
+      // expects.
       const instance = el[INSTANCES]?.get(name);
       if (instance) {
-        instance.$destroy();
+        instance.$unmount();
         el[INSTANCES]?.delete(name);
       }
     }
@@ -657,8 +659,8 @@ function scanName(root: Element, name: string): void {
   }
 }
 
-// Disconnection destroys an instance reversibly. Re-insertion remounts the same instance.
-function destroyWithin(node: Node, snapshot?: readonly Element[]): void {
+// Disconnection unmounts an instance reversibly. Re-insertion remounts the same instance.
+function unmountWithin(node: Node, snapshot?: readonly Element[]): void {
   if (!(node instanceof Element)) {
     return;
   }
@@ -674,7 +676,7 @@ function destroyWithin(node: Node, snapshot?: readonly Element[]): void {
       continue;
     }
     for (const instance of el[INSTANCES].values()) {
-      instance.$destroy();
+      instance.$unmount();
     }
   }
 }
@@ -686,11 +688,11 @@ interface AttributeChanges {
   options: Map<HTMLElement, Map<string, string | null>>;
 }
 
-function destroyRemovedSubtrees(records: readonly DOMMutationRecord[]): void {
+function unmountRemovedSubtrees(records: readonly DOMMutationRecord[]): void {
   for (const { record, removedSubtrees } of records) {
     if (record.type === 'childList') {
       for (const node of record.removedNodes) {
-        destroyWithin(node, removedSubtrees.get(node));
+        unmountWithin(node, removedSubtrees.get(node));
       }
     }
   }
@@ -765,7 +767,7 @@ function scanAddedNodes(records: readonly DOMMutationRecord[]): void {
 
 function processMutations(records: readonly DOMMutationRecord[]): void {
   // Teardown must finish before a moved node mounts under its new ancestor.
-  destroyRemovedSubtrees(records);
+  unmountRemovedSubtrees(records);
   // Every attribute of the batch is collected before any of them is applied,
   // so an element touched several times reconciles once, from final DOM state.
   const changes = collectAttributeChanges(records);

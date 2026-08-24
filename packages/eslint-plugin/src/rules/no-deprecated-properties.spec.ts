@@ -50,7 +50,7 @@ describe('no-deprecated-properties', () => {
         {
           code: `class Slider extends Base {
                    mounted() { this.$watchChildren(Item, () => {}); }
-                   destroyed() {}
+                   unmounted() {}
                    static config = { name: 'Slider' };
                  }`,
           options: v4,

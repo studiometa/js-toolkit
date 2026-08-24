@@ -394,25 +394,25 @@ describe('responsive options', () => {
     expect(grid.changes[0]).toMatchObject({ value: 3, previousValue: 1 });
   });
 
-  it('stops option mount work when an initial effect destroys its cycle', async () => {
+  it('stops option mount work when an initial effect unmounts its cycle', async () => {
     atSmall();
     const calls: string[] = [];
-    let destroyOnMount = true;
+    let unmountOnMount = true;
     let mountedEvents = 0;
 
-    class SelfDestroyingOption extends Base<{
+    class SelfUnmountingOption extends Base<{
       $options: { stop: number; later: number };
     }> {
       static config = {
-        name: 'SelfDestroyingInitialOption',
+        name: 'SelfUnmountingInitialOption',
         options: { stop: Number, later: Number },
       };
 
       optionStopChanged(): void {
         calls.push('stop');
-        if (destroyOnMount) {
-          destroyOnMount = false;
-          this.$destroy();
+        if (unmountOnMount) {
+          unmountOnMount = false;
+          this.$unmount();
         }
       }
 
@@ -425,9 +425,9 @@ describe('responsive options', () => {
       }
     }
 
-    registerComponent(SelfDestroyingOption);
+    registerComponent(SelfUnmountingOption);
     const el = document.createElement('div');
-    el.setAttribute('data-component', 'SelfDestroyingInitialOption');
+    el.setAttribute('data-component', 'SelfUnmountingInitialOption');
     el.addEventListener(EVENTS.component.mounted, () => {
       mountedEvents += 1;
     });
@@ -435,7 +435,7 @@ describe('responsive options', () => {
       document.body.append(el);
       await settle();
     });
-    const instance = getInstance<SelfDestroyingOption>(el, 'SelfDestroyingInitialOption');
+    const instance = getInstance<SelfUnmountingOption>(el, 'SelfUnmountingInitialOption');
 
     try {
       expect(calls).toEqual(['stop']);
@@ -444,7 +444,7 @@ describe('responsive options', () => {
       expect(addedMediaListeners).toBe(0);
     } finally {
       // Release any leaked test subscription.
-      instance.$mount().$destroy();
+      instance.$mount().$unmount();
     }
   });
 

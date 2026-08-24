@@ -46,7 +46,7 @@ let count = 0;
  * appends it to the matching region through the shared `viewTransition`
  * scheduler. Everything else belongs to the `Toast` it inserts — the
  * auto-dismiss countdown, pausing on hover/focus and the leave animation —
- * which the registry mounts and destroys automatically. Bursts fired in the
+ * which the registry mounts and unmounts automatically. Bursts fired in the
  * same tick coalesce into a single coordinated transition.
  *
  * @link https://ui.studiometa.dev/reference/items/Toaster/

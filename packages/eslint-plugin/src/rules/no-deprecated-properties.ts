@@ -29,13 +29,13 @@ const V4_REMOVED = new Map([
   // the component name and element, rather than writing to the console. See
   // `$error` for the counterpart that carries a cause.
   ['$log', 'console.log()'],
-  ['$terminate', '$destroy()'],
+  ['$terminate', '$unmount()'],
 ]);
 
 /** Methods v4 no longer calls. Defining one is dead code. */
 const V4_REMOVED_METHODS = new Map([
   ['updated', '$watchChildren(), or an option<Name>Changed() hook'],
-  ['terminated', 'destroyed()'],
+  ['terminated', 'unmounted()'],
 ]);
 
 /** `$services` survives, but its two switches do not. */

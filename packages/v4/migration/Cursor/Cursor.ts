@@ -91,7 +91,7 @@ export class Cursor<T extends BaseProps = BaseProps> extends withPointer(Base)<C
     return [
       super.mounted(),
       this.motion.subscribe((values: Record<'x' | 'y' | 'scale', number>) => this.render(values)),
-      // The frame belongs to the mount cycle: a cursor destroyed mid-travel
+      // The frame belongs to the mount cycle: a cursor unmounted mid-travel
       // must not keep asking for frames to finish a journey nobody watches.
       () => this.motion.destroy(),
     ];

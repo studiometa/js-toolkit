@@ -26,7 +26,7 @@ const state = /* @__PURE__ */ getSharedRuntimeSlot('scroll-lock', 1, () => ({
  * that value back, and the ones in between only move the count.
  *
  * The release is idempotent, so a surface may call it on close and again on
- * destroy without counting twice.
+ * unmount without counting twice.
  *
  * @param target What stops scrolling. Defaults to the document element.
  * @returns Release this holder's lock.

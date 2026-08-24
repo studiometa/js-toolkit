@@ -212,7 +212,7 @@ describe('swap — script adoption', () => {
 });
 
 describe('swap — component lifecycle', () => {
-  it('mounts components swapped in and destroys components swapped out', async () => {
+  it('mounts components swapped in and unmounts components swapped out', async () => {
     const name = uniqueName('SwapLifecycle');
     const log: string[] = [];
 
@@ -221,7 +221,7 @@ describe('swap — component lifecycle', () => {
 
       mounted() {
         log.push(`mounted:${this.$el.id}`);
-        return () => log.push(`destroyed:${this.$el.id}`);
+        return () => log.push(`unmounted:${this.$el.id}`);
       }
     }
     registerComponent(Swapped);
@@ -240,7 +240,7 @@ describe('swap — component lifecycle', () => {
     await swap(el, '<p>gone</p>');
 
     expect(el.innerHTML).toBe('<p>gone</p>');
-    expect(log.slice(2).toSorted()).toEqual(['destroyed:first', 'destroyed:second']);
+    expect(log.slice(2).toSorted()).toEqual(['unmounted:first', 'unmounted:second']);
   });
 
   it('does not remount a component morphdom preserves', async () => {
@@ -252,7 +252,7 @@ describe('swap — component lifecycle', () => {
 
       mounted() {
         log.push('mounted');
-        return () => log.push('destroyed');
+        return () => log.push('unmounted');
       }
     }
     registerComponent(Kept);

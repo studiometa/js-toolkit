@@ -11,7 +11,7 @@ let counter = 0;
 
 interface TrackedComponent extends Base {
   mounts: number;
-  destroys: number;
+  unmounts: number;
 }
 
 function defineTracked(prefix: string, config: Omit<BaseConfig, 'name'> = {}) {
@@ -22,14 +22,14 @@ function defineTracked(prefix: string, config: Omit<BaseConfig, 'name'> = {}) {
     static config: BaseConfig = { name, ...config };
 
     mounts = 0;
-    destroys = 0;
+    unmounts = 0;
 
     mounted(): void {
       this.mounts += 1;
     }
 
-    destroyed(): void {
-      this.destroys += 1;
+    unmounted(): void {
+      this.unmounts += 1;
     }
   }
 
@@ -272,7 +272,7 @@ describe('responsive component declarations', () => {
     await whenDOMSettled();
     expect(instance(el, feature.name)).toBe(retained);
     expect(retained?.mounts).toBe(3);
-    expect(retained?.destroys).toBe(2);
+    expect(retained?.unmounts).toBe(2);
   });
 
   it('does not import a lazy declaration before activation and still applies data-mount', async () => {

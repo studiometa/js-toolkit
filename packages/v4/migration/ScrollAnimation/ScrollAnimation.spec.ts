@@ -145,7 +145,7 @@ describe('ScrollAnimationTimeline', () => {
     expect(Number(added.style.opacity)).toBeCloseTo(1, 2);
   });
 
-  it('snaps a target to its nearest boundary when it is destroyed', async () => {
+  it('snaps a target to its nearest boundary when it is unmounted', async () => {
     const el = render();
     await settle();
     const [target] = targetsOf(el);
@@ -154,7 +154,7 @@ describe('ScrollAnimationTimeline', () => {
     await scrollTo(start + (end - start) * 0.8);
     expect(Number(target.style.opacity)).toBeGreaterThan(0.5);
 
-    getInstance<ScrollAnimationTarget>(target, 'ScrollAnimationTarget').$destroy();
+    getInstance<ScrollAnimationTarget>(target, 'ScrollAnimationTarget').$unmount();
     await frames(4);
     expect(target.style.opacity).toBe('1');
   });

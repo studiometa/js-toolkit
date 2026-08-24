@@ -9,7 +9,7 @@ export class InViewOnce extends InView {
   };
 
   /** Suppress `out-of-view`, including when the element is removed. */
-  destroyed(): void {
+  unmounted(): void {
     // no-op
   }
 }

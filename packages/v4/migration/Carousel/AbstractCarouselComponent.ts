@@ -34,7 +34,7 @@ export class AbstractCarouselComponent<T extends BaseProps = BaseProps> extends 
     return !this.isHorizontal;
   }
 
-  destroyed(): void {
+  unmounted(): void {
     this.#carousel = undefined;
   }
 }

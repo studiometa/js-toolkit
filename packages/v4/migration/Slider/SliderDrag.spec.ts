@@ -218,7 +218,7 @@ describe('SliderDrag', () => {
     const root = render();
     const { slider, drag } = await ready(root);
 
-    drag.$destroy();
+    drag.$unmount();
     slider.goNext();
 
     expect(slider.currentIndex).toBe(1);

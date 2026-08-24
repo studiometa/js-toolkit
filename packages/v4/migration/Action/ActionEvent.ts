@@ -40,7 +40,7 @@ export class ActionEvent {
   /**
    * @param action           The parent `Action` instance.
    * @param eventDefinition  Event plus modifiers: `click.prevent.stop`.
-   * @param effectDefinition Targets and effect: `Target(.selector)->target.$destroy()`.
+   * @param effectDefinition Targets and effect: `Target(.selector)->target.$unmount()`.
    */
   constructor(action: Base, eventDefinition: string, effectDefinition: string) {
     this.action = action;

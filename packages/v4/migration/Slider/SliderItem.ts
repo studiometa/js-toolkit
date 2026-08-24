@@ -42,7 +42,7 @@ export class SliderItem extends Base {
     ];
   }
 
-  destroyed(): void {
+  unmounted(): void {
     this.moveInstantly(0);
   }
 

@@ -18,9 +18,9 @@ Three forks were decided together.
 
 ## 1. Independent components
 
-### Why a move destroys and mounts again
+### Why a move unmounts and mounts again
 
-A moved element gives one removal record and one addition record. Both sides must announce, so that `$watchChildren` on the old ancestor removes the child and `$watchChildren` on the new ancestor adds it. The real-browser test suite found this: when a still-connected moved element skipped the destroy, both watchers broke silently.
+A moved element gives one removal record and one addition record. Both sides must announce, so that `$watchChildren` on the old ancestor removes the child and `$watchChildren` on the new ancestor adds it. The real-browser test suite found this: when a still-connected moved element skipped the unmount, both watchers broke silently.
 
 Open for later: an opt-in path that preserves state through a move, once the semantics of `Node.moveBefore()` are considered.
 
@@ -28,18 +28,18 @@ Open for later: an opt-in path that preserves state through a move, once the sem
 
 A third lifecycle notion earned its place only if something needed it, and by the end nothing did. `terminated()` had no override outside the specs that existed to test it. `$terminate()` had one production caller, the registry, on a withdrawn declaration — which is a registry bookkeeping step, not a state a component reaches. And the two registrations it released, `$provide` and `$watchChildren`, both sit on things that already die on their own: the provider on the element, the watcher on the instance.
 
-What it did earn was a leak. `$watchChildren` released a `document` listener from a terminate callback, and ordinary teardown never gets there — removing an element calls `$destroy()`. A `document` listener is a strong reference from the document to the instance, so every watching component stayed alive for the life of the page. The concept was not paying for itself; it was hiding a bug, and one that was fixed by removing the reference rather than by finding more ways to call `$terminate()`.
+What it did earn was a leak. `$watchChildren` released a `document` listener from a terminate callback, and ordinary teardown never gets there — removing an element calls `$unmount()`. A `document` listener is a strong reference from the document to the instance, so every watching component stayed alive for the life of the page. The concept was not paying for itself; it was hiding a bug, and one that was fixed by removing the reference rather than by finding more ways to call `$terminate()`.
 
 Two consequences are accepted rather than worked around:
 
 - **A withdrawn declaration no longer releases the provider.** A component whose token leaves `data-component` while its element stays keeps providing context until the element goes. `$provide()` returns the value rather than a disposer, so termination was the only door out, and that door was never the right shape. Releasing a provider early wants its own answer.
 - **Re-adding a token re-mounts.** Nothing latches "never again" any more. The registry drops the instance from the element, so declaring the name again builds a new one and mounts it — which is what the responsive crossing already expected on the way back.
 
-`mount` and `destroy` are now the whole vocabulary, and both are reversible. That is one fewer word to explain, and one fewer word that meant two things.
+`mount` and `unmount` are now the whole vocabulary, and both are reversible. That is one fewer word to explain, and one fewer word that meant two things.
 
 ### Why `mounted()` returns its cleanup
 
-The cleanup lives in the same closure as the resource that it releases. There is no instance field and no paired `destroyed()` code, and the symmetry is guaranteed for each mount cycle. This matters because `data-mount` strategies mount the same instance many times.
+The cleanup lives in the same closure as the resource that it releases. There is no instance field and no paired `unmounted()` code, and the symmetry is guaranteed for each mount cycle. This matters because `data-mount` strategies mount the same instance many times.
 
 The hook keeps the name `mounted`. In Vue, "setup" means "runs before mount", which is not what this is, and `mounted()` stays familiar to the authors of v3.
 
@@ -164,7 +164,7 @@ Measured in `responsive-options.bench.ts`, in Chromium:
 - **`data-option-no-<name>` is kept, and kept as a spelling rather than a rule.** v3 has it, `@studiometa/ui` writes it 33 times over 12 options, and it reads better than `="false"` for what is a flag. What it is not is a second grammar: it resolves to the string `false` and re-enters the one boolean rule, it cascades through the one breakpoint walk, and it is registered by the one filter. The alternative — refusing it and warning — was costed at twelve lines and rejected: the markup is not wrong, and a framework whose premise is that the attribute is the source of truth should read the attribute the audience already writes.
 - **A boolean reads presence, and only presence.** The platform's own boolean attributes do: `disabled="false"` disables. Reading the string as well would give a component two ways to be off — a missing attribute and a particular value — and the two disagree the moment a template interpolates `{{ flag }}` into the attribute, which is the bug v3 shipped. One rule, stated in one line: the attribute is there or it is not. Code toggles it with `setAttribute`/`removeAttribute`, a template writes it inside a condition, and an option declared `default: true` is turned off by its negated spelling.
 - **`noSort` needs no special case.** Its own off spelling is `data-option-no-no-sort`, so an option whose name starts with `no` collides with nothing. Only a component declaring both `sort` and `noSort` would make one attribute mean two things, and that is a mistake in a declaration — where a lint rule can see it — rather than a condition worth checking on every mount.
-- **"My work is done" is a field, and there is no lifecycle notion for it.** v3's `$terminate()` kept a memory on the element and refused forever; v4's detached the instance, so the next mount pass built a fresh one which had never heard of the termination — the same word doing two different things. The answer was not a better termination but none at all: `$destroy()` leaves the instance where it is, so a plain field outlives every move, re-insertion and swap that keeps the element, and a replaced element gets a new instance, which is exactly when the work should happen again. The framework needed no mechanism for this. See "Why termination went away" below for the rest of what fell out with it.
+- **"My work is done" is a field, and there is no lifecycle notion for it.** v3's `$terminate()` kept a memory on the element and refused forever; v4's detached the instance, so the next mount pass built a fresh one which had never heard of the termination — the same word doing two different things. The answer was not a better termination but none at all: `$unmount()` leaves the instance where it is, so a plain field outlives every move, re-insertion and swap that keeps the element, and a replaced element gets a new instance, which is exactly when the work should happen again. The framework needed no mechanism for this. See "Why termination went away" below for the rest of what fell out with it.
 - **The instance's own four are non-writable, not merely `readonly`.** `$options` being a read-only _view_ while `this.$options` itself could be replaced is half a rule, and the half that holds is the one a type checker enforces — which is nothing for the audience this framework puts first, the one with no build step. A property descriptor costs one line per field in the constructor and makes the same statement to both audiences: an assignment throws where it used to silently replace the object every read, every effect and every ref lookup goes through.
 - **Every read walks the cascade, and this cost was real.** In a loop, a read cost 4.70 µs against 0.052 µs for a plain `getAttribute()`, which is 91×. Nearly all of it was asking eight `MediaQueryList` objects for `.matches`. After the active breakpoint name was memoised, the same batched read is 0.38 µs, which is 12.3× faster, and 7.4× a plain attribute read instead of 91×. What is left is the cascade walk itself, up to nine `getAttribute()` calls instead of one, which is the feature.
 
@@ -188,7 +188,7 @@ One name gives one entry, as with `customElements.define`. A collision gives a w
 
 ### Mount strategies: the open questions of #751
 
-- **One canonical constructor.** A strategy constructs nothing; it decides when the registry calls the mount and destroy hooks that it was given. Nothing wraps the class, so the identity conflicts that the issue describes cannot happen. `withMountWhenInView` is deleted and not kept, because a version that wraps a constructor would model the anti-pattern now that the framework owns this.
+- **One canonical constructor.** A strategy constructs nothing; it decides when the registry calls the mount and unmount hooks that it was given. Nothing wraps the class, so the identity conflicts that the issue describes cannot happen. `withMountWhenInView` is deleted and not kept, because a version that wraps a constructor would model the anti-pattern now that the framework owns this.
 - **One-shot and reversible are separate values.** To mount again is right for a scroll animation and destructive for a map, a video or a form, so the choice is explicit and not inferred.
 - **`interaction` uses intent, not replay.** `pointerenter`, `pointerdown` and `focusin` all happen before the interaction that they lead to, so the component is mounted before the click arrives.
 - **The scope of an interaction is a parameter, not a second strategy.** "Aim at this element" and "the visitor is alive" are two different questions, and both are useful — one defers a component until it is about to be used, the other defers a whole widget until the visit proves it has a user. They are one strategy because they answer with the same fact and differ only in where it is heard, which is what `interaction:page` says and what a second name would have hidden. The scope also decides the event set: hovering an element is intent, hovering a document is not, so the page scope keeps the deliberate acts and drops `pointerenter`.
@@ -271,7 +271,7 @@ Delegation covers what happens inside a component. It structurally cannot cover 
 
 Four decisions, each the answer to "what would surprise a reader least":
 
-- **Scope: the mount cycle.** The alternative, the instance lifetime, means a destroyed component that keeps reacting to window scroll.
+- **Scope: the mount cycle.** The alternative, the instance lifetime, means an unmounted component that keeps reacting to window scroll.
 - **Phase: bubble.** `CAPTURED_EVENTS` exists for delegation only, because an event that does not bubble and is fired on a descendant never reaches the delegating root. A global handler delegates nothing: its listener already sits at the top of every propagation path. Capture would only change what it hears — the `scroll`, `focus` and `mouseenter` of every element on the page — and when it hears it.
 - **The prefixes are reserved.** To let a declared name win would make the meaning of a handler depend on a `config` entry declared elsewhere in the file. The asymmetry settles it: a child named `Window` can still be reached with `@on('Window', 'resize')`, and nothing else could reach `window`. The side with an escape hatch is the side that yields.
 - **Payload `{ event, target }`.** The same vocabulary as the two delegated shapes. No `payload`, because a platform event is not the announcement of a component, and no `index`, because there is nothing to index.
@@ -321,7 +321,7 @@ There is no selector-strategy seam behind it. v4 resolves components through `da
 
 ### Why the instances live under a symbol
 
-v3 stores `Map<string, Base | 'terminated'>` under `el.__base__`. v4 stored `Map<string, Base>` under the same name. Two versions in one document then read the map of the other as their own: the teardown of v4 called `$destroy()` on the instances of v3 and on the `'terminated'` string that v3 leaves behind, which is a `TypeError`, while the child resolution of v3 accepted a v4 instance as one of its children. That blocked any migration page by page. `src/coexistence.spec.ts` mounts both versions in one document and holds the line.
+v3 stores `Map<string, Base | 'terminated'>` under `el.__base__`. v4 stored `Map<string, Base>` under the same name. Two versions in one document then read the map of the other as their own: the teardown of v4 called `$unmount()` on the instances of v3 and on the `'terminated'` string that v3 leaves behind, which is a `TypeError`, while the child resolution of v3 accepted a v4 instance as one of its children. That blocked any migration page by page. `src/coexistence.spec.ts` mounts both versions in one document and holds the line.
 
 `Symbol.for` and not a module-local `Symbol()`: the key is global to the realm, so two evaluated copies of v4 still agree on it, which is the one property of the string that had to survive.
 
@@ -408,7 +408,7 @@ Scope comes free from nearest-provider-wins, so a nested group takes its own mem
 
 **Document order is the tie-breaker**, so which peer keeps its state is a fact about the markup and not about which peer mounted first. A disclosure written open that mounts late loses to the one before it in the DOM and wins over the ones after it. Both orders are asserted in `group.spec.ts`, which builds the Disclosure pattern from this helper plus `$provide` and `subscribeContext` alone.
 
-Nothing sweeps disconnected members, because v4 destroys a component when its element leaves the DOM. v3 swept on every read of `$group`, because its membership was written from `mounted` and `destroyed` on a registry that outlived both.
+Nothing sweeps disconnected members, because v4 unmounts a component when its element leaves the DOM. v3 swept on every read of `$group`, because its membership was written from `mounted` and `destroyed` on a registry that outlived both.
 
 **The two v3 consumers of `withGroup` divide on exactly this line.** `Disclosure` groups by ancestry: its group is a component in the DOM, and the whole difficulty was that the two sides had to find each other. `Data*` groups by name, with the nearest `DataScope` choosing which partition table to look in and a page-wide table when there is none, so `DataRegistry` keeps a record per name in which membership is one field beside values, sources and hydration state, and it never observes membership changes. It has its own `join(group, member)` that returns the same leave function, and no members signal, because nothing subscribes to one. A group that is a set of peers gets `createGroup()`. A group that is a partition of a keyed store keeps the store.
 
@@ -559,7 +559,7 @@ The spec dropped it, the migration ports were the measurement, and the measureme
 
 `Modal.keyed()` of v3 (`node_modules/@studiometa/ui/Modal/Modal.js:121-131`) handled the focus trap and Escape in 6 lines, with no setup at all. Its replacement in the port was a 10-line `mounted()` whose whole content was a `keydown` listener and its teardown, and it covered the trap only. Escape moved to `onCancel()`, which is the native `<dialog>` `cancel` event doing that work, and not a saving from dropping the service. So the document-level case gets bigger without a service, not smaller.
 
-The ported `Dialog` now consumes `withKey`, which is the claim tested rather than asserted: the `mounted()` method is gone, `keyed()` is six lines under its v3 name, the component is 83 code lines to 79, and both keyboard specs — the trap and its release on destroy — pass unchanged, because `withKey` defaults to the same document the hand-rolled listener used.
+The ported `Dialog` now consumes `withKey`, which is the claim tested rather than asserted: the `mounted()` method is gone, `keyed()` is six lines under its v3 name, the component is 83 code lines to 79, and both keyboard specs — the trap and its release on unmount — pass unchanged, because `withKey` defaults to the same document the hand-rolled listener used.
 
 `Slider` of v3 (`node_modules/@studiometa/ui/Slider/Slider.js:280-301`) spent about 16 lines on `hasFocus`, `onWrapperFocus`, `onWrapperBlur` and `keyed`, against 6 lines for v4's `onWrapperKeydown`. That saving is real, and it is not a saving against the service: it comes from ref delegation, and a target-scoped `useKey(this.$refs.wrapper)` earns the identical one. v3 needed the focus bookkeeping only because its service was document-only, with no target to scope to.
 
@@ -694,9 +694,9 @@ Two copies of a swap are tolerable. Two copies of the script rule are not, becau
 
 ### Why v4 makes it small
 
-Under v3, each family had to mount the components inside the new markup again and refresh stale refs. v4 removes both jobs, because the registry mounts and destroys on DOM insertion and ejection, and `$refs` read on access. What is left is one mutation plus one script-adoption pass: about forty lines against the two implementations of `@studiometa/ui`, with no `$update()`, no child teardown and no `settle()` helper for the caller.
+Under v3, each family had to mount the components inside the new markup again and refresh stale refs. v4 removes both jobs, because the registry mounts and unmounts on DOM insertion and ejection, and `$refs` read on access. What is left is one mutation plus one script-adoption pass: about forty lines against the two implementations of `@studiometa/ui`, with no `$update()`, no child teardown and no `settle()` helper for the caller.
 
-The browser suite asserts exactly that: components inside swapped-in markup mount, components swapped out are destroyed, and a component that morphdom preserves is neither destroyed nor mounted again — all with the promise of `swap()` as the only synchronisation point.
+The browser suite asserts exactly that: components inside swapped-in markup mount, components swapped out are unmounted, and a component that morphdom preserves is neither unmounted nor mounted again — all with the promise of `swap()` as the only synchronisation point.
 
 ### Why `prepend` and `append` stay in core
 
