@@ -1,10 +1,11 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as subpath from '@studiometa/js-toolkit-v4/test';
 import { Base } from '../Base.js';
+import { warn } from '../diagnostics.js';
 import { getInstances } from '../instances.js';
 import { registerComponent } from '../registry.js';
 import { defaultScheduler } from '../scheduler.js';
-import { frames, mount, resetDom, settle, waitFor } from './index.js';
+import { captureDiagnostics, frames, mount, resetDom, settle, waitFor } from './index.js';
 
 /**
  * The subject writes from a scheduled task rather than from `mounted()`
@@ -27,10 +28,21 @@ class Subject extends Base {
 registerComponent(Subject);
 
 afterEach(resetDom);
+// Restored here rather than inline: `mockRestore()` also clears the call
+// history, so a spy restored before its own assertion always looks unused.
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+/** Silence the default console sink, to prove the channel replaces it. */
+function silenceSink() {
+  return vi.spyOn(console, 'warn').mockImplementation(() => {});
+}
 
 describe('the /test subpath', () => {
-  it('serves these five helpers under the package name, and nothing else', () => {
+  it('serves these six helpers under the package name, and nothing else', () => {
     expect(Object.keys(subpath).sort()).toEqual([
+      'captureDiagnostics',
       'frames',
       'mount',
       'resetDom',
@@ -42,6 +54,7 @@ describe('the /test subpath', () => {
     expect(subpath.frames).toBe(frames);
     expect(subpath.waitFor).toBe(waitFor);
     expect(subpath.resetDom).toBe(resetDom);
+    expect(subpath.captureDiagnostics).toBe(captureDiagnostics);
   });
 });
 
@@ -174,5 +187,59 @@ describe('resetDom()', () => {
 
     expect(document.body.innerHTML).toBe('');
     expect(getInstances('TestHelpersSubject')).toEqual([]);
+  });
+});
+
+describe('captureDiagnostics()', () => {
+  it('collects what the framework reported, and keeps the console quiet', () => {
+    // Spied only to prove the sink never ran; the assertion is on the channel.
+    const sink = silenceSink();
+    const log = captureDiagnostics();
+
+    // A second class under a name already taken is a reported conflict.
+    registerComponent(
+      class extends Base {
+        static config = { name: 'TestHelpersSubject' };
+      },
+    );
+
+    log.stop();
+
+    expect(log.codes).toEqual(['registry.conflict']);
+    expect(log.entries[0]).toMatchObject({
+      severity: 'warning',
+      code: 'registry.conflict',
+      component: 'TestHelpersSubject',
+    });
+    expect(log.entries[0].message).toContain('TestHelpersSubject');
+    expect(sink).not.toHaveBeenCalled();
+  });
+
+  it('scopes to the target it was given', async () => {
+    const sink = silenceSink();
+    const root = await mount('<div id="inside"></div><div id="outside"></div>');
+    const inside = root.querySelector('#inside') as HTMLElement;
+    const outside = root.querySelector('#outside') as HTMLElement;
+    const log = captureDiagnostics(inside);
+
+    warn('ref.mismatch', 'reported on the watched element', { target: inside });
+    warn('ref.mismatch', 'reported elsewhere', { target: outside });
+
+    log.stop();
+
+    expect(log.entries.map((entry) => entry.message)).toEqual(['reported on the watched element']);
+    // The one it did not watch reached its own default sink.
+    expect(sink).toHaveBeenCalledTimes(1);
+  });
+
+  it('stops collecting, and lets the sink run again, once stopped', () => {
+    const sink = silenceSink();
+    const log = captureDiagnostics();
+    log.stop();
+
+    warn('ref.mismatch', 'after stop');
+
+    expect(log.codes).toEqual([]);
+    expect(sink).toHaveBeenCalledTimes(1);
   });
 });

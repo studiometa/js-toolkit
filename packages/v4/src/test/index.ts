@@ -3,17 +3,24 @@
  *
  * Published as `@studiometa/js-toolkit-v4/test`, and deliberately free of any
  * test framework: nothing here imports a runner, an assertion library or a
- * spy. The module reads the DOM and the framework's own scheduler only, so the
- * same helpers work under Vitest, under Playwright and on a plain browser page.
+ * spy. The module reads the DOM, the framework's own scheduler and the
+ * framework's own channels, so the same helpers work under Vitest, under
+ * Playwright and on a plain browser page.
  *
- * What it answers is the one question every test of a component asks and no
- * consumer can derive: *has this component mounted, and has it finished its
- * writes?* Mounting is observer-driven and writes are scheduled in lanes, so
- * the answer is a specific interleaving of timers and scheduler idles rather
- * than a single `await`. {@link settle} is that interleaving, and every other
- * helper is built on it.
+ * The first question every test of a component asks is one no consumer can
+ * derive: *has this component mounted, and has it finished its writes?*
+ * Mounting is observer-driven and writes are scheduled in lanes, so the answer
+ * is a specific interleaving of timers and scheduler idles rather than a single
+ * `await`. {@link settle} is that interleaving, and {@link mount},
+ * {@link waitFor} and {@link resetDom} are built on it.
+ *
+ * The rest answer the questions whose right answer is not the obvious one.
+ * {@link captureDiagnostics} reads the diagnostic channel instead of the
+ * console sink it happens to write to.
  */
 
+import { type ToolkitDiagnosticDetail } from '../diagnostic-contract.js';
+import { EVENTS } from '../events.js';
 import { defaultScheduler, nextFrame } from '../scheduler.js';
 
 /** Options for {@link waitFor}. */
@@ -133,6 +140,71 @@ export async function waitFor<T>(
     await new Promise((resolve) => setTimeout(resolve, 10));
     await defaultScheduler.whenIdle();
   }
+}
+
+/** What {@link captureDiagnostics} hands back. */
+export interface DiagnosticCapture {
+  /** The `code` of every diagnostic seen, in order. */
+  codes: string[];
+  /** The full detail of every diagnostic seen, in the same order. */
+  entries: ToolkitDiagnosticDetail[];
+  /** Detach the listener and let the default sink run again. */
+  stop(): void;
+}
+
+/**
+ * Collect the diagnostics reported while a test runs, and keep them off the
+ * console.
+ *
+ * **Assert on this, not on the console.** A recovered failure is reported on a
+ * cancelable event, and writing to the console is only that event's default
+ * behaviour — one sink among the several a consumer may install. A test that
+ * spies on `console.warn` asserts on the sink: it passes for a diagnostic
+ * carrying the wrong code, it cannot see the component or the severity, and it
+ * breaks when the sink's wording changes. This helper reads the channel
+ * instead, so `codes` is what the framework actually reported.
+ *
+ * Silencing is not a separate step. Each event is cancelled as it arrives,
+ * which is exactly what suppresses the default sink, so the console stays
+ * clean for as long as the capture is open and no spy is needed:
+ *
+ * ```ts
+ * const log = captureDiagnostics();
+ * registerComponent(Duplicate);
+ * expect(log.codes).toContain('registry.conflict');
+ * log.stop();
+ * ```
+ *
+ * `target` defaults to `document`, which sees everything: a diagnostic is
+ * dispatched on the element it concerns when there is one, and it bubbles.
+ * Pass an element to scope the capture to one subtree — but a diagnostic
+ * reported about a detached element is dispatched on `document` instead, so a
+ * scoped capture will not see it.
+ *
+ * `entries` carries the whole detail — `severity`, `code`, `message`, the
+ * `component` name when one reported it, and `error` on an error-severity
+ * entry — for the cases where the code alone is not the assertion.
+ */
+export function captureDiagnostics(target: EventTarget = document): DiagnosticCapture {
+  const codes: string[] = [];
+  const entries: ToolkitDiagnosticDetail[] = [];
+  const listener = (event: Event) => {
+    const { detail } = event as CustomEvent<ToolkitDiagnosticDetail>;
+    codes.push(detail.code);
+    entries.push(detail);
+    // Cancelling is what suppresses the default console sink.
+    event.preventDefault();
+  };
+
+  target.addEventListener(EVENTS.diagnostic, listener);
+
+  return {
+    codes,
+    entries,
+    stop() {
+      target.removeEventListener(EVENTS.diagnostic, listener);
+    },
+  };
 }
 
 /**

@@ -121,6 +121,7 @@ await utils.wait(1);
 // out of the root barrel, and it loads outside a browser: nothing reaches for
 // the DOM until a helper that needs one is called.
 assert.deepEqual(Object.keys(testHelpers).sort(), [
+  'captureDiagnostics',
   'frames',
   'mount',
   'resetDom',
@@ -128,6 +129,7 @@ assert.deepEqual(Object.keys(testHelpers).sort(), [
   'waitFor',
 ]);
 assert.equal(toolkit.waitFor, undefined);
+assert.equal(toolkit.captureDiagnostics, undefined);
 assert.equal(await testHelpers.waitFor(() => 'now'), 'now');
 await assert.rejects(
   testHelpers.waitFor(() => false, { timeout: 0, message: 'never landed' }),
