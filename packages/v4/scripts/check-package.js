@@ -53,15 +53,13 @@ function assertPackageContent(metadata) {
     `Only package.json and built JavaScript, declarations and source maps are allowed:\n${unexpected.join('\n')}`,
   );
 
-  const forbiddenTests = files.filter(
-    (path) =>
-      path.startsWith('dist/test-utils.') ||
-      /\.(?:spec|bench|fixtures)\.(?:js|js\.map|d\.ts)$/.test(path),
+  const forbiddenTests = files.filter((path) =>
+    /\.(?:spec|bench|fixtures)\.(?:js|js\.map|d\.ts)$/.test(path),
   );
   assert.deepEqual(
     forbiddenTests,
     [],
-    `Test utilities, specs, benchmarks and fixtures must not be packed:\n${forbiddenTests.join('\n')}`,
+    `Specs, benchmarks and fixtures must not be packed:\n${forbiddenTests.join('\n')}`,
   );
 
   assert(fileSet.has('dist/index.js'), 'dist/index.js is missing from the package.');
