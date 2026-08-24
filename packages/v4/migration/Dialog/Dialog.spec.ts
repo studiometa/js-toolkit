@@ -127,7 +127,7 @@ describe('Dialog', () => {
     expect(document.activeElement).toBe(first);
   });
 
-  it('releases the keydown listener on destroy', async () => {
+  it('releases the keydown listener on unmount', async () => {
     const el = render({ modal: false, withTransition: false });
     await settle();
     const dialog = getInstance<Dialog>(el, 'Dialog');
@@ -135,7 +135,7 @@ describe('Dialog', () => {
 
     const last = el.querySelector('#last') as HTMLButtonElement;
     last.focus();
-    dialog.$destroy();
+    dialog.$unmount();
 
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', cancelable: true }));
     expect(document.activeElement).toBe(last);
@@ -161,7 +161,7 @@ describe('Dialog — the page scroll', () => {
     expect(document.documentElement.style.overflow).toBe('');
   });
 
-  it('gives the scroll back when a dialog is destroyed while open', async () => {
+  it('gives the scroll back when a dialog is unmounted while open', async () => {
     const el = render({ withTransition: false });
     await settle();
     await getInstance<Dialog>(el, 'Dialog').open();

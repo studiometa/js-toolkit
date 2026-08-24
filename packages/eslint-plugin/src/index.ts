@@ -35,6 +35,7 @@ import {
   preferInstanceScheduler,
   optionDefaultFactory,
   noConflictingNegatedOption,
+  noDestroyLifecycle,
 } from './rules/index.ts';
 
 const PLUGIN_NAME = 'js-toolkit';
@@ -75,6 +76,7 @@ const rules = {
   'prefer-instance-scheduler': preferInstanceScheduler,
   'option-default-factory': optionDefaultFactory,
   'no-conflicting-negated-option': noConflictingNegatedOption,
+  'no-destroy-lifecycle': noDestroyLifecycle,
 };
 
 const recommendedRules: Record<string, string> = {
@@ -124,6 +126,7 @@ const v4Rules: Record<string, unknown> = {
   [`${PLUGIN_NAME}/prefer-instance-scheduler`]: 'warn',
   [`${PLUGIN_NAME}/option-default-factory`]: 'error',
   [`${PLUGIN_NAME}/no-conflicting-negated-option`]: 'error',
+  [`${PLUGIN_NAME}/no-destroy-lifecycle`]: 'error',
   [`${PLUGIN_NAME}/no-deprecated-properties`]: ['error', { version: 'v4' }],
   [`${PLUGIN_NAME}/no-dispatch-event`]: 'warn',
   [`${PLUGIN_NAME}/no-shadow-dom`]: 'error',

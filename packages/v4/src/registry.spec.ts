@@ -27,7 +27,7 @@ describe('registry', () => {
     expect(getInstance(li, 'TodoItem').$isMounted).toBe(true);
   });
 
-  it('destroys on removal and remounts the same instance on re-insertion', async () => {
+  it('unmounts on removal and remounts the same instance on re-insertion', async () => {
     const root = renderTodoList();
     await settle();
 
@@ -204,8 +204,8 @@ describe('registry', () => {
 
     class Before extends Base {
       static config = { name: 'RegistrationBefore' };
-      destroyed(): void {
-        calls.push('before:destroyed');
+      unmounted(): void {
+        calls.push('before:unmounted');
       }
     }
     class After extends Base {
@@ -227,7 +227,7 @@ describe('registry', () => {
     registerComponent(After);
     await settle();
 
-    expect(calls).toEqual(['before:destroyed', 'after:mounted:before=false']);
+    expect(calls).toEqual(['before:unmounted', 'after:mounted:before=false']);
   });
 
   it('registers a subclass under its merged name, not its own static config', async () => {

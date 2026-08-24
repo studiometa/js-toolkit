@@ -121,7 +121,7 @@ export type MixedClass<T extends BaseConstructor, Instance> = Pick<T, keyof T> &
 };
 
 /**
- * Build a lifecycle-bound service mixin. Automatic subscriptions last for one mount cycle. Manual subscriptions also stop on destroy.
+ * Build a lifecycle-bound service mixin. Automatic subscriptions last for one mount cycle. Manual subscriptions also stop on unmount.
  */
 export function createServiceMixin<Instance, Target, Options extends object = object>(
   definition: ServiceMixinDefinition<Target, Options>,
@@ -230,20 +230,20 @@ export function createServiceMixin<Instance, Target, Options extends object = ob
       }
 
       /**
-       * Release before the cycle unwinds, so `destroyed()` sees the same
+       * Release before the cycle unwinds, so `unmounted()` sees the same
        * stopped subscription it saw when the release was a mount cleanup.
        *
        * The stop is unconditional, where it once ran only for a mounted
        * instance and `$terminate()` covered the rest. `$terminate()` is gone
-       * and `$destroy()` is the only teardown there is, so a manual
+       * and `$unmount()` is the only teardown there is, so a manual
        * subscription started outside a mount cycle would otherwise have
        * nothing left to release it. `stop` is bound and idempotent, so an
        * instance which never mounted pays nothing for the call — and it now
        * releases on element removal too, which termination never did.
        */
-      $destroy(): this {
+      $unmount(): this {
         (this as unknown as { $services: Record<string, Toggle> }).$services[hook].stop();
-        return super.$destroy();
+        return super.$unmount();
       }
     };
   }

@@ -39,7 +39,7 @@ export class LazyInclude<T extends BaseProps = BaseProps> extends Base<LazyInclu
    * Whether `terminateOnLoad` has already been honoured.
    *
    * "Do this once per element" is instance state, not a lifecycle decision:
-   * `$destroy()` leaves the instance on its element, so this field survives
+   * `$unmount()` leaves the instance on its element, so this field survives
    * every move, re-insertion and `swap()` which preserves the element — and
    * an element that is genuinely replaced gets a new instance, which is
    * exactly when the content should be fetched again. The option keeps v3's

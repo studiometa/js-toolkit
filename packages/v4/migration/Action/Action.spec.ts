@@ -199,7 +199,7 @@ describe('ActionEvent — target resolution', () => {
     expect(at<Foo>(root, '#late', 'Foo').calls).toHaveLength(1);
   });
 
-  it('stops targeting a component once it is destroyed', async () => {
+  it('stops targeting a component once it is unmounted', async () => {
     const root = await render(`
       <button id="action" data-component="Action" data-on:click="Foo -> target.fn()"></button>
       <div id="foo" data-component="Foo"></div>
@@ -306,7 +306,7 @@ describe('ActionEvent — modifiers', () => {
     expect(foo.calls).toHaveLength(1);
   });
 
-  it('drops a pending debounced effect when the action is destroyed', async () => {
+  it('drops a pending debounced effect when the action is unmounted', async () => {
     const root = await render(`
       <button id="action" data-component="Action"
         data-on:click.debounce50="Foo -> target.fn()"></button>

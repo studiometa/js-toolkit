@@ -64,7 +64,7 @@ export class Sticky<T extends BaseProps = BaseProps> extends withResize(withScro
   /**
    * Every mounted `Sticky` on the page, in DOM order. Replaces v3's
    * `static instances: Set<Sticky>` manually kept in sync from `mounted()`
-   * and `destroyed()` — core's registry already answers this live.
+   * and `unmounted()` — core's registry already answers this live.
    */
   get instances(): Sticky[] {
     return getInstances<Sticky>('Sticky');

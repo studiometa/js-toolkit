@@ -1,6 +1,6 @@
 const component = Object.freeze({
   mounted: 'js-toolkit:component:mounted',
-  destroyed: 'js-toolkit:component:destroyed',
+  unmounted: 'js-toolkit:component:unmounted',
 } as const);
 
 const dom = Object.freeze({

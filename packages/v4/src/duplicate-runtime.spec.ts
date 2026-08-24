@@ -42,9 +42,9 @@ interface FixtureMessage {
       parentMounts: number;
       childMounts: number;
       lazyMounts: number;
-      parentDestroys: number;
-      childDestroys: number;
-      lazyDestroys: number;
+      parentUnmounts: number;
+      childUnmounts: number;
+      lazyUnmounts: number;
       parentFromA: boolean;
       childFromB: boolean;
       lazyFromB: boolean;
@@ -53,7 +53,7 @@ interface FixtureMessage {
           observers: number;
           rootMargin: string | null;
           mounts: number;
-          destroys: number;
+          unmounts: number;
           fromB: boolean;
         };
         lazy: {
@@ -74,7 +74,7 @@ interface FixtureMessage {
         mountsBeforeReplacement: number;
         mountsAfterReplacement: number;
         reconciliations: number;
-        destroys: number;
+        unmounts: number;
       };
     };
     services: {
@@ -228,9 +228,9 @@ describe('duplicated v4 bundles', () => {
       parentMounts: 1,
       childMounts: 1,
       lazyMounts: 1,
-      parentDestroys: 1,
-      childDestroys: 1,
-      lazyDestroys: 1,
+      parentUnmounts: 1,
+      childUnmounts: 1,
+      lazyUnmounts: 1,
       parentFromA: true,
       childFromB: true,
       lazyFromB: true,
@@ -239,7 +239,7 @@ describe('duplicated v4 bundles', () => {
           observers: 1,
           rootMargin: '123px 45px',
           mounts: 1,
-          destroys: 1,
+          unmounts: 1,
           fromB: true,
         },
         lazy: {
@@ -260,7 +260,7 @@ describe('duplicated v4 bundles', () => {
         mountsBeforeReplacement: 0,
         mountsAfterReplacement: 1,
         reconciliations: 1,
-        destroys: 1,
+        unmounts: 1,
       },
     });
     expect(result.services.identity).toEqual({

@@ -227,7 +227,7 @@ describe('AbstractPrefetch — the hint', () => {
     expect(count).toBe(2);
   });
 
-  it('says nothing once the component has been destroyed', async () => {
+  it('says nothing once the component has been unmounted', async () => {
     const href = uniqueHref();
     const root = await render(`<a data-component="AbstractPrefetch" href="${href}"></a>`);
     const instance = getInstance<AbstractPrefetch>(
@@ -329,7 +329,7 @@ describe('PrefetchWhenVisible', () => {
 
   /**
    * `visible` is the one-shot strategy, so the component keeps running after
-   * the link scrolls away instead of being destroyed and rebuilt as v3's
+   * the link scrolls away instead of being unmounted and rebuilt as v3's
    * `withMountWhenInView` does.
    */
   it('stays mounted after the link leaves the viewport', async () => {

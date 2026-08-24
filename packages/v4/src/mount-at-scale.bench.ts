@@ -127,7 +127,7 @@ describe.each(SIZES)(`mount %i flat components, 1 vs ${BATCHES} insertions`, (si
   );
 });
 
-describe.each(SIZES)('destroy %i flat components, one removal', (size) => {
+describe.each(SIZES)('unmount %i flat components, one removal', (size) => {
   const options = samplesFor(size);
   let pool: HTMLElement[] = [];
   let index = 0;

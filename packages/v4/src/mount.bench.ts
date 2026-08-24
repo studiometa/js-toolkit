@@ -104,22 +104,22 @@ function bareElement(): HTMLElement {
   return el;
 }
 
-/** One instance per shape, mounted and destroyed over and over. */
+/** One instance per shape, mounted and unmounted over and over. */
 const panel = new Panel(panelElement());
 const bare = new Bare(bareElement());
 const deep = new DeepPanel(panelElement());
 
-describe('remount: $mount() + $destroy() on one instance', () => {
+describe('remount: $mount() + $unmount() on one instance', () => {
   bench('Panel — 5 handlers, 2 children, 3 refs', () => {
-    globalThis.__benchSink = panel.$mount().$destroy();
+    globalThis.__benchSink = panel.$mount().$unmount();
   });
 
   bench('Bare — 1 handler, nothing declared', () => {
-    globalThis.__benchSink = bare.$mount().$destroy();
+    globalThis.__benchSink = bare.$mount().$unmount();
   });
 
   bench('DeepPanel — 8 handlers, 4 classes deep', () => {
-    globalThis.__benchSink = deep.$mount().$destroy();
+    globalThis.__benchSink = deep.$mount().$unmount();
   });
 });
 
@@ -133,13 +133,13 @@ let live: Base | null = null;
 
 describe('construction + first mount, one instance alive at a time', () => {
   bench('Panel', () => {
-    live?.$destroy();
+    live?.$unmount();
     live = new Panel(nextElement()).$mount();
     globalThis.__benchSink = live;
   });
 
   bench('DeepPanel', () => {
-    live?.$destroy();
+    live?.$unmount();
     live = new DeepPanel(nextElement()).$mount();
     globalThis.__benchSink = live;
   });

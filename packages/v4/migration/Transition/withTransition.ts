@@ -70,7 +70,7 @@ export interface TransitionInterface extends Transitionable {
  * this restores v3's structure to remove.
  *
  * It is not built on `createServiceMixin()` because there is no service and
- * no subscription: nothing to start on mount, nothing to release on destroy.
+ * no subscription: nothing to start on mount, nothing to release on unmount.
  * What it shares with those mixins is the type shape — `MixedClass` — so a
  * consumer threads its own props through exactly as it does for `withResize`:
  * `class Figure<T> extends withTransition(Base)<FigureProps & T>`.

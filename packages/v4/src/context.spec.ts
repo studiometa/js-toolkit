@@ -378,7 +378,7 @@ describe('provide/inject', () => {
       consumer.$inject(Key, { subscribe: true, onProvide: (_value: string) => {} });
     };
     void removedOptionsTypeAssertions;
-    consumer.$destroy();
+    consumer.$unmount();
   });
 
   it('provides the value verbatim, wrapping nothing', async () => {
@@ -472,8 +472,8 @@ describe('provide/inject', () => {
     expect(consumer.$injectSync(Key)).toBe('ready');
   });
 
-  it('leaves no pending request behind when the consumer is destroyed', async () => {
-    const Key = createContext<string>('destroyed-consumer');
+  it('leaves no pending request behind when the consumer is unmounted', async () => {
+    const Key = createContext<string>('unmounted-consumer');
     const received: string[] = [];
 
     class Waiting extends Base {
@@ -493,7 +493,7 @@ describe('provide/inject', () => {
     await settle();
     expect(received).toEqual([]);
 
-    consumer.$destroy();
+    consumer.$unmount();
     const { dispose } = provideContext(host, Key, 'late');
     await settle();
     expect(received).toEqual([]);
@@ -502,7 +502,7 @@ describe('provide/inject', () => {
     await settle();
     expect(received).toEqual(['late']);
 
-    consumer.$destroy();
+    consumer.$unmount();
     dispose();
   });
 

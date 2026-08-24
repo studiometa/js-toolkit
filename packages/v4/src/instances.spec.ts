@@ -62,7 +62,7 @@ describe('getInstances', () => {
     expect(getInstances('TodoCount')).toHaveLength(2);
   });
 
-  it('drops an instance destroyed with its subtree', async () => {
+  it('drops an instance unmounted with its subtree', async () => {
     const root = renderTodoList({ items: ['one', 'two'] });
     await settle();
 
@@ -74,7 +74,7 @@ describe('getInstances', () => {
     detached.append(root);
     await settle();
 
-    // Destroyed instances remain retained but are excluded by `$isMounted`.
+    // Unmounted instances remain retained but are excluded by `$isMounted`.
     expect(instance.$isMounted).toBe(false);
     expect(getInstance(li, 'TodoItem')).toBe(instance);
     expect(detached.querySelectorAll('[data-component~="TodoItem"]')).toHaveLength(2);
@@ -82,13 +82,13 @@ describe('getInstances', () => {
     expect(getInstances('TodoItem')).toEqual([]);
   });
 
-  it('drops a destroyed instance', async () => {
+  it('drops an unmounted instance', async () => {
     const root = renderTodoList({ items: ['one'] });
     await settle();
 
     const li = root.querySelector('[data-component="TodoItem"]') as HTMLElement;
     const instance = getInstance<TodoItem>(li, 'TodoItem');
-    instance.$destroy();
+    instance.$unmount();
 
     expect(instance.$isMounted).toBe(false);
     expect(getInstances('TodoItem')).toEqual([]);
@@ -130,7 +130,7 @@ describe('getInstances on an element', () => {
     await settle();
 
     const li = root.querySelector('[data-component="TodoItem"]') as HTMLElement;
-    getInstance<TodoItem>(li, 'TodoItem').$destroy();
+    getInstance<TodoItem>(li, 'TodoItem').$unmount();
 
     expect(getInstances(li)).toEqual([]);
   });

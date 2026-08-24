@@ -434,7 +434,7 @@ describe('DataBind — the group half', () => {
     expect(out.value).toBe('inner');
   });
 
-  it('leaves and rejoins its group across destroy/mount cycles', async () => {
+  it('leaves and rejoins its group across unmount/mount cycles', async () => {
     const group = uniqueGroup('lifecycle');
     const root = await render(`
       <div id="src" data-component="DataBind" data-option-group="${group}"></div>

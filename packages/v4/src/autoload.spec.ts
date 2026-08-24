@@ -22,14 +22,14 @@ function defineLazy(config: Omit<BaseConfig, 'name'> = {}) {
     static config: BaseConfig = { name, ...config };
 
     mounts = 0;
-    destroys = 0;
+    unmounts = 0;
 
     mounted(): void {
       this.mounts += 1;
     }
 
-    destroyed(): void {
-      this.destroys += 1;
+    unmounted(): void {
+      this.unmounts += 1;
     }
   }
 

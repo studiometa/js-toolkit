@@ -70,15 +70,15 @@ export class AbstractScrollAnimation extends Base<AbstractScrollAnimationProps> 
     this.renderNow(this.progress);
   }
 
-  destroyed(): void {
+  unmounted(): void {
     this.renderNow(Math.round(this.progress));
   }
 
   /**
    * Render outside a `scrolledInView()` pass. Measuring stays in `read` and
    * writing in `write`, and both are instance-owned in either caller:
-   * `$destroy()` cancels the pending tasks *before* it runs the cleanups and
-   * `destroyed()`, so the boundary render this schedules from teardown still
+   * `$unmount()` cancels the pending tasks *before* it runs the cleanups and
+   * `unmounted()`, so the boundary render this schedules from teardown still
    * runs, while the one it schedules from `mounted()` is cancelled if the
    * component goes first.
    */

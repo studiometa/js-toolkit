@@ -28,7 +28,8 @@ export type MenuProps = BaseProps & {
  * replaces v3's `getClosestParent(target, this.constructor)`, since a
  * nested submenu's own button/list would otherwise match too.
  *
- * v3 destroyed itself in `mounted()` when either child was missing; v4
+ * v3 called `$destroy()` on itself in `mounted()` when either child was
+ * missing; v4
  * gives no ordering guarantee for when a child mounts relative to its
  * parent, so `$watchChildren`'s `added` callback — not `mounted()` — is
  * where the button and list are wired up, and a `Menu` with no list is

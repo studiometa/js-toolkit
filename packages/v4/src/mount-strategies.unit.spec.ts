@@ -84,7 +84,7 @@ describe('applyMountStrategy synchronous evaluation', () => {
 
     const applied = applyMountStrategy(document.createElement('div'), 'media:(min-width: 1px)', {
       mount: () => firedAfterReturn.push(returned),
-      destroy() {},
+      unmount() {},
     });
     returned = true;
 
@@ -97,12 +97,12 @@ describe('applyMountStrategy synchronous evaluation', () => {
   it.each(['eager', 'visible', 'idle', 'interaction'] as const)(
     'defers every hook of %j past the call',
     (strategy) => {
-      const hooks = { mount: vi.fn(), destroy: vi.fn() };
+      const hooks = { mount: vi.fn(), unmount: vi.fn() };
 
       const applied = applyMountStrategy(document.createElement('div'), strategy, hooks);
 
       expect(hooks.mount).not.toHaveBeenCalled();
-      expect(hooks.destroy).not.toHaveBeenCalled();
+      expect(hooks.unmount).not.toHaveBeenCalled();
       applied.dispose();
     },
   );
@@ -113,7 +113,7 @@ describe('applyMountStrategy interaction scope', () => {
     for (const strategy of ['interaction', 'interaction:']) {
       const el = document.createElement('div');
       const mount = vi.fn();
-      const applied = applyMountStrategy(el, strategy, { mount, destroy: () => {} });
+      const applied = applyMountStrategy(el, strategy, { mount, unmount: () => {} });
 
       expect(applied.valid).toBe(true);
       el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
@@ -125,7 +125,7 @@ describe('applyMountStrategy interaction scope', () => {
   it('refuses a scope it does not know, naming the one it takes', () => {
     const applied = applyMountStrategy(document.createElement('div'), 'interaction:document', {
       mount: () => {},
-      destroy: () => {},
+      unmount: () => {},
     });
 
     expect(applied.valid).toBe(false);
@@ -153,7 +153,7 @@ describe('applyMountStrategy viewport parameters', () => {
     const calls: string[] = [];
     const applied = applyMountStrategy(el, 'visible:200px 0px', {
       mount: () => calls.push('mount'),
-      destroy: () => calls.push('destroy'),
+      unmount: () => calls.push('unmount'),
     });
     const observer = FakeIntersectionObserver.instances[0];
 
@@ -174,7 +174,7 @@ describe('applyMountStrategy viewport parameters', () => {
     const calls: string[] = [];
     const applied = applyMountStrategy(el, 'in-view:-10% 0px', {
       mount: () => calls.push('mount'),
-      destroy: () => calls.push('destroy'),
+      unmount: () => calls.push('unmount'),
     });
     const observer = FakeIntersectionObserver.instances[0];
 
@@ -183,7 +183,7 @@ describe('applyMountStrategy viewport parameters', () => {
     observer?.deliver(el, true);
     observer?.deliver(el, false);
     observer?.deliver(el, true);
-    expect(calls).toEqual(['mount', 'destroy', 'mount']);
+    expect(calls).toEqual(['mount', 'unmount', 'mount']);
     expect(observer?.disconnects).toBe(0);
 
     applied.dispose();
@@ -194,7 +194,7 @@ describe('applyMountStrategy viewport parameters', () => {
     'treats %s as a viewport strategy without an observer init',
     (strategy) => {
       const el = document.createElement('div');
-      applyMountStrategy(el, strategy, { mount() {}, destroy() {} });
+      applyMountStrategy(el, strategy, { mount() {}, unmount() {} });
 
       expect(FakeIntersectionObserver.instances.at(-1)?.init).toBeUndefined();
     },
@@ -207,7 +207,7 @@ describe('applyMountStrategy viewport parameters', () => {
         throw failure;
       }
     } as unknown as typeof IntersectionObserver;
-    const hooks = { mount: vi.fn(), destroy: vi.fn() };
+    const hooks = { mount: vi.fn(), unmount: vi.fn() };
 
     const applied = applyMountStrategy(
       document.createElement('div'),
@@ -216,7 +216,7 @@ describe('applyMountStrategy viewport parameters', () => {
     );
 
     expect(hooks.mount).not.toHaveBeenCalled();
-    expect(hooks.destroy).not.toHaveBeenCalled();
+    expect(hooks.unmount).not.toHaveBeenCalled();
     expect(applied).toMatchObject({ valid: false, error: failure });
     expect(() => applied.dispose()).not.toThrow();
   });
@@ -224,14 +224,14 @@ describe('applyMountStrategy viewport parameters', () => {
   it.each(['eagre', 'media:', 'media:   '])(
     'rejects invalid strategy %j without mounting it',
     (strategy) => {
-      const hooks = { mount: vi.fn(), destroy: vi.fn() };
+      const hooks = { mount: vi.fn(), unmount: vi.fn() };
 
       const applied = applyMountStrategy(document.createElement('div'), strategy, hooks);
 
       expect(applied.valid).toBe(false);
       expect(applied.error).toBeInstanceOf(TypeError);
       expect(hooks.mount).not.toHaveBeenCalled();
-      expect(hooks.destroy).not.toHaveBeenCalled();
+      expect(hooks.unmount).not.toHaveBeenCalled();
       expect(() => applied.dispose()).not.toThrow();
     },
   );

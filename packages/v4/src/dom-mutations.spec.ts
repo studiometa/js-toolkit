@@ -106,9 +106,9 @@ describe('whenDOMSettled', () => {
     const name = uniqueName('SettledRemoval');
     class Removed extends Base {
       static config = { name };
-      destroys = 0;
-      destroyed(): void {
-        this.destroys += 1;
+      unmounts = 0;
+      unmounted(): void {
+        this.unmounts += 1;
       }
     }
     registerComponent(Removed);
@@ -122,7 +122,7 @@ describe('whenDOMSettled', () => {
     el.remove();
     await whenDOMSettled();
     expect(instance.$isMounted).toBe(false);
-    expect(instance.destroys).toBe(1);
+    expect(instance.unmounts).toBe(1);
   });
 });
 

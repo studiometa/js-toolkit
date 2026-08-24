@@ -130,11 +130,11 @@ describe('Timer', () => {
     expect(events).toEqual(['timer-start', 'timer-end', 'timer-tick', 'timer-start']);
   });
 
-  it('cancels the pending countdown when destroyed', async () => {
+  it('cancels the pending countdown when unmounted', async () => {
     const { el, instance } = await render('data-option-delay="0.02"');
     const events = record(el, 'timer-end');
 
-    instance.$destroy();
+    instance.$unmount();
     await wait(60);
 
     expect(events).toEqual([]);

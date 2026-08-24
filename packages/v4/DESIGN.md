@@ -8,13 +8,13 @@ This file states what v4 does. [RATIONALE.md](./RATIONALE.md) states why, which 
 
 **The registry is the framework. The DOM is the component tree.**
 
-An instance exists because its element is in the document and its class is registered. Nothing else creates or destroys an instance. Parent and child are DOM ancestry only, not ownership. Components find each other through queries and events.
+An instance exists because its element is in the document and its class is registered. Nothing else creates or unmounts an instance. Parent and child are DOM ancestry only, not ownership. Components find each other through queries and events.
 
 Five objectives structure the design:
 
 1. Components are independent.
 2. One registry.
-3. The DOM drives mount and destroy.
+3. The DOM drives mount and unmount.
 4. Parents listen to child events.
 5. Children announce their existence to parents.
 
@@ -38,14 +38,14 @@ Two notions stay separate:
 
 | Notion           | What it is                        | Effect                                                                                                                                     |
 | ---------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| **disconnected** | The element left the document.    | The registry calls `$destroy()`. The instance stays on its element. A re-inserted element mounts the same instance again.                  |
-| **destroy**      | The reversible opposite of mount. | Unbinds the listeners of the cycle, runs the `mounted()` cleanups, cancels the scheduled tasks, calls `destroyed()`, announces the change. |
+| **disconnected** | The element left the document.    | The registry calls `$unmount()`. The instance stays on its element. A re-inserted element mounts the same instance again.                  |
+| **unmount**      | The reversible opposite of mount. | Unbinds the listeners of the cycle, runs the `mounted()` cleanups, cancels the scheduled tasks, calls `unmounted()`, announces the change. |
 
-**`mount` and `destroy` are the whole lifecycle.** There is no third, permanent notion: a component never declares that its work is over, and nothing marks an instance as never mountable again.
+**`mount` and `unmount` are the whole lifecycle.** There is no third, permanent notion: a component never declares that its work is over, and nothing marks an instance as never mountable again.
 
-**A withdrawn declaration is a registry action, not a lifecycle state.** When the element stops declaring the component — the token leaves `data-component`, or a responsive declaration stops matching — the registry destroys the instance and drops it from the element, so declaring the name again builds a new one. That is the registry rearranging its own bookkeeping, and the instance only ever sees `$destroy()`.
+**A withdrawn declaration is a registry action, not a lifecycle state.** When the element stops declaring the component — the token leaves `data-component`, or a responsive declaration stops matching — the registry unmounts the instance and drops it from the element, so declaring the name again builds a new one. That is the registry rearranging its own bookkeeping, and the instance only ever sees `$unmount()`.
 
-So "do this once per element" is **instance state, not a lifecycle decision**. `$destroy()` leaves the instance on its element, so a plain field survives every move, re-insertion and `swap()` that preserves the element:
+So "do this once per element" is **instance state, not a lifecycle decision**. `$unmount()` leaves the instance on its element, so a plain field survives every move, re-insertion and `swap()` that preserves the element:
 
 ```js
 mounted() {
@@ -57,27 +57,27 @@ mounted() {
 
 What a field does not survive is an element that is genuinely **replaced**, which is exactly when the work should run again.
 
-A parent that destroys does not destroy its children.
+Unmounting a parent does not unmount its children.
 
-A move gives one removal record and one addition record. The instance is destroyed and then mounted again. The identity stays the same and the state of the cycle starts again. This is the behaviour of `disconnectedCallback` and `connectedCallback` for custom elements.
+A move gives one removal record and one addition record. The instance is unmounted and then mounted again. The identity stays the same and the state of the cycle starts again. This is the behaviour of `disconnectedCallback` and `connectedCallback` for custom elements.
 
 ### `mounted()` returns its cleanup
 
-`mounted()` can return a function, or an array of functions, sync or async. The functions run on the next `$destroy()`.
+`mounted()` can return a function, or an array of functions, sync or async. The functions run on the next `$unmount()`.
 
 ```js
 class TodoCount extends Base {
   async mounted() {
     const signal = await this.$inject(CountContext);
-    return signal.subscribe((count) => { … }); // released on destroy
+    return signal.subscribe((count) => { … }); // released on unmount
   }
 }
 ```
 
-- If an async `mounted()` resolves after the destroy, the cleanup runs immediately.
-- Cleanups returned by `mounted()` are destroy-scoped. A pending `$inject()` request is destroy-scoped too.
+- If an async `mounted()` resolves after the unmount, the cleanup runs immediately.
+- Cleanups returned by `mounted()` are unmount-scoped. A pending `$inject()` request is unmount-scoped too.
 - Registrations made in the constructor are instance-scoped: `$provide` and `$watchChildren` are never released, and both die with the instance or with its element. A component whose declaration is withdrawn therefore keeps providing context until its element goes.
-- `destroyed()` stays available for the cases that the returned cleanup does not fit.
+- `unmounted()` stays available for the cases that the returned cleanup does not fit.
 
 ### `config.components`
 
@@ -119,7 +119,7 @@ Extend a class that you cannot edit in expression position: `registerComponent(c
 
 ### The typed surface
 
-Every instance has a readonly `$id` with the form `<ComponentName>-<sequence>`. The name comes from the resolved config. The sequence increases once for each constructed instance. The id exists before the field initializers of derived classes run, and it does not change through destroy and mount cycles. Core never copies it to a DOM `id`.
+Every instance has a readonly `$id` with the form `<ComponentName>-<sequence>`. The name comes from the resolved config. The sequence increases once for each constructed instance. The id exists before the field initializers of derived classes run, and it does not change through unmount and mount cycles. Core never copies it to a DOM `id`.
 
 **`$el`, `$id`, `$options` and `$refs` are fixed properties of the instance**, not fields it happens to hold. They are defined non-writable in the constructor, so an assignment throws in a module rather than replacing what every other part of the framework reads: the element the instance is bound to, the id derived from its name, and the two live views over its markup. `readonly` states it for a reader with a build step; the property descriptor states it for everyone else. They stay enumerable, so an instance still reads as one.
 
@@ -211,7 +211,7 @@ optionTargetChanged({ value, previousValue, initial }) {
 
 - The hook runs before `mounted()` on each mount cycle.
 - Several writes in one mutation batch give one change, from the first old raw value to the final DOM value.
-- The previous cleanup runs before an update. Every active cleanup runs on `$destroy()`. A new mount starts each effect again with `initial: true`.
+- The previous cleanup runs before an update. Every active cleanup runs on `$unmount()`. A new mount starts each effect again with `initial: true`.
 - Removal of the attribute applies the declared default.
 - A component without the convention pays no setup cost and reads its options directly.
 
@@ -237,7 +237,7 @@ options: {
 - **The separator is a colon**, because an option name in kebab case can contain a dash.
 - **The value is derived on read.** Nothing is stored and nothing is written. `$options` is read-only.
 - **A crossing reports through `option<Name>Changed()`**, with the payload of an attribute change. A change is a change of the resolved raw value: a crossing to the same resolved value announces nothing, and a write to `data-option-columns:s` while the viewport is at `l` announces nothing.
-- **A `matchMedia` subscription opens only for a component that declares `option<Name>Changed()`.** `$destroy()` releases it. A page that only reads options holds no listener.
+- **A `matchMedia` subscription opens only for a component that declares `option<Name>Changed()`.** `$unmount()` releases it. A page that only reads options holds no listener.
 - `setBreakpoints()` is the single source of breakpoint truth. It rebuilds the scoped attribute names and the slice of them that the observer filters for.
 - The active breakpoint name is memoised for the length of one task, through `utils/memo.js`. `setBreakpoints()` and the `change` handler of a running service clear it at once.
 - The breakpoint service is part of the core graph on every page.
@@ -311,7 +311,7 @@ The plain `data-component` token set is always active. One responsive token set 
 - At the active breakpoint the registry walks from the widest active suffix down and takes the first attribute that is present.
 - That value is the complete responsive set. A wider value replaces every lower value; it does not merge with it. An empty value is a stop: `data-component:s="TabletFeature" data-component:l=""` runs `TabletFeature` at `s` and `m`, and removes it at `l`.
 - The effective declaration is the union of the unconditional set and the selected responsive set, without duplicates.
-- A crossing compares that effective set against the current state of the element. A shared name keeps its controller and its instance. A name that is no longer declared is destroyed and dropped from the element; a crossing back gives a new identity. A new name enters the normal pipeline, so mount strategies, `data-mount`, lazy entries and lifecycle events keep their meaning. An inactive lazy declaration imports nothing.
+- A crossing compares that effective set against the current state of the element. A shared name keeps its controller and its instance. A name that is no longer declared is unmounted and dropped from the element; a crossing back gives a new identity. A new name enters the normal pipeline, so mount strategies, `data-mount`, lazy entries and lifecycle events keep their meaning. An inactive lazy declaration imports nothing.
 - The document observer registers the exact `data-component:<breakpoint>` names and replaces that slice of the filter after `setBreakpoints()`.
 - Connected elements with a scoped declaration share one reference-counted `useBreakpoint()` subscription. A page with plain declarations opens none.
 - Breakpoint work runs through the background lane, so `whenDOMSettled()` includes the teardown, import and mount work of a crossing.
@@ -335,7 +335,7 @@ The accepted values are exactly `eager`, `visible`, `visible:`, `visible:<rootMa
 
 An unknown value, an empty media query, or a `rootMargin` that the browser refuses leaves the component unmounted. The registry dispatches one cancelable `js-toolkit:diagnostic` event with the code `DIAGNOSTICS.component.invalidMountStrategy`, the severity `error`, the name of the component and the original error. Cancellation suppresses the default `reportError()` output only. The inert controller stays current while the declaration does not change, so the registry does not report it again. A corrected attribute replaces that controller. A failed strategy cannot stop the rest of a reconciliation.
 
-- **A strategy constructs nothing.** It decides when the registry calls the mount and destroy hooks. `withMountWhenInView` is deleted.
+- **A strategy constructs nothing.** It decides when the registry calls the mount and unmount hooks. `withMountWhenInView` is deleted.
 - **One-shot and reversible are separate values.** `visible` mounts once and stays. `in-view` mounts and unmounts on each crossing. `mountStrategyBehaviour()` reads those two facts from the grammar.
 - **`interaction` uses intent, on the element**: `pointerenter`, `pointerdown` and `focusin`, bound to the element itself, so the component mounts before the click arrives. Two of the three bubble, so an interaction anywhere inside the component's subtree counts; `pointerenter` fires for the root element only.
 - **`interaction:page` waits for the visit, not for the element.** It is the deferred-widget case — a chat panel, an embed, a third-party script — where nothing about the element predicts the moment, and any sign of a live user does. The events are the deliberate ones: `pointerdown`, `keydown` and `focusin`. Hovering is deliberately not one of them: aiming is intent for one element and noise for a document, and `pointerenter` on the document would fire on the first mouse move of nearly every desktop visit.
@@ -344,7 +344,7 @@ An unknown value, an empty media query, or a `rootMargin` that the browser refus
   - **The signal is a fact about the visit.** An element which arrives after the interaction mounts at once rather than waiting for a second one — but only when the strategy was already listening, since nothing observes a page that has asked for nothing.
 - **Several components on one element share the `data-mount` of that element.** A component that needs its own policy declares it in its config.
 - **A component that waits has no instance.** It is invisible to `$query`, `$closest`, `$watchChildren` and `getInstances()`, and it announces nothing.
-- **Teardown follows the element.** A strategy is disposed when its element leaves the document. A move ends as a destroy and a mount of the same instance.
+- **Teardown follows the element.** A strategy is disposed when its element leaves the document. A move ends as an unmount and a mount of the same instance.
 - **The attribute is live.** A change to `data-mount` disposes the old strategy and applies the final strategy. Controller identity guards a queued callback of a disposed strategy.
 
 See [RATIONALE.md — 2. One registry](./RATIONALE.md#2-one-registry).
@@ -357,13 +357,13 @@ Its `attributeFilter` holds the fixed framework attributes, the exact responsive
 
 The engine snapshots the membership of a removed subtree when the records enter its queue. It processes each batch in a fixed order:
 
-1. destroy removed subtrees and dispose their strategies;
+1. unmount removed subtrees and dispose their strategies;
 2. reconcile the final plain and scoped `data-component` attributes and `data-mount`;
 3. deliver coalesced declared-option changes to the mounted instances that stay;
 4. scan added subtrees once and schedule their registered component tokens;
 5. report coalesced attribute changes to the elements that asked to watch them.
 
-A disconnected element receives `$destroy()` and keeps its instance for a later insertion. Removal of one component token from a connected element — by an attribute change or by a breakpoint crossing — also calls `$destroy()`, and then drops the instance from the element, because the DOM no longer declares that identity. The same token later gives a new instance. A moved node completes a destroy and mount cycle with the same identity.
+A disconnected element receives `$unmount()` and keeps its instance for a later insertion. Removal of one component token from a connected element — by an attribute change or by a breakpoint crossing — also calls `$unmount()`, and then drops the instance from the element, because the DOM no longer declares that identity. The same token later gives a new instance. A moved node completes an unmount and mount cycle with the same identity.
 
 `whenDOMSettled()` is the completion boundary for morphing, fetch updates and breakpoint crossings. It drains the pending records, follows the mutation chains of eager lifecycle work, and resolves after the eager mounts and the teardown. It does not wait for visibility, interaction, idle or media conditions, and it does not await the promises returned by `mounted()`.
 
@@ -490,7 +490,7 @@ class ClickOutside extends Base {
 }
 ```
 
-- **Scope: the mount cycle.** The listener goes in the same `#listeners` array, so `$destroy()` removes it and a new mount binds it again.
+- **Scope: the mount cycle.** The listener goes in the same `#listeners` array, so `$unmount()` removes it and a new mount binds it again.
 - **Phase: bubble, always.** `onDocumentClick` hears what `document.addEventListener('click', …)` hears. To hear an event of a descendant that does not bubble, use `on<Ref><Event>`.
 - **The two prefixes are reserved**, and they match before children and refs. `onWindowResize` binds to `window` even in a component whose `config.components` holds a `Window`. To reach a child with that name, use `@on('Window', 'resize')`. This rule is about method names only. `onClick` and `onDocumentClick` are different names and both can exist on one component; a click on the element fires both.
 - **Payload: `{ event, target }`**, where `target` is the global that the handler names. There is no `payload` and no `index`.
@@ -543,7 +543,7 @@ See [RATIONALE.md — 4. Parents listen to child events](./RATIONALE.md#4-parent
 
 ### Layer 1 — bubbling lifecycle announcements
 
-Every instance dispatches a framework event from `EVENTS.component` on mount and on destroy, with the instance in the payload. The mount event bubbles from the element. The destroy event dispatches from `document`, because the element can already be detached. Any ancestor can follow its descendants with no declaration. An instance that is scheduled but not mounted announces nothing.
+Every instance dispatches a framework event from `EVENTS.component` on mount and on unmount, with the instance in the payload. The mount event bubbles from the element. The unmount event dispatches from `document`, because the element can already be detached. Any ancestor can follow its descendants with no declaration. An instance that is scheduled but not mounted announces nothing.
 
 ### Layer 2 — `$watchChildren()`
 
@@ -563,8 +563,8 @@ class Slider extends Base {
 - The initial sweep is deferred to a microtask, because `$watchChildren` is usually called in a field initializer. The announcement listeners attach at once, so nothing is missed. An internal `Set` removes duplicates.
 - The string overload looks up the exact `config.name`.
 - The constructor overload walks the descendant elements in document order and reads their instance maps. It keeps the instances where `instance instanceof ComponentClass`, excludes the watching instance, and removes duplicates.
-- No global instance registry is added. The subscription stays active through destroy and mount cycles, for the whole life of the watching instance.
-- Destroyed instances announce from `document`, so one lazy, realm-shared listener serves every watcher and the document holds nothing but weak references to them. A listener per watcher would make every watching component immortal, since the document outlives the page's components.
+- No global instance registry is added. The subscription stays active through unmount and mount cycles, for the whole life of the watching instance.
+- Unmounted instances announce from `document`, so one lazy, realm-shared listener serves every watcher and the document holds nothing but weak references to them. A listener per watcher would make every watching component immortal, since the document outlives the page's components.
 
 ### The page-wide lookup — `getInstances()`
 
@@ -577,7 +577,7 @@ getInstances(el); // everything mounted on one element
 It derives the answer from the DOM. It keeps no registry of instances.
 
 - A matching element with no instance is skipped.
-- The filter is `$isMounted`, so a destroyed instance is never returned.
+- The filter is `$isMounted`, so an unmounted instance is never returned.
 - `root` is a `ParentNode` and the call is `querySelectorAll`, so an element root searches its descendants and never matches itself.
 - `selectorFor(name)` on `/utils` is the one place that writes the name-to-selector contract.
 
@@ -610,7 +610,7 @@ api = this.$provide(SliderContext, {
 | `$inject(key)`     | a promise, awaited in `mounted()` | it never settles: a missing provider means "not yet". |
 | `$injectSync(key)` | the value, synchronously          | `undefined`: the caller falls back or does nothing.   |
 
-The pending request of the async form is destroy-scoped. A new mount runs `mounted()` again and asks again. The `@inject` field decorator asks once, at construction; a consumer that can wait through several cycles calls `$inject()` from `mounted()`.
+The pending request of the async form is unmount-scoped. A new mount runs `mounted()` again and asks again. The `@inject` field decorator asks once, at construction; a consumer that can wait through several cycles calls `$inject()` from `mounted()`.
 
 The mechanics follow the WICG context protocol. The consumer dispatches the bubbling, module-private `js-toolkit:context:request` event with a key, a callback and a subscription marker. It is not part of public `EVENTS`. The nearest mounted provider answers. `provideContext()` replays the requests that have no first answer yet. `injectContext()` and `$inject()` are one-shot.
 
@@ -628,7 +628,7 @@ A root provider cannot be disposed and it outlives the instance that asked first
 
 #### `subscribeContext()`
 
-`subscribeContext(el, key, onProvide)` gives the subscription behaviour of the WICG protocol. The required callback runs synchronously for each answer and receives the value and the same unsubscribe function that the helper returns. A component calls it from `mounted()` and returns the unsubscribe function, which gives it a destroy-scoped lifetime.
+`subscribeContext(el, key, onProvide)` gives the subscription behaviour of the WICG protocol. The required callback runs synchronously for each answer and receives the value and the same unsubscribe function that the helper returns. A component calls it from `mounted()` and returns the unsubscribe function, which gives it an unmount-scoped lifetime.
 
 - **The trigger is the mount announcement**, not a broadcast from the provider. The optional `context-subscription.ts` module keeps one listener on the document, attached on the first subscription and never at import time. It runs after `mounted()`.
 - Two `contains()` calls bound the cost per mount: the new provider must contain the consumer, and it must sit inside the provider that answers it now. A mount that changes nothing checks nothing.
@@ -687,7 +687,7 @@ No engine ships stage-3 decorators, so **every decorator is a thin wrapper over 
 | `@on(target, type)` / `@on(type)`   | the `on<Child><Event>` names            | The target is a name or a value.                                               |
 | `@provide(key)` / `@inject(key)`    | `$provide()` / `$inject()`              | The shape of Lit's `@provide` and `@consume`.                                  |
 | `@children(nameOrClass, callbacks)` | `$watchChildren()`                      | Exact name or constructor and subclasses. Callbacks are bound to the instance. |
-| `@read` / `@write`                  | `$read()` / `$write()`                  | Runs the method body in that phase, cancelled on destroy.                      |
+| `@read` / `@write`                  | `$read()` / `$write()`                  | Runs the method body in that phase, cancelled on unmount.                      |
 
 **`@component` and a `static config` on one class merge, and the decorator is applied last.** They merge in a class initializer, which runs after the fields and inside the class definition, so `registerComponent()` on the next line reads the finished config. The rules are the rules of `resolveConfig()`: refs union, `options` and `components` merge entry by entry, a declared value overrides. A key that both sides declare differently is reported as `component.config-conflict`.
 
@@ -698,7 +698,7 @@ No engine ships stage-3 decorators, so **every decorator is a thin wrapper over 
 - **A lazy child needs the string form.** `@on('Child', 'open')` imports nothing. A thunk is not a target; the overloads and the runtime refuse it.
 - **A name is a child or a ref**, resolved children-first, so the handler is typed as `DelegatedEvent` or `RefEvent`.
 - **A ref is named as it is declared**: `@on('dots[]', 'click')` for `config.refs: ['dots[]']`. The rule is one rule: the declaration spelling refers to the entry, and the property spelling is used where a name is derived from it. A mismatched `@on('dots', 'click')` gives a warning at bind time when the other spelling is declared. A name that matches nothing stays silent.
-- **A global target goes through `bindGlobal()`**, the binding that `onWindow<Event>` uses: bubble phase, one listener per mount cycle, removed by `$destroy()`.
+- **A global target goes through `bindGlobal()`**, the binding that `onWindow<Event>` uses: bubble phase, one listener per mount cycle, removed by `$unmount()`.
 - **Any other `EventTarget` is refused**, by the overloads and by a `TypeError`. A decorator is evaluated once, at class definition, so an arbitrary target can only be a module-scope value.
 
 **`@read` and `@write` are leaf-method sugar: the phase belongs to the call site.** A phase decorator returns a wrapper around the method it decorates, and that wrapper is a property of **that class**. A subclass which overrides the method defines its own, undecorated, and `this.method()` resolves to it — so the base's scheduling disappears and the body runs in whatever phase the caller was in. Decorate a method nobody overrides. A **template method** — a base which schedules work its subclasses implement — schedules at the call site instead:
@@ -740,7 +740,7 @@ between frames, on its own turns
 - **No thrashing.** A `read` scheduled from a `write` runs in the next frame. A `write` scheduled from a `read` runs in the same frame.
 - **Bounded phases.** Each queue array is swapped for an empty one when its phase starts, so a task scheduled into the running phase lands in the batch of the next frame. The `write` batch is taken after the reads run.
 - **Task handles.** Scheduling returns a cancelable handle whose promise resolves with the return value of the task: `const box = await scheduler.read(() => el.getBoundingClientRect())`.
-- **Instance ownership.** `this.$read(fn)` and `this.$write(fn)` tie tasks to the instance. Destroy cancels the pending tasks of that instance.
+- **Instance ownership.** `this.$read(fn)` and `this.$write(fn)` tie tasks to the instance. Unmount cancels the pending tasks of that instance.
 - **The background lane runs outside the frame.** It posts its own turns through `scheduler.postTask({ priority: 'background' })`, and falls back to a `MessageChannel` message. Each turn runs a 5 ms slice measured from the start of the drain, then gives the thread back and posts the next turn. Background work alone never requests an animation frame. `whenIdle()` counts background tasks and resolves at the end of a background drain as well as at the end of a flush.
 - **Clamped tick delta.** `TickProps.delta` is clamped to `[1, 40]` ms, and the first tick after the loop wakes reports `1000/60`. `TickProps.time` stays the raw rAF timestamp.
 - **Error isolation.** One try/catch per task. A task that throws is reported and dropped. The flush continues and the scheduler never deadlocks.
@@ -782,8 +782,8 @@ A service is a shared source of props that components subscribe to: `ticked`, `s
 - **One instance per target and per service options**, keyed in a `WeakMap` by `perTarget()`. `useDrag()` keys its axis, inertia, damping and threshold. `useInView()` keys every `IntersectionObserverInit` field and gives object roots a stable weak identity. `useScrollProgress()` keys its resolved offset. Nothing groups observers across targets.
 - **The options are read by meaning, not by spelling.** `perTarget()` sorts object keys at every depth and drops the keys that hold `undefined`. Arrays keep their order. Only what the platform owns needs a `keyOf` of its own: `useInView()` gives its root a weak id, and `useMutation()` keeps `resolveInit()` for the DOM contract.
 - **The options of a mixin are not the options of the service.** `target`, `manual` and `immediate` describe the subscription. They are removed before `use()` is called and they are absent from its `Options` type, so `use: (target, options) => useDrag(target, options)` is correct.
-- **A mixin binds per mount cycle.** `withRaf`, `withScroll`, `withResize`, `withScrollProgress`, `withPointer`, `withDrag`, `withInView`, `withMutation` and `withKey` override `$mount()` and `$destroy()`, subscribe the `ticked`, `scrolled`, `resized`, `scrolledInView`, `moved`, `dragged`, `intersected`, `mutated` or `keyed` method of the component, and return the unsubscribe function as a cleanup. `Base` knows nothing about services. The mixin is the primitive, because it needs no build step; `@withScroll()` is the decorator sugar. `withInView` observes a component that is already mounted; it does not replace the `visible` or `in-view` mount strategy.
-- **A mixin never occupies a lifecycle hook.** `mounted()` and `destroyed()` belong to the component author, so nothing has to be chained: a class which mixes a service in and writes its own `mounted()` without `super.mounted()` still subscribes. The framework's own `$mount()`/`$destroy()` pair carries the subscription instead. The subscription therefore starts once the whole of `mounted()` has run — including an `immediate` first delivery, which reaches a component that is fully set up — and is released before `destroyed()`, exactly where the mount cleanup used to release it. `$destroy()` releases unconditionally, so a manual subscription started outside a mount cycle is released too.
+- **A mixin binds per mount cycle.** `withRaf`, `withScroll`, `withResize`, `withScrollProgress`, `withPointer`, `withDrag`, `withInView`, `withMutation` and `withKey` override `$mount()` and `$unmount()`, subscribe the `ticked`, `scrolled`, `resized`, `scrolledInView`, `moved`, `dragged`, `intersected`, `mutated` or `keyed` method of the component, and return the unsubscribe function as a cleanup. `Base` knows nothing about services. The mixin is the primitive, because it needs no build step; `@withScroll()` is the decorator sugar. `withInView` observes a component that is already mounted; it does not replace the `visible` or `in-view` mount strategy.
+- **A mixin never occupies a lifecycle hook.** `mounted()` and `unmounted()` belong to the component author, so nothing has to be chained: a class which mixes a service in and writes its own `mounted()` without `super.mounted()` still subscribes. The framework's own `$mount()`/`$unmount()` pair carries the subscription instead. The subscription therefore starts once the whole of `mounted()` has run — including an `immediate` first delivery, which reaches a component that is fully set up — and is released before `unmounted()`, exactly where the mount cleanup used to release it. `$unmount()` releases unconditionally, so a manual subscription started outside a mount cycle is released too.
 - **A mixin written outside core still chains.** The rule is about what the mixin overrides, not about who wrote it: a userland mixin which puts its work in `mounted()` needs its subclasses to call `super.mounted()`, and the way not to need that is to override `$mount()`.
 - **One method name per mixin, and it is the name of the service.** There is no `hook` option. Any other target is an explicit subscription in `mounted()`:
 
@@ -884,7 +884,7 @@ lockScroll(target = document.documentElement): () => void
 
 - **It counts.** A modal surface is not alone on a page: a dialog opened from inside a drawer is two holders, and the one which closes first must not put the scroll back under the one still open. The first lock saves the inline value it found, the last release puts exactly that value back, and the ones between only move the count.
 - **The count is shared across evaluated copies of the package**, through the runtime slot `focus` already uses for the same reason: there is one scroll per document.
-- **The release is idempotent**, so a surface calls it on close and again on destroy without counting twice — and a component destroyed while open owes the page its scroll, which is what the second call is for.
+- **The release is idempotent**, so a surface calls it on close and again on unmount without counting twice — and a component unmounted while open owes the page its scroll, which is what the second call is for.
 - **It is `overflow: hidden` and nothing else.** No `paddingRight` compensation: `scrollbar-gutter: stable` is the page's own answer and it does not mis-handle fixed children. iOS Safari remains unreliable, which is the argument for having one function rather than a copy per component.
 - `<dialog>`'s `showModal()` gives the top layer, the backdrop, a focus trap and Escape — it does **not** stop the page behind it scrolling, so a native dialog needs this too.
 
@@ -916,7 +916,7 @@ swap(target, content, { mode, wrap, self }): Promise<void>
 
 - `target` is an element whose **content** changes. By default the element itself is never replaced, so the reference of the caller, its `id` and any instance on it survive.
 - `content` is a markup string, parsed in the parsing context of the target, so `<tr>`, `<li>` and `<option>` survive. It can also be an `Element` or a `DocumentFragment`, read as the incoming counterpart of the target, whose children become the new content.
-- The returned promise resolves after `whenDOMSettled()`, so an awaited `swap()` means that the mutation is applied, the new components are mounted and the old ones are destroyed.
+- The returned promise resolves after `whenDOMSettled()`, so an awaited `swap()` means that the mutation is applied, the new components are mounted and the old ones are unmounted.
 
 `SWAP_MODES` holds four positions — `replace`, `prepend`, `append` and `morph` — as a frozen object with a derived type. `prepend` and `append` stay in core because they need the same before-and-after script diff as the other two.
 

@@ -78,6 +78,7 @@ The same set in `.oxlintrc.json`:
     "js-toolkit/prefer-instance-scheduler": "warn",
     "js-toolkit/option-default-factory": "error",
     "js-toolkit/no-conflicting-negated-option": "error",
+    "js-toolkit/no-destroy-lifecycle": "error",
     "js-toolkit/no-deprecated-properties": ["error", { "version": "v4" }],
     "js-toolkit/no-dispatch-event": "warn",
     "js-toolkit/no-shadow-dom": "error",
@@ -201,6 +202,21 @@ These rules describe v4 only, and ship in `configs.v4` rather than in `configs.r
 | `js-toolkit/option-default-factory`        | Disallows a literal object or array as an option `default` — every instance would share it. Core warns at runtime, but only once a component mounts.                                           | error |         |
 | `js-toolkit/no-conflicting-negated-option` | Disallows declaring both a boolean option `x` and an option named `noX`, which would make `data-option-no-x` mean two things. Core deliberately does not check this on every mount.            | error |         |
 | `js-toolkit/no-deprecated-properties`      | With `{ "version": "v4" }`: reports `$parent`, `$root`, `$children`, `$update`, `$warn`, `$log`, `$terminate`, `$services.enable()`/`.disable()`, `updated()`, `terminated()`, `config.emits`. | error |         |
+| `js-toolkit/no-destroy-lifecycle`          | Renames `$destroy()` to `$unmount()` and the `destroyed()` hook to `unmounted()` — the v4 names. See below.                                                                                    | error | 🔧      |
+
+#### `no-destroy-lifecycle`
+
+v4 has no destroyed state. `$mount()` and `$unmount()` are one boolean with two values, and the method that used to be called `$destroy()` documented itself as the reversible inverse of `$mount()`. `$mount()`/`$unmount()` and `mounted()`/`unmounted()` are symmetric pairs where `$mount()`/`$destroy()` was not. Vue 3 made the same rename to `beforeDestroy`/`destroyed`.
+
+The rename is not an entry in `no-deprecated-properties`, for three reasons. That rule only flags a member expression whose object is `this`, deliberately, so that `someLibrary.$parent` is not noise — but most `$destroy()` calls are `instance.$destroy()`, so folding the rename in would miss the common case, and lifting the guard for one entry would lift it for all of them. That rule is also not fixable and should not become so: `$parent` → `$closest()` is not a safe textual rewrite, while a rename is exactly the case a fixer fits. And the two rules say different things — `no-deprecated-properties` reports v3 names v4 dropped, whereas `$destroy` is v4's own name, renamed while v4 is unreleased.
+
+The two halves are asymmetric, because the two names are.
+
+`$destroy` is flagged on **any** receiver — `this.$destroy()`, `instance.$destroy()`, `super.$destroy()` — and on a `$destroy()` method definition, which is what a service mixin overriding the framework's teardown writes. The `$` prefix is the toolkit's own namespace, and the rule ships in `configs.v4` only; that opt-in is the guard against rewriting an unrelated library's API.
+
+`destroyed` has no prefix to lean on — `emitter.destroyed`, `record.destroyed` and a plain `destroyed` boolean are ordinary code — so that half is narrowed to the two places where it can only be the hook: a non-static `destroyed()` method definition in a class that reads as a v4 component, and a `super.destroyed()` call inside one. A bare `foo.destroyed()` is left alone.
+
+Computed access (`instance['$destroy']()`) is not flagged: it is rare, and the fixer would have to guess the quote style of a string it did not write.
 
 #### `no-write-in-read-phase`
 

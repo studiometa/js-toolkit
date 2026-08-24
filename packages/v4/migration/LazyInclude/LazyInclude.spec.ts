@@ -243,7 +243,7 @@ describe('LazyInclude', () => {
   });
 
   /**
-   * A v4 move is a destroy plus a mount, and `mounted()` is where the request
+   * A v4 move is an unmount plus a mount, and `mounted()` is where the request
    * lives, so the one-shot side effect repeats. v3 mounts once per instance
    * and does not. This is the cost, asserted rather than hidden.
    */

@@ -33,3 +33,4 @@ export { noOptionsAssignment } from './no-options-assignment.ts';
 export { preferInstanceScheduler } from './prefer-instance-scheduler.ts';
 export { optionDefaultFactory } from './option-default-factory.ts';
 export { noConflictingNegatedOption } from './no-conflicting-negated-option.ts';
+export { noDestroyLifecycle } from './no-destroy-lifecycle.ts';

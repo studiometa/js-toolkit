@@ -57,7 +57,7 @@ describe('$id', () => {
     const id = instance.$id;
 
     expect(instance.initializedWith).toBe(id);
-    instance.$mount().$destroy().$mount();
+    instance.$mount().$unmount().$mount();
     expect(instance.$id).toBe(id);
   });
 });
@@ -495,7 +495,7 @@ describe('$options', () => {
       };
 
       optionValueChanged({ initial }: OptionChange<number>) {
-        return initial ? () => this.$destroy() : undefined;
+        return initial ? () => this.$unmount() : undefined;
       }
     }
 
@@ -637,7 +637,7 @@ describe('$refs', () => {
 
     void instance.$refs.dots;
     void instance.$refs.dots;
-    instance.$destroy().$mount();
+    instance.$unmount().$mount();
     void instance.$refs.dots;
     expect(warn).toHaveBeenCalledOnce();
 
@@ -994,7 +994,7 @@ describe('onWindow<Event> / onDocument<Event> handlers', () => {
   it('scopes the listeners to the mount cycle', () => {
     const { outside, instance } = render();
 
-    instance.$destroy();
+    instance.$unmount();
     window.dispatchEvent(new Event('resize'));
     outside.click();
     expect(instance.resized).toHaveLength(0);
@@ -1101,7 +1101,7 @@ describe('the per-class handler plan', () => {
   it('rebinds every kind of handler on a remount', () => {
     const { el, instance, item } = render('remount');
 
-    instance.$destroy();
+    instance.$unmount();
     buttons(el)[0].click();
     buttons(el)[1].click();
     item.pick();
@@ -1369,7 +1369,7 @@ describe('$watchChildren', () => {
     expect(added.at(-1)).toBe(late);
     expect(collection.items).toEqual([alpha, late, beta, family, gamma]);
 
-    beta.$destroy();
+    beta.$unmount();
     expect(removed).toEqual([beta]);
     expect(collection.items).toEqual([alpha, late, family, gamma]);
 
@@ -1378,11 +1378,11 @@ describe('$watchChildren', () => {
     expect(collection.items).toEqual([alpha, late, beta, family, gamma]);
 
     // The collection belongs to the instance, not to a mount cycle, so it
-    // keeps adopting and dropping children while its owner is destroyed.
-    owner.$destroy();
-    const afterDestroy = new Gamma(root.appendChild(document.createElement('div'))).$mount();
-    expect(collection.items).toContain(afterDestroy);
-    alpha.$destroy();
+    // keeps adopting and dropping children while its owner is unmounted.
+    owner.$unmount();
+    const afterUnmount = new Gamma(root.appendChild(document.createElement('div'))).$mount();
+    expect(collection.items).toContain(afterUnmount);
+    alpha.$unmount();
     expect(collection.items).not.toContain(alpha);
   });
 
@@ -1423,16 +1423,16 @@ describe('$watchChildren', () => {
     expect(collection.items).toEqual([exact, lateExact]);
   });
 
-  it('does not announce or retain a child destroyed from mounted()', async () => {
+  it('does not announce or retain a child unmounted from mounted()', async () => {
     class Child extends Base {
-      static config = { name: 'WatchSelfDestroyingChild' };
+      static config = { name: 'WatchSelfUnmountingChild' };
 
       mounted(): void {
-        this.$destroy();
+        this.$unmount();
       }
     }
     class Owner extends Base {
-      static config = { name: 'WatchSelfDestroyingOwner' };
+      static config = { name: 'WatchSelfUnmountingOwner' };
     }
 
     const root = document.createElement('div');
@@ -1457,7 +1457,7 @@ describe('$watchChildren', () => {
       new CustomEvent(EVENTS.component.mounted, { bubbles: true, detail: { instance: child } }),
     );
     expect(collection.size).toBe(0);
-    owner.$destroy();
+    owner.$unmount();
   });
 
   it('serves every watcher from one shared document listener', async () => {
@@ -1491,7 +1491,7 @@ describe('$watchChildren', () => {
     await settle();
   });
 
-  it('removes a destroyed child from every watcher of it', async () => {
+  it('removes an unmounted child from every watcher of it', async () => {
     class Child extends Base {
       static config = { name: 'WatchFanoutChild' };
     }
@@ -1512,7 +1512,7 @@ describe('$watchChildren', () => {
     expect(firstCollection.items).toEqual([child]);
     expect(secondCollection.items).toEqual([child]);
 
-    child.$destroy();
+    child.$unmount();
 
     expect(firstCollection.size).toBe(0);
     expect(secondCollection.size).toBe(0);
@@ -1583,9 +1583,9 @@ describe('lifecycle', () => {
     expect(mountedEvents).toBe(2);
   });
 
-  it('reports cleanup and destroyed failures without stopping teardown', () => {
+  it('reports cleanup and unmounted failures without stopping teardown', () => {
     const cleanupFailure = new Error('cleanup failure');
-    const destroyedFailure = new Error('destroyed failure');
+    const unmountedFailure = new Error('unmounted failure');
     const events: CustomEvent<ToolkitDiagnosticDetail>[] = [];
 
     class TeardownFailure extends Base {
@@ -1597,8 +1597,8 @@ describe('lifecycle', () => {
         };
       }
 
-      destroyed(): void {
-        throw destroyedFailure;
+      unmounted(): void {
+        throw unmountedFailure;
       }
     }
 
@@ -1610,21 +1610,21 @@ describe('lifecycle', () => {
     });
     const instance = new TeardownFailure(el).$mount();
 
-    instance.$destroy();
+    instance.$unmount();
 
-    expect(events.map((event) => event.detail.error)).toEqual([cleanupFailure, destroyedFailure]);
+    expect(events.map((event) => event.detail.error)).toEqual([cleanupFailure, unmountedFailure]);
     expect(
       events.every((event) => event.detail.code === DIAGNOSTICS.component.lifecycleFailed),
     ).toBe(true);
     expect(events.every((event) => event.detail.component === 'TeardownFailure')).toBe(true);
     expect(events.every((event) => event.defaultPrevented)).toBe(true);
     expect(instance.$isMounted).toBe(false);
-    // Destroy is reversible, so the instance stays on its element for a later
+    // Unmount is reversible, so the instance stays on its element for a later
     // mount even when both its hooks threw.
     expect(el[INSTANCES]?.get('TeardownFailure')).toBe(instance);
   });
 
-  it('runs the mounted() cleanup on destroy', async () => {
+  it('runs the mounted() cleanup on unmount', async () => {
     const root = renderTodoList();
     await settle();
 
@@ -1640,7 +1640,7 @@ describe('lifecycle', () => {
     expect(countInstance.$isMounted).toBe(false);
   });
 
-  it('makes destroy the reversible inverse of mount, as many times as asked', async () => {
+  it('makes unmount the reversible inverse of mount, as many times as asked', async () => {
     const calls: string[] = [];
 
     class Tracked extends Base {
@@ -1649,8 +1649,8 @@ describe('lifecycle', () => {
         calls.push('mounted');
         return () => calls.push('cleanup');
       }
-      destroyed(): void {
-        calls.push('destroyed');
+      unmounted(): void {
+        calls.push('unmounted');
       }
     }
 
@@ -1659,18 +1659,18 @@ describe('lifecycle', () => {
     const instance = new Tracked(el);
 
     instance.$mount();
-    instance.$destroy();
-    expect(calls).toEqual(['mounted', 'cleanup', 'destroyed']);
+    instance.$unmount();
+    expect(calls).toEqual(['mounted', 'cleanup', 'unmounted']);
 
     instance.$mount();
     expect(instance.$isMounted).toBe(true);
     expect(el[INSTANCES]?.get('Tracked')).toBe(instance);
 
-    // Mount and destroy are the whole lifecycle: neither is one-way, and the
+    // Mount and unmount are the whole lifecycle: neither is one-way, and the
     // instance stays on its element between them, which is what lets a moved
     // or re-inserted element keep its identity.
-    instance.$destroy();
-    expect(calls).toEqual(['mounted', 'cleanup', 'destroyed', 'mounted', 'cleanup', 'destroyed']);
+    instance.$unmount();
+    expect(calls).toEqual(['mounted', 'cleanup', 'unmounted', 'mounted', 'cleanup', 'unmounted']);
     expect(el[INSTANCES]?.get('Tracked')).toBe(instance);
 
     instance.$mount();
@@ -1689,21 +1689,21 @@ describe('lifecycle', () => {
           this.$write(() => ran.push('cleanup'));
         };
       }
-      destroyed(): void {
-        this.$write(() => ran.push('destroyed'));
+      unmounted(): void {
+        this.$write(() => ran.push('unmounted'));
       }
     }
 
     const el = document.createElement('div');
     document.body.append(el);
     const instance = new Resetting(el).$mount();
-    instance.$destroy();
+    instance.$unmount();
 
     await settle();
-    expect(ran).toEqual(['cleanup', 'destroyed']);
+    expect(ran).toEqual(['cleanup', 'unmounted']);
   });
 
-  it('runs a cleanup resolved after destroy immediately', async () => {
+  it('runs a cleanup resolved after unmount immediately', async () => {
     let cleaned = false;
 
     class Slow extends Base {
@@ -1719,7 +1719,7 @@ describe('lifecycle', () => {
     const el = document.createElement('div');
     document.body.append(el);
     const instance = new Slow(el).$mount();
-    instance.$destroy();
+    instance.$unmount();
 
     await new Promise((resolve) => setTimeout(resolve, 60));
     expect(cleaned).toBe(true);
@@ -1744,7 +1744,7 @@ describe('lifecycle', () => {
     const el = document.createElement('div');
     document.body.append(el);
     const instance = new Cycled(el).$mount();
-    instance.$destroy();
+    instance.$unmount();
     instance.$mount();
 
     resolvers[0]([Promise.resolve([() => calls.push('cleanup:1')])]);
@@ -1756,7 +1756,7 @@ describe('lifecycle', () => {
     resolvers[1]([() => calls.push('cleanup:2')]);
     await settle();
     expect(calls).toEqual(['cleanup:1']);
-    instance.$destroy();
+    instance.$unmount();
     expect(calls).toEqual(['cleanup:1', 'cleanup:2']);
   });
 });

@@ -82,17 +82,17 @@ const COPY_B_KEY = Symbol.for('@studiometa/js-toolkit-v4/test/copy-b');
 async function run(copyA, copyB) {
   try {
     let parentMounts = 0;
-    let parentDestroys = 0;
+    let parentUnmounts = 0;
     let childMounts = 0;
-    let childDestroys = 0;
+    let childUnmounts = 0;
     let lazyMounts = 0;
-    let lazyDestroys = 0;
+    let lazyUnmounts = 0;
     let viewportMounts = 0;
-    let viewportDestroys = 0;
+    let viewportUnmounts = 0;
     let viewportLazyImports = 0;
     let viewportLazyMounts = 0;
     let responsiveMounts = 0;
-    let responsiveDestroys = 0;
+    let responsiveUnmounts = 0;
 
     class SharedChild extends copyB.Base {
       static config = { name: 'RuntimeFixtureChild' };
@@ -101,8 +101,8 @@ async function run(copyA, copyB) {
         childMounts += 1;
       }
 
-      destroyed() {
-        childDestroys += 1;
+      unmounted() {
+        childUnmounts += 1;
       }
     }
 
@@ -116,8 +116,8 @@ async function run(copyA, copyB) {
         parentMounts += 1;
       }
 
-      destroyed() {
-        parentDestroys += 1;
+      unmounted() {
+        parentUnmounts += 1;
       }
     }
 
@@ -128,8 +128,8 @@ async function run(copyA, copyB) {
         lazyMounts += 1;
       }
 
-      destroyed() {
-        lazyDestroys += 1;
+      unmounted() {
+        lazyUnmounts += 1;
       }
     }
 
@@ -143,8 +143,8 @@ async function run(copyA, copyB) {
         viewportMounts += 1;
       }
 
-      destroyed() {
-        viewportDestroys += 1;
+      unmounted() {
+        viewportUnmounts += 1;
       }
     }
 
@@ -166,8 +166,8 @@ async function run(copyA, copyB) {
         responsiveMounts += 1;
       }
 
-      destroyed() {
-        responsiveDestroys += 1;
+      unmounted() {
+        responsiveUnmounts += 1;
       }
     }
 
@@ -280,7 +280,7 @@ async function run(copyA, copyB) {
           observers: directViewportObservers.length,
           rootMargin: directViewportObservers[0]?.options?.rootMargin ?? null,
           mounts: viewportMounts,
-          destroys: viewportDestroys,
+          unmounts: viewportUnmounts,
           fromB: viewport[INSTANCES]?.get('RuntimeFixtureViewport') instanceof SharedViewport,
         },
         lazy: {
@@ -297,7 +297,7 @@ async function run(copyA, copyB) {
 
     const sameEventValues =
       copyA.EVENTS.component.mounted === copyB.EVENTS.component.mounted &&
-      copyA.EVENTS.component.destroyed === copyB.EVENTS.component.destroyed &&
+      copyA.EVENTS.component.unmounted === copyB.EVENTS.component.unmounted &&
       copyA.EVENTS.dom.update === copyB.EVENTS.dom.update &&
       copyA.EVENTS.diagnostic === copyB.EVENTS.diagnostic;
 
@@ -740,7 +740,7 @@ async function run(copyA, copyB) {
     sharedInViewRoot.remove();
     otherTarget.remove();
     contextScope.remove();
-    decorated.$destroy();
+    decorated.$unmount();
     await Promise.all([copyA.whenDOMSettled(), copyB.whenDOMSettled()]);
     copyA.setBreakpoints(copyA.BREAKPOINTS);
     await Promise.all([copyA.whenDOMSettled(), copyB.whenDOMSettled()]);
@@ -767,9 +767,9 @@ async function run(copyA, copyB) {
         registry: {
           observers: registryObservers,
           ...registryResult,
-          parentDestroys,
-          childDestroys,
-          lazyDestroys,
+          parentUnmounts,
+          childUnmounts,
+          lazyUnmounts,
         },
         breakpoints: {
           sameService: sameBreakpointService,
@@ -780,7 +780,7 @@ async function run(copyA, copyB) {
             mountsBeforeReplacement,
             mountsAfterReplacement: responsiveMounts,
             reconciliations: responsiveReconciliations,
-            destroys: responsiveDestroys,
+            unmounts: responsiveUnmounts,
           },
         },
         services: {

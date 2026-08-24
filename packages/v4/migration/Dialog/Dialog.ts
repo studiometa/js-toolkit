@@ -41,7 +41,7 @@ export class Dialog extends withKey(Base)<DialogProps> {
    * A field rather than a style write, because the page scroll is shared: a
    * dialog opened from inside a drawer must not put the scroll back when it
    * closes while the drawer is still open. It is released on close and again
-   * on destroy — the release is idempotent, and a dialog destroyed while open
+   * on unmount — the release is idempotent, and a dialog unmounted while open
    * used to leak its lock for the life of the page.
    */
   #releaseScroll: (() => void) | null = null;
@@ -114,8 +114,8 @@ export class Dialog extends withKey(Base)<DialogProps> {
     this.#releaseScroll = null;
   }
 
-  /** A dialog destroyed while open still owes the page its scroll. */
-  destroyed(): void {
+  /** A dialog unmounted while open still owes the page its scroll. */
+  unmounted(): void {
     this.#releaseScroll?.();
     this.#releaseScroll = null;
   }

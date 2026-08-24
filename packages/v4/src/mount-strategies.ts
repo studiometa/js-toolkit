@@ -40,7 +40,7 @@ const PAGE_INTENT_EVENTS = ['pointerdown', 'keydown', 'focusin'] as const;
 
 export interface MountStrategyHooks {
   mount: () => void;
-  destroy: () => void;
+  unmount: () => void;
 }
 
 export type AppliedMountStrategy =
@@ -211,7 +211,7 @@ function whenPageInteracted(mount: () => void): AppliedMountStrategy {
 export function applyMountStrategy(
   el: HTMLElement,
   strategy: string,
-  { mount, destroy }: MountStrategyHooks,
+  { mount, unmount }: MountStrategyHooks,
 ): AppliedMountStrategy {
   const parsed = parseMountStrategy(strategy);
 
@@ -231,7 +231,7 @@ export function applyMountStrategy(
               }
               mount();
             } else if (parsed.reversible) {
-              destroy();
+              unmount();
             }
           }
         },
@@ -279,7 +279,7 @@ export function applyMountStrategy(
 
   if (parsed.kind === 'media') {
     const query = matchMedia(parsed.query);
-    const sync = () => (query.matches ? mount() : destroy());
+    const sync = () => (query.matches ? mount() : unmount());
     query.addEventListener('change', sync);
     // The first evaluation is not deferred: a matching query mounts before
     // this call returns, so a caller cannot assume it holds the teardown

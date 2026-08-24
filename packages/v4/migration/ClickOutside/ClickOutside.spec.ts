@@ -81,10 +81,10 @@ describe('ClickOutside', () => {
     expect(dropdown.closed[0].payload.event.type).toBe('click');
   });
 
-  it('stops listening once destroyed, and listens again on remount', async () => {
+  it('stops listening once unmounted, and listens again on remount', async () => {
     const { outside, instance, events } = await render();
 
-    instance.$destroy();
+    instance.$unmount();
     outside.click();
     expect(events).toHaveLength(0);
 

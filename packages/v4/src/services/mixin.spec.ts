@@ -35,14 +35,14 @@ class Ticker extends withRaf(Base) {
 }
 
 describe('service mixins', () => {
-  it('subscribes on mount and unsubscribes on destroy, once per cycle', async () => {
+  it('subscribes on mount and unsubscribes on unmount, once per cycle', async () => {
     const instance = new Ticker(render()).$mount();
 
     await frames(3);
     expect(instance.ticks).toBeGreaterThan(0);
     expect(instance.rendered).toBeGreaterThan(0);
 
-    instance.$destroy();
+    instance.$unmount();
     const frozen = instance.ticks;
     await frames(3);
     expect(instance.ticks).toBe(frozen);
@@ -55,7 +55,7 @@ describe('service mixins', () => {
     await frames(4);
     expect(instance.ticks - before).toBeLessThanOrEqual(5);
 
-    instance.$destroy();
+    instance.$unmount();
   });
 
   it('subscribes for a component whose `mounted()` does not chain `super`', async () => {
@@ -82,12 +82,12 @@ describe('service mixins', () => {
     expect(instance.mountedRan).toBe(true);
     expect(instance.ticks).toBeGreaterThan(0);
 
-    instance.$destroy();
+    instance.$unmount();
     const frozen = instance.ticks;
     await frames(3);
     expect(instance.ticks).toBe(frozen);
 
-    instance.$destroy();
+    instance.$unmount();
   });
 
   it('starts the subscription once the whole `mounted()` has run', async () => {
@@ -114,7 +114,7 @@ describe('service mixins', () => {
     // an `immediate` service would otherwise interrupt.
     expect(order).toEqual(['mounted:false', 'ticked']);
 
-    instance.$destroy();
+    instance.$unmount();
   });
 
   it('subscribes for a component whose `mounted()` threw, as its handlers stay bound', async () => {
@@ -160,7 +160,7 @@ describe('service mixins', () => {
     expect(instance.clicks).toBe(1);
     expect(instance.ticks).toBeGreaterThan(0);
 
-    instance.$destroy();
+    instance.$unmount();
   });
 
   it('follows the registry: an element leaving the DOM leaves no subscription', async () => {
@@ -208,8 +208,8 @@ describe('service mixins', () => {
     expect(eager).toHaveLength(1);
     expect(eager[0].y).toBe(window.scrollY);
 
-    quietInstance.$destroy();
-    eagerInstance.$destroy();
+    quietInstance.$unmount();
+    eagerInstance.$unmount();
   });
 
   it('gives each hook the props of its own service', async () => {
@@ -228,7 +228,7 @@ describe('service mixins', () => {
 
     expect(sizes.at(-1)?.width).toBe(window.innerWidth);
     expect(sizes.at(-1)?.ratio).toBe(window.innerWidth / window.innerHeight);
-    instance.$destroy();
+    instance.$unmount();
   });
 
   it('drags the component root element by default', () => {
@@ -248,7 +248,7 @@ describe('service mixins', () => {
     el.dispatchEvent(new PointerEvent('pointerdown', { button: 0, buttons: 1, bubbles: true }));
     expect(modes).toEqual(['start']);
 
-    instance.$destroy();
+    instance.$unmount();
     el.dispatchEvent(new PointerEvent('pointerdown', { button: 0, buttons: 1, bubbles: true }));
     expect(modes).toEqual(['start']);
   });
@@ -289,7 +289,7 @@ describe('service mixins', () => {
     expect(dragged.distanceY).toBe(0);
     expect(seen.map(({ mode }) => mode)).toEqual(['start', 'drag', 'drop', 'stop']);
 
-    instance.$destroy();
+    instance.$unmount();
     expect(el.style.touchAction).toBe('');
   });
 
@@ -318,7 +318,7 @@ describe('service mixins', () => {
     expect(seen).toHaveLength(1);
     expect(seen[0]).toBe(shared.props());
 
-    instance.$destroy();
+    instance.$unmount();
   });
 
   it('subscribes nothing when the component declares no hook', () => {
@@ -330,7 +330,7 @@ describe('service mixins', () => {
     const instance = new Quiet(el).$mount();
     expect(() => {
       el.dispatchEvent(new PointerEvent('pointerdown', { button: 0, buttons: 1, bubbles: true }));
-      instance.$destroy();
+      instance.$unmount();
     }).not.toThrow();
   });
 
@@ -358,7 +358,7 @@ describe('service mixins', () => {
     handle.dispatchEvent(new PointerEvent('pointerdown', { button: 0, buttons: 1, bubbles: true }));
     expect(modes).toEqual(['start']);
 
-    instance.$destroy();
+    instance.$unmount();
   });
 
   it('stacks with another service, and takes a second target by hand', async () => {
@@ -399,7 +399,7 @@ describe('service mixins', () => {
     expect(instance.inner).toEqual([120]);
     expect(instance.page).toEqual([]);
 
-    instance.$destroy();
+    instance.$unmount();
     scroller.scrollTop = 240;
     scroller.dispatchEvent(new Event('scroll'));
     await settle();
@@ -444,7 +444,7 @@ describe('service mixins', () => {
     expect(calls).toContain('mounted');
     expect(calls).toContain('ticked');
 
-    sync.$destroy();
+    sync.$unmount();
     expect(calls).toContain('cleanup');
     const ticked = calls.filter((call) => call === 'ticked').length;
     await frames(3);
@@ -455,7 +455,7 @@ describe('service mixins', () => {
     expect(calls).toContain('async mounted');
     expect(async.ticks).toBeGreaterThan(0);
 
-    async.$destroy();
+    async.$unmount();
     await settle();
     expect(calls).toContain('async cleanup');
     const frozen = async.ticks;
@@ -499,7 +499,7 @@ describe('a resolver which comes back with nothing', () => {
     // Nothing subscribed, so the handle must say so too.
     expect(instance.$services.resized.isActive).toBe(false);
 
-    instance.$destroy();
+    instance.$unmount();
   });
 
   it('leaves a service whose own target is nothing alone', () => {
@@ -513,7 +513,7 @@ describe('a resolver which comes back with nothing', () => {
     // `withRaf` resolves no target by design, and that is the contract rather
     // than a mistake — only a caller's resolver can be wrong.
     // No settle: `Ticker` is registered by an earlier spec, and the registry
-    // destroys an instance whose element carries no matching token — which is
+    // unmounts an instance whose element carries no matching token — which is
     // correct, and would take this instance with it.
     const instance = new Ticker(render()).$mount();
     document.removeEventListener('js-toolkit:diagnostic', onDiagnostic);
@@ -523,7 +523,7 @@ describe('a resolver which comes back with nothing', () => {
     // contract rather than a mistake.
     expect(instance.$services.ticked.isActive).toBe(true);
 
-    instance.$destroy();
+    instance.$unmount();
   });
 });
 
@@ -544,7 +544,7 @@ describe('a manual hook', () => {
 
     expect(instance.ticks).toBe(0);
     expect(instance.$services.ticked.isActive).toBe(false);
-    instance.$destroy();
+    instance.$unmount();
   });
 
   it('runs while the component wants it, and not after', async () => {
@@ -560,7 +560,7 @@ describe('a manual hook', () => {
     await frames(3);
     expect(instance.ticks).toBe(whileRunning);
     expect(instance.$services.ticked.isActive).toBe(false);
-    instance.$destroy();
+    instance.$unmount();
   });
 
   it('genuinely stops the frame loop, not just the callback', async () => {
@@ -573,7 +573,7 @@ describe('a manual hook', () => {
     const framesRequested = await countRequestedFrames(() => frames(4));
 
     expect(framesRequested).toBe(4);
-    instance.$destroy();
+    instance.$unmount();
   });
 
   it('start() is idempotent, so one stop() is enough', async () => {
@@ -588,7 +588,7 @@ describe('a manual hook', () => {
     await frames(3);
 
     expect(instance.ticks).toBe(atStop);
-    instance.$destroy();
+    instance.$unmount();
   });
 
   it('is released by the mount cycle whichever side started it', async () => {
@@ -596,20 +596,20 @@ describe('a manual hook', () => {
     instance.$services.ticked.start();
     await frames(2);
 
-    instance.$destroy();
+    instance.$unmount();
     expect(instance.$services.ticked.isActive).toBe(false);
-    const atDestroy = instance.ticks;
+    const atUnmount = instance.ticks;
     await frames(3);
-    expect(instance.ticks).toBe(atDestroy);
-    instance.$destroy();
+    expect(instance.ticks).toBe(atUnmount);
+    instance.$unmount();
   });
 
-  it('releases a hook started before the first mount, on destroy', () => {
+  it('releases a hook started before the first mount, on unmount', () => {
     const instance = new Settler(render());
     instance.$services.ticked.start();
     expect(instance.$services.ticked.isActive).toBe(true);
 
-    instance.$destroy();
+    instance.$unmount();
     expect(instance.$services.ticked.isActive).toBe(false);
   });
 
@@ -636,7 +636,7 @@ describe('a manual hook', () => {
     expect(instance.ticks).toBeGreaterThan(0);
     expect(instance.$services.ticked.isActive).toBe(true);
     expect(instance.$services.scrolled.isActive).toBe(false);
-    instance.$destroy();
+    instance.$unmount();
   });
 });
 
@@ -657,7 +657,7 @@ describe('service decorators', () => {
     await frames(3);
     expect(instance.ticks).toBeGreaterThan(0);
 
-    instance.$destroy();
+    instance.$unmount();
     const frozen = instance.ticks;
     await frames(3);
     expect(instance.ticks).toBe(frozen);
@@ -692,6 +692,6 @@ describe('service decorators', () => {
 
     expect(instance.inner).toEqual([60]);
     expect(instance.ticks).toBeGreaterThan(0);
-    instance.$destroy();
+    instance.$unmount();
   });
 });

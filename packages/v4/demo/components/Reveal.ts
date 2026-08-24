@@ -2,7 +2,7 @@ import { Base } from '../../src/index.js';
 
 /**
  * Demo for the `in-view` mount strategy: each pass through the viewport is
- * one full mount/destroy cycle, so the `mounted()` returned cleanup runs
+ * one full mount/unmount cycle, so the `mounted()` returned cleanup runs
  * every time the element leaves the screen.
  *
  * The strategy is declared in the config, and any element may override it
@@ -20,7 +20,7 @@ export class Reveal extends Base {
     this.$el.textContent = `mounted — cycle ${this.cycles}`;
     return () => {
       this.$el.classList.remove('is-mounted');
-      this.$el.textContent = `destroyed — mounted ${this.cycles}× so far`;
+      this.$el.textContent = `unmounted — mounted ${this.cycles}× so far`;
     };
   }
 }

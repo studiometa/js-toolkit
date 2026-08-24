@@ -54,7 +54,7 @@ describe('toggle', () => {
     await frames(3);
     expect(instance.ticks).toBeGreaterThan(frozen);
 
-    instance.$destroy();
+    instance.$unmount();
   });
 
   it('cannot subscribe twice, whatever the number of starts', async () => {
@@ -74,7 +74,7 @@ describe('toggle', () => {
     await frames(3);
     expect(instance.ticks).toBe(counted);
 
-    instance.$destroy();
+    instance.$unmount();
   });
 
   it('is released with the mount cycle when mounted() hands back its stop', async () => {
@@ -83,13 +83,13 @@ describe('toggle', () => {
     await frames(2);
     expect(instance.ticks).toBeGreaterThan(0);
 
-    instance.$destroy();
+    instance.$unmount();
     expect(instance.frame.isActive).toBe(false);
     const frozen = instance.ticks;
     await frames(3);
     expect(instance.ticks).toBe(frozen);
 
-    instance.$destroy();
+    instance.$unmount();
   });
 
   it('stops the frame loop when nothing else needs it', async () => {
@@ -119,7 +119,7 @@ describe('toggle', () => {
       expect(calls).toBe(stopped);
       expect(instance.ticks).toBe(ticks);
 
-      instance.$destroy();
+      instance.$unmount();
     } finally {
       globalThis.requestAnimationFrame = original;
     }

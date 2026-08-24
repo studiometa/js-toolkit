@@ -144,7 +144,7 @@ describe('Draggable — geometry', () => {
 
   /**
    * The bounds are a per-mount-cycle memo, not a per-instance one: a v4 move
-   * is a destroy plus a mount, and the geometry it lands in is a different
+   * is an unmount plus a mount, and the geometry it lands in is a different
    * one. v3 memoises for the instance's whole life, and no resize event
    * describes a target that changed size on its own.
    */

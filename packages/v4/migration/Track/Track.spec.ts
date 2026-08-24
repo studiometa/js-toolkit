@@ -251,7 +251,7 @@ describe('Track — the `mounted` pseudo-event', () => {
     expect(pushes()).toHaveLength(1);
   });
 
-  it('does not dispatch when the component is destroyed before the deferred task runs', async () => {
+  it('does not dispatch when the component is unmounted before the deferred task runs', async () => {
     const root = document.createElement('div');
     root.innerHTML = `<div data-component="Track" data-track:mounted='{"event": "page_view"}'></div>`;
     document.body.append(root);
@@ -383,7 +383,7 @@ describe('Track — the `view` pseudo-event', () => {
     await observed();
 
     const track = getInstance(el, 'Track');
-    track.$destroy();
+    track.$unmount();
     el.setAttribute('style', ONSCREEN);
     await observed();
 
@@ -393,7 +393,7 @@ describe('Track — the `view` pseudo-event', () => {
 });
 
 describe('Track — lifecycle', () => {
-  it('stops dispatching a `.capture` binding after destroy and resumes on remount', async () => {
+  it('stops dispatching a `.capture` binding after unmount and resumes on remount', async () => {
     const root = await render(
       `<div data-component="Track" data-track:click.capture='{"event": "cta"}'></div>`,
     );
@@ -403,7 +403,7 @@ describe('Track — lifecycle', () => {
     el.click();
     expect(pushes()).toHaveLength(1);
 
-    track.$destroy();
+    track.$unmount();
     el.click();
     expect(pushes()).toHaveLength(1);
 
@@ -412,7 +412,7 @@ describe('Track — lifecycle', () => {
     expect(pushes()).toHaveLength(2);
   });
 
-  it('cancels a pending debounced dispatch on destroy, even after a remount', async () => {
+  it('cancels a pending debounced dispatch on unmount, even after a remount', async () => {
     const root = await render(
       `<div data-component="Track" data-track:input.debounce50='{"event": "search"}'></div>`,
     );
@@ -420,7 +420,7 @@ describe('Track — lifecycle', () => {
     const track = getInstance(el, 'Track');
 
     el.dispatchEvent(new Event('input'));
-    track.$destroy();
+    track.$unmount();
     track.$mount();
 
     await wait(150);
@@ -434,7 +434,7 @@ describe('Track — lifecycle', () => {
     const el = root.firstElementChild as HTMLElement;
     const track = getInstance(el, 'Track');
 
-    track.$destroy();
+    track.$unmount();
     el.setAttribute('data-track:click', '{"event": "after"}');
     track.$mount();
     el.click();
@@ -508,7 +508,7 @@ describe('Track — live rebinding through watchAttributes', () => {
     const el = root.firstElementChild as HTMLElement;
     const track = getInstance(el, 'Track');
 
-    track.$destroy();
+    track.$unmount();
     el.setAttribute('data-track:click', '{"event": "ignored"}');
     await settle();
     el.click();
@@ -611,7 +611,7 @@ describe('the intersection service under load', () => {
     expect(secondRatio).toBeGreaterThan(0);
   });
 
-  it('disconnects every observer once the components are destroyed', async () => {
+  it('disconnects every observer once the components are unmounted', async () => {
     const markup = Array.from(
       { length: CARDS },
       (_, index) =>
