@@ -9,12 +9,11 @@ import {
   signal,
   type Signal,
 } from './context.js';
-import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
-import { EVENTS } from './events.js';
+import { DIAGNOSTICS } from './diagnostic-contract.js';
 import { getInstance } from './instances.js';
 import { registerComponent } from './registry.js';
 import { renderTodoList } from './todo.fixtures.js';
-import { resetDom, settle } from './test/index.js';
+import { captureDiagnostics, resetDom, settle } from './test/index.js';
 
 afterEach(resetDom);
 
@@ -60,15 +59,7 @@ describe('Signal', () => {
   it('returns a usable unsubscribe after an immediate subscriber failure', () => {
     const cell = signal(0);
     const failure = new Error('immediate signal failure');
-    const diagnostics: ToolkitDiagnosticDetail[] = [];
-    document.addEventListener(
-      EVENTS.diagnostic,
-      (event) => {
-        event.preventDefault();
-        diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
-      },
-      { once: true },
-    );
+    const log = captureDiagnostics();
 
     const unsubscribe = cell.subscribe(
       () => {
@@ -82,7 +73,7 @@ describe('Signal', () => {
     cell.value = 1;
 
     expect(seen).toEqual([1]);
-    expect(diagnostics).toEqual([
+    expect(log.entries).toEqual([
       {
         severity: 'error',
         code: DIAGNOSTICS.callback.signalFailed,
@@ -90,17 +81,13 @@ describe('Signal', () => {
         error: failure,
       },
     ]);
+    log.stop();
   });
 
   it('isolates update failures without staling a reentrant delivery round', () => {
     const cell = signal(0);
     const failure = new Error('signal update failure');
-    const diagnostics: ToolkitDiagnosticDetail[] = [];
-    const listener = (event: Event) => {
-      event.preventDefault();
-      diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
-    };
-    document.addEventListener(EVENTS.diagnostic, listener);
+    const log = captureDiagnostics();
     const broken: number[] = [];
     const later: number[] = [];
     cell.subscribe((value) => {
@@ -113,15 +100,15 @@ describe('Signal', () => {
     cell.subscribe((value) => later.push(value));
 
     cell.value = 1;
-    document.removeEventListener(EVENTS.diagnostic, listener);
+    log.stop();
 
     expect(cell.value).toBe(2);
     expect(broken).toEqual([1, 2]);
     expect(later).toEqual([2]);
-    expect(diagnostics).toHaveLength(2);
-    expect(diagnostics.every(({ code }) => code === DIAGNOSTICS.callback.signalFailed)).toBe(true);
+    expect(log.entries).toHaveLength(2);
+    expect(log.entries.every(({ code }) => code === DIAGNOSTICS.callback.signalFailed)).toBe(true);
     expect(
-      diagnostics.every((detail) => detail.severity === 'error' && detail.error === failure),
+      log.entries.every((detail) => detail.severity === 'error' && detail.error === failure),
     ).toBe(true);
   });
 

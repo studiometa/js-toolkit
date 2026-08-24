@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it } from 'vitest';
 import { Base } from '../Base.js';
 import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from '../diagnostic-contract.js';
-import { EVENTS } from '../events.js';
 import {
   useMutation,
   withMutation,
@@ -11,6 +10,7 @@ import {
 } from './mutation.js';
 import type { Service } from './service.js';
 import type { Toggle } from './toggle.js';
+import { captureDiagnostics } from '../test/index.js';
 
 interface Observation {
   target: Node;
@@ -94,19 +94,15 @@ function recordFor(target: Node, type: MutationRecordType = 'childList'): Mutati
   };
 }
 
+/** {@link captureDiagnostics} bounded to one synchronous call. */
 function catchDiagnostics(run: () => void): ToolkitDiagnosticDetail[] {
-  const diagnostics: ToolkitDiagnosticDetail[] = [];
-  const onDiagnostic = (event: Event) => {
-    event.preventDefault();
-    diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
-  };
-  document.addEventListener(EVENTS.diagnostic, onDiagnostic);
+  const log = captureDiagnostics();
   try {
     run();
   } finally {
-    document.removeEventListener(EVENTS.diagnostic, onDiagnostic);
+    log.stop();
   }
-  return diagnostics;
+  return log.entries;
 }
 
 function readonlyAssertions(props: MutationProps): void {

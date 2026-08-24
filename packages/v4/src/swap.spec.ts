@@ -1,11 +1,10 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { Base } from './Base.js';
-import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
-import { EVENTS } from './events.js';
+import { DIAGNOSTICS } from './diagnostic-contract.js';
 import { getInstance } from './instances.js';
 import { registerComponent } from './registry.js';
 import { SWAP_MODES, swap } from './swap.js';
-import { resetDom } from './test/index.js';
+import { captureDiagnostics, resetDom } from './test/index.js';
 
 let counter = 0;
 
@@ -315,16 +314,6 @@ describe('swap — the wrap seam', () => {
   });
 });
 
-/** Collect diagnostic codes until the returned cleanup runs. */
-function captureDiagnostics(): { codes: string[]; release: () => void } {
-  const codes: string[] = [];
-  const listener = (event: Event) => {
-    codes.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail.code);
-  };
-  document.addEventListener(EVENTS.diagnostic, listener);
-  return { codes, release: () => document.removeEventListener(EVENTS.diagnostic, listener) };
-}
-
 describe('swap — replacing the target itself', () => {
   it('replaces the target element, attributes included', async () => {
     const parent = target('<div id="here" class="old" data-keep="yes"><p>old</p></div>');
@@ -397,10 +386,10 @@ describe('swap — replacing the target itself', () => {
   it('warns and keeps its meaning when a mode adds to the children', async () => {
     const parent = target('<div id="here"><p>old</p></div>');
     const el = parent.firstElementChild as HTMLElement;
-    const { codes, release } = captureDiagnostics();
+    const { codes, stop } = captureDiagnostics();
 
     await swap(el, '<p>new</p>', { mode: SWAP_MODES.APPEND, self: true });
-    release();
+    stop();
 
     expect(codes).toEqual([DIAGNOSTICS.swap.selfIgnored]);
     expect(el.isConnected).toBe(true);
@@ -410,10 +399,10 @@ describe('swap — replacing the target itself', () => {
   it('warns when the content holds no element to replace the target with', async () => {
     const parent = target('<div id="here"><p>old</p></div>');
     const el = parent.firstElementChild as HTMLElement;
-    const { codes, release } = captureDiagnostics();
+    const { codes, stop } = captureDiagnostics();
 
     await swap(el, 'text only', { self: true });
-    release();
+    stop();
 
     expect(codes).toEqual([DIAGNOSTICS.swap.selfIgnored]);
     expect(el.isConnected).toBe(true);

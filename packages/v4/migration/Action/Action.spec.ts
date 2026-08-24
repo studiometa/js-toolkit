@@ -7,7 +7,7 @@ import {
   SWAP_MODES,
   type BaseConfig,
 } from '../../src/index.js';
-import { mount, resetDom, settle } from '../../src/test/index.js';
+import { captureDiagnostics, mount, resetDom, settle } from '../../src/test/index.js';
 import { Dialog } from '../Dialog/Dialog.js';
 import { Action } from './Action.js';
 import { ActionEvent } from './ActionEvent.js';
@@ -464,27 +464,22 @@ describe('Action — the component', () => {
     const root = await mount(`
       <div id="action" data-component="Action" data-on:click="() => consol.log()"></div>
     `);
-    const details: Array<Record<string, unknown>> = [];
-    // Canceling suppresses the default sink, so the failure does not reach
-    // `reportError()` and fail the run.
-    const listener = (event: Event) => {
-      details.push((event as CustomEvent<Record<string, unknown>>).detail);
-      event.preventDefault();
-    };
-    document.addEventListener('js-toolkit:diagnostic', listener);
+    // The capture cancels every event, which suppresses the default sink, so
+    // the failure never reaches `reportError()` and fails the run.
+    const log = captureDiagnostics();
 
     click(root.querySelector('#action') as Element);
 
-    expect(details).toHaveLength(1);
-    expect(details[0]).toMatchObject({
+    expect(log.entries).toHaveLength(1);
+    expect(log.entries[0]).toMatchObject({
       severity: 'error',
       code: 'action.effect-failed',
       component: 'Action',
     });
     // The cause survives, which a bare `console.warn` never carried.
-    expect(details[0].error).toBeInstanceOf(Error);
+    expect(log.entries[0].error).toBeInstanceOf(Error);
 
-    document.removeEventListener('js-toolkit:diagnostic', listener);
+    log.stop();
   });
 });
 

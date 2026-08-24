@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { FRAMEWORK_ATTRIBUTES } from './attributes.js';
 import { Base, type BaseConfig, type OptionChange } from './Base.js';
-import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from './diagnostic-contract.js';
+import { DIAGNOSTICS } from './diagnostic-contract.js';
 import {
   isObservedDOMAttribute,
   registerDOMOptionAttributes,
@@ -11,11 +11,10 @@ import {
   whenDOMSettled,
   type AttributeChange,
 } from './dom-mutations.js';
-import { EVENTS } from './events.js';
 import { getInstance } from './instances.js';
 import { registerComponent } from './registry.js';
 import { SWAP_MODES, swap } from './swap.js';
-import { resetDom } from './test/index.js';
+import { captureDiagnostics, resetDom } from './test/index.js';
 
 let counter = 0;
 
@@ -229,11 +228,7 @@ describe('watchAttributes', () => {
     const el = document.createElement('div');
     document.body.append(el);
     const failure = new Error('watcher failure');
-    const diagnostics: ToolkitDiagnosticDetail[] = [];
-    el.addEventListener(EVENTS.diagnostic, (event) => {
-      event.preventDefault();
-      diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
-    });
+    const log = captureDiagnostics(el);
     const changes: AttributeChange[] = [];
     trackedWatcher(el, () => {
       throw failure;
@@ -243,7 +238,7 @@ describe('watchAttributes', () => {
     el.setAttribute(VIRTUAL_ATTRIBUTE, 'open()');
     await whenDOMSettled();
 
-    expect(diagnostics).toEqual([
+    expect(log.entries).toEqual([
       {
         severity: 'error',
         code: DIAGNOSTICS.callback.attributeWatcherFailed,
@@ -252,6 +247,7 @@ describe('watchAttributes', () => {
       },
     ]);
     expect(changes).toEqual([{ name: VIRTUAL_ATTRIBUTE, value: 'open()', previousValue: null }]);
+    log.stop();
   });
 
   it('delivers after declared options in the same mutation batch', async () => {
