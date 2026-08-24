@@ -169,7 +169,6 @@ describe('registry', () => {
 
   it('preserves a valid pre-existing instance when its registry mount fails', async () => {
     const failure = new Error('mount failed');
-    const diagnostics: ToolkitDiagnosticDetail[] = [];
 
     class Existing extends Base {
       static config = { name: 'ExistingMountFailure' };
@@ -182,22 +181,20 @@ describe('registry', () => {
     registerComponent(Existing);
     const el = document.createElement('div');
     const instance = new Existing(el);
-    el.addEventListener(EVENTS.diagnostic, (event) => {
-      event.preventDefault();
-      diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
-    });
+    const log = captureDiagnostics(el);
     el.setAttribute('data-component', 'ExistingMountFailure');
     document.body.append(el);
     await settle();
 
     expect(getInstance(el, 'ExistingMountFailure')).toBe(instance);
-    expect(diagnostics).toHaveLength(1);
-    expect(diagnostics[0]).toMatchObject({
+    expect(log.entries).toHaveLength(1);
+    expect(log.entries[0]).toMatchObject({
       severity: 'error',
       code: DIAGNOSTICS.component.mountFailed,
       error: failure,
       component: 'ExistingMountFailure',
     });
+    log.stop();
   });
 
   it('processes a pending token replacement before mounting a newly registered class', async () => {

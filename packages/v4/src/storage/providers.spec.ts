@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DIAGNOSTICS, type ToolkitDiagnosticDetail } from '../diagnostic-contract.js';
-import { EVENTS } from '../events.js';
 import {
   createUrlSearchParamsInHashProvider,
   createUrlSearchParamsProvider,
@@ -9,21 +8,17 @@ import {
   urlSearchParamsInHashProvider,
   urlSearchParamsProvider,
 } from './providers.js';
+import { captureDiagnostics } from '../test/index.js';
 
-/** Collect diagnostics dispatched while `during` runs, and silence the default sink. */
-function captureDiagnostics(during: () => void): ToolkitDiagnosticDetail[] {
-  const seen: ToolkitDiagnosticDetail[] = [];
-  const listener = (event: Event) => {
-    seen.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
-    event.preventDefault();
-  };
-  document.addEventListener(EVENTS.diagnostic, listener);
+/** {@link captureDiagnostics} bounded to one synchronous call. */
+function catchDiagnostics(during: () => void): ToolkitDiagnosticDetail[] {
+  const log = captureDiagnostics();
   try {
     during();
   } finally {
-    document.removeEventListener(EVENTS.diagnostic, listener);
+    log.stop();
   }
-  return seen;
+  return log.entries;
 }
 
 /**
@@ -88,7 +83,7 @@ describe.each(webStorages)('the $name provider', ({ name, provider }) => {
       throw quotaExceeded;
     });
 
-    const diagnostics = captureDiagnostics(() => {
+    const diagnostics = catchDiagnostics(() => {
       expect(() => provider.set('theme', 'dark')).not.toThrow();
     });
 
@@ -103,7 +98,7 @@ describe.each(webStorages)('the $name provider', ({ name, provider }) => {
     const results: unknown[] = [];
 
     try {
-      const diagnostics = captureDiagnostics(() => {
+      const diagnostics = catchDiagnostics(() => {
         expect(() => {
           results.push(provider.get('theme'));
           results.push(provider.has('theme'));

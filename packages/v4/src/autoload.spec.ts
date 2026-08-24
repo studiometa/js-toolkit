@@ -227,19 +227,16 @@ describe('the strategy that triggers the import', () => {
   // is that nothing is downloaded for a trigger which never fires.
   it('imports nothing for an invalid trigger, and imports when data-mount is corrected', async () => {
     const { name, load, importCount } = defineLazy();
-    const diagnostics: ToolkitDiagnosticDetail[] = [];
     const el = render(name, { 'data-mount': 'eagre' });
-    el.addEventListener(EVENTS.diagnostic, (event) => {
-      event.preventDefault();
-      diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
-    });
+    const log = captureDiagnostics(el);
     registerManifest({ [name]: load });
-    await waitFor(() => diagnostics.length > 0);
+    await waitFor(() => log.entries.length > 0);
 
     expect(importCount()).toBe(0);
     expect(getInstance(el, name)).toBeUndefined();
-    expect(diagnostics).toHaveLength(1);
-    expect(diagnostics[0].code).toBe(DIAGNOSTICS.component.invalidMountStrategy);
+    expect(log.entries).toHaveLength(1);
+    expect(log.entries[0].code).toBe(DIAGNOSTICS.component.invalidMountStrategy);
+    log.stop();
 
     el.setAttribute('data-mount', 'eager');
     await settle();
@@ -448,20 +445,15 @@ describe('registerManifest collisions and failures', () => {
   it('reports a module which resolves to no component class', async () => {
     counter += 1;
     const name = `Empty${counter}`;
-    const diagnostics: ToolkitDiagnosticDetail[] = [];
-    const onDiagnostic = (event: Event) => {
-      event.preventDefault();
-      diagnostics.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
-    };
-    document.addEventListener(EVENTS.diagnostic, onDiagnostic);
+    const log = captureDiagnostics();
 
     registerManifest({ [name]: async () => ({ notAClass: 42 }) });
     render(name);
     await settle();
-    document.removeEventListener(EVENTS.diagnostic, onDiagnostic);
+    log.stop();
 
-    expect(diagnostics).toHaveLength(1);
-    expect(diagnostics[0]).toMatchObject({
+    expect(log.entries).toHaveLength(1);
+    expect(log.entries[0]).toMatchObject({
       severity: 'error',
       code: DIAGNOSTICS.component.loadFailed,
       component: name,

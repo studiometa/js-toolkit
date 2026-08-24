@@ -463,7 +463,6 @@ describe('$options', () => {
     const calls: string[] = [];
     const cleanupFailure = new Error('expected cleanup failure');
     const handlerFailure = new Error('expected handler failure');
-    const events: CustomEvent<ToolkitDiagnosticDetail>[] = [];
 
     class ResilientOptions extends Base {
       static config = {
@@ -501,10 +500,7 @@ describe('$options', () => {
       registerComponent(ReentrantOption);
       const resilient = document.createElement('div');
       resilient.setAttribute('data-component', 'ResilientOptions');
-      resilient.addEventListener(EVENTS.diagnostic, (event) => {
-        event.preventDefault();
-        events.push(event as CustomEvent<ToolkitDiagnosticDetail>);
-      });
+      const log = captureDiagnostics(resilient);
       const reentrant = document.createElement('div');
       reentrant.setAttribute('data-component', 'ReentrantOption');
       document.body.append(resilient, reentrant);
@@ -516,11 +512,12 @@ describe('$options', () => {
       await settle();
 
       expect(calls).toEqual(['second:0', 'second:2']);
-      expect(events.map((event) => event.detail.error)).toEqual([cleanupFailure, handlerFailure]);
+      expect(log.entries.map(({ error }) => error)).toEqual([cleanupFailure, handlerFailure]);
       expect(
-        events.every((event) => event.detail.code === DIAGNOSTICS.component.lifecycleFailed),
+        log.entries.every(({ code }) => code === DIAGNOSTICS.component.lifecycleFailed),
       ).toBe(true);
-      expect(events.every((event) => event.detail.component === 'ResilientOptions')).toBe(true);
+      expect(log.entries.every(({ component }) => component === 'ResilientOptions')).toBe(true);
+      log.stop();
       expect(getInstance<ReentrantOption>(reentrant, 'ReentrantOption')!.$isMounted).toBe(false);
     } finally {
       document.querySelectorAll('[data-component="ResilientOptions"]').forEach((el) => el.remove());

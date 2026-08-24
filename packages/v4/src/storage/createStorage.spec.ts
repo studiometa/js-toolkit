@@ -2,24 +2,21 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ToolkitDiagnosticDetail } from '../diagnostic-contract.js';
 import { createStorage } from './createStorage.js';
 import { createFallbackProvider, createMemoryStorageProvider } from './providers.js';
+import { captureDiagnostics } from '../test/index.js';
 import type { StorageProvider } from './types.js';
 
 /** Collect diagnostics dispatched while `during` runs, and silence the default sink. */
-async function captureDiagnostics(
+/** {@link captureDiagnostics} bounded to one awaited call. */
+async function catchDiagnostics(
   during: () => Promise<void> | void,
 ): Promise<ToolkitDiagnosticDetail[]> {
-  const seen: ToolkitDiagnosticDetail[] = [];
-  const listener = (event: Event) => {
-    seen.push((event as CustomEvent<ToolkitDiagnosticDetail>).detail);
-    event.preventDefault();
-  };
-  document.addEventListener('js-toolkit:diagnostic', listener);
+  const log = captureDiagnostics();
   try {
     await during();
   } finally {
-    document.removeEventListener('js-toolkit:diagnostic', listener);
+    log.stop();
   }
-  return seen;
+  return log.entries;
 }
 
 describe('createStorage', () => {
@@ -106,7 +103,7 @@ describe('createStorage', () => {
     });
     const unsubscribe = storage.subscribe('theme', (value) => seen.push(value));
 
-    const diagnostics = await captureDiagnostics(() => storage.set('theme', 'dark'));
+    const diagnostics = await catchDiagnostics(() => storage.set('theme', 'dark'));
 
     expect(seen).toEqual(['dark']);
     expect(diagnostics.map((detail) => detail.code)).toEqual(['callback.signal-failed']);
@@ -120,7 +117,7 @@ describe('createStorage', () => {
     const storage = createStorage<{ theme: string }>({ provider });
 
     let value: string | undefined;
-    const diagnostics = await captureDiagnostics(() => {
+    const diagnostics = await catchDiagnostics(() => {
       value = storage.get('theme', 'light');
     });
 
@@ -134,7 +131,7 @@ describe('createStorage', () => {
     const circular: Record<string, unknown> = {};
     circular.self = circular;
 
-    const diagnostics = await captureDiagnostics(() => storage.set('loop', circular));
+    const diagnostics = await catchDiagnostics(() => storage.set('loop', circular));
 
     expect(diagnostics.map((detail) => detail.code)).toEqual(['storage.serialize-failed']);
     expect(provider.has('loop')).toBe(false);
