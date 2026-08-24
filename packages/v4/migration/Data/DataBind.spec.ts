@@ -49,6 +49,14 @@ registerComponents(
 
 afterEach(resetDom);
 
+/**
+ * Isolate tests from one another. The registry that survives `resetDom()` here
+ * is the page-wide `DataRegistry` — the one `resolveDataRegistry()` provides on
+ * the root context — and its group records keep their values and their latest
+ * payload after the elements are gone. `resetRegistry()` clears the *component*
+ * registry and does not touch it, so a unique group name per test is what keeps
+ * these apart.
+ */
 let counter = 0;
 function uniqueGroup(name: string): string {
   counter += 1;
