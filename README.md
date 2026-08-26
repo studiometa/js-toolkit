@@ -10,6 +10,13 @@
 
 This is the monorepo for `@studiometa/js-toolkit` and its companion packages.
 
+> [!IMPORTANT]
+> **This is the `3.x` maintenance branch.** It carries the 3.x line: the `latest` release on npm, the documentation served at [js-toolkit.studiometa.dev](https://js-toolkit.studiometa.dev) and the fixes that ship from here as 3.x releases.
+>
+> v4 development happens on [`main`](https://github.com/studiometa/js-toolkit/tree/main), and is published under the same name from the `next` dist-tag. Its documentation is at [js-toolkit-v4.studiometa.dev](https://js-toolkit-v4.studiometa.dev).
+>
+> Open a fix for the 3.x line against this branch. Open anything about v4 against `main`.
+
 ## What is it?
 
 The toolkit lets you write components as classes and bind them to the DOM with `data-…` attributes. A component declares the elements it needs, and the framework mounts it wherever it appears in the page.

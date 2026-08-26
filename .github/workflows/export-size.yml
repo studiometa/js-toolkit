@@ -3,7 +3,7 @@ name: export-size
 on:
   pull_request:
     branches:
-      - main
+      - 3.x
     paths:
       - 'packages/js-toolkit/**'
       - 'packages/v4/**'

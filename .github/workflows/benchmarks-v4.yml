@@ -17,7 +17,7 @@ name: benchmarks-v4
 on:
   pull_request:
     branches:
-      - main
+      - 3.x
     paths:
       - 'packages/v4/**'
       - 'package-lock.json'

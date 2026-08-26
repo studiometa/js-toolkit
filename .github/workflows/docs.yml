@@ -1,11 +1,24 @@
 name: docs
 
+# The v3 documentation is deployed from this branch, not from `main`.
+#
+# `main` carries v4 now, and v4 takes the `@studiometa/js-toolkit` name at
+# 4.0.0-alpha.0. While that release is a prerelease, `latest` on npm is still
+# 3.x, so `js-toolkit.studiometa.dev` must keep serving these pages. The
+# Cloudflare Pages project `js-toolkit` has its production branch set to `3.x`
+# for that reason, and the deploy below names the branch explicitly — a
+# checkout in Actions can be detached, and an inferred branch would land the
+# build on a preview URL instead of the custom domain.
+#
+# The v4 job that used to live here stayed on `main`: deploying the
+# `js-toolkit-v4` project from this branch would publish a frozen copy of v4
+# over the live one.
 on:
   push:
-    branches: [main]
+    branches: [3.x]
   pull_request:
     branches:
-      - main
+      - 3.x
 
 jobs:
   deploy-v3:
@@ -32,49 +45,4 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          command: pages deploy packages/docs/.vitepress/dist --project-name=js-toolkit
-
-  deploy-v4:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      deployments: write
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: 'npm'
-
-      - run: npm ci
-
-      # Twoslash resolves the package types out of `dist`, since the v4 exports
-      # map has no `typescript` condition. The docs build below ignores the
-      # committed caches, so this is what it reads.
-      - name: Build the v4 package
-        run: npm run build:v4
-
-      # Regenerate every twoslash hover instead of trusting the committed caches.
-      #
-      # A cache is keyed on `sha256(shikiOptions:lang:code)` — the sample, not the
-      # types behind it. So a changed docblock or signature in `src/` invalidates
-      # nothing, and the hovers stay frozen at whatever the types were when the
-      # cache was first written. That is invisible: the build passes and the page
-      # renders, only the tooltip is out of date.
-      #
-      # The committed caches stay useful — they keep a local `docs:v4:dev` fast.
-      # What is published is regenerated, so it cannot drift from the source.
-      # Costs about 50s: a 32s build becomes 83s for ~200 samples.
-      - name: Build v4 docs
-        run: npm run docs:v4:build
-        env:
-          TWOSLASH_INLINE_CACHE_IGNORE: '1'
-
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          command: pages deploy packages/v4/docs/.vitepress/dist --project-name=js-toolkit-v4
+          command: pages deploy packages/docs/.vitepress/dist --project-name=js-toolkit --branch=3.x
