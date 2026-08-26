@@ -1,1 +1,1 @@
-export { throttle, throttle as default } from '../../utils/throttle.js';
+export { throttle, throttle as default } from '../../utils/timing.js';

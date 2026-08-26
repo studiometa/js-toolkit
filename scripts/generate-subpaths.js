@@ -25,10 +25,11 @@ function paths(packageDir) {
  * barrel, the test barrel and the manifest itself. `./package.json` stays a plain
  * string — it is the same file under every condition.
  *
- * `./test` is conditional on the barrel existing, because only v4 has one. It is
- * a barrel rather than a set of per-symbol subpaths: a test file loads several of
- * these helpers at once and none of them is on a page's critical path, so the
- * tree-shaking argument that splits the other two does not apply.
+ * `./test` is conditional on the barrel existing, so a package without test
+ * helpers declares no entry for them. It is a barrel rather than a set of
+ * per-symbol subpaths: a test file loads several of these helpers at once and
+ * none of them is on a page's critical path, so the tree-shaking argument that
+ * splits the other two does not apply.
  *
  * @param   {string} srcRoot The absolute path of the package's `src/` directory.
  * @returns {Record<string, unknown>}
@@ -61,17 +62,15 @@ function expectedStubs(srcRoot) {
 /**
  * The `exports` map a package should carry: the grouped entries first, then one per symbol.
  *
- * @param   {string} packageDir
  * @param   {string} srcRoot
  * @returns {Record<string, unknown>}
  */
-function expectedExports(packageDir, srcRoot) {
+function expectedExports(srcRoot) {
   const map = { ...groupedExports(srcRoot), ...buildSubpathExports(srcRoot) };
-  // v4 publishes built artifacts only. Its export map must not point at omitted sources.
-  if (packageDir === 'packages/v4') {
-    for (const target of Object.values(map)) {
-      if (typeof target === 'object') delete target.typescript;
-    }
+  // The package publishes built artifacts only, so its export map must not
+  // point at sources `files` omits.
+  for (const target of Object.values(map)) {
+    if (typeof target === 'object') delete target.typescript;
   }
   return map;
 }
@@ -95,7 +94,7 @@ function generate(packageDir) {
   for (const [file, source] of stubs) writeFileSync(resolve(subpathsDir, file), source);
 
   const pkg = JSON.parse(readFileSync(manifest, 'utf8'));
-  pkg.exports = expectedExports(packageDir, srcRoot);
+  pkg.exports = expectedExports(srcRoot);
   writeFileSync(manifest, `${JSON.stringify(pkg, null, 2)}\n`);
 
   console.log(
@@ -118,7 +117,7 @@ export function check(packageDir) {
   const { manifest, srcRoot, subpathsDir } = paths(packageDir);
   const problems = [];
 
-  const expectedMap = expectedExports(packageDir, srcRoot);
+  const expectedMap = expectedExports(srcRoot);
   const actualMap = JSON.parse(readFileSync(manifest, 'utf8')).exports ?? {};
   for (const [key, target] of Object.entries(expectedMap)) {
     if (!(key in actualMap)) problems.push(`exports: missing ${key}`);

@@ -1,1 +1,1 @@
-export { withoutTrailingCharactersRecursive, withoutTrailingCharactersRecursive as default } from '../../utils/string/withoutTrailingCharactersRecursive.js';
+export { withoutTrailingCharactersRecursive, withoutTrailingCharactersRecursive as default } from '../../utils/strings.js';

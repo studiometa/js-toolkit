@@ -41,12 +41,12 @@ jobs:
       - name: Run types tests
         run: npm run lint:types
 
-  v4:
-    name: unit (v4)
+  js-toolkit:
+    name: unit (js-toolkit)
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: packages/v4
+        working-directory: packages/js-toolkit
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -56,9 +56,9 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-progress --no-fund
         working-directory: .
-      # The v4 specs run in a real browser: they cover native view
-      # transitions, frame-aligned scheduling and DOM lifecycle, none of
-      # which a DOM emulation can answer for.
+      # The specs run in a real browser: they cover native view transitions,
+      # frame-aligned scheduling and DOM lifecycle, none of which a DOM
+      # emulation can answer for.
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
       - name: Run tests
@@ -68,23 +68,12 @@ jobs:
       - name: Check the packed package
         run: npm run check:package
 
-  unit:
+  eslint-plugin:
+    name: unit (eslint-plugin-js-toolkit)
     runs-on: macos-latest
-    strategy:
-      matrix:
-        include:
-          - package: js-toolkit
-            working-directory: packages/js-toolkit
-            test-command: npm test -- --retry=3 --coverage.enabled
-            coverage-file: packages/js-toolkit/coverage/clover.xml
-          - package: eslint-plugin-js-toolkit
-            working-directory: packages/eslint-plugin
-            test-command: npm test -- --retry=3 --coverage.enabled
-            coverage-file: packages/eslint-plugin/coverage/clover.xml
-    name: unit (${{ matrix.package }})
     defaults:
       run:
-        working-directory: ${{ matrix.working-directory }}
+        working-directory: packages/eslint-plugin
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -95,12 +84,12 @@ jobs:
         run: npm ci --no-audit --no-progress --no-fund
         working-directory: .
       - name: Run tests
-        run: ${{ matrix.test-command }}
+        run: npm test -- --retry=3 --coverage.enabled
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          files: ${{ matrix.coverage-file }}
-          flags: ${{ matrix.package }}
+          files: packages/eslint-plugin/coverage/clover.xml
+          flags: eslint-plugin-js-toolkit
           fail_ci_if_error: false
           verbose: true
         env:

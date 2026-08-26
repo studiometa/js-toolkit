@@ -1,1 +1,1 @@
-export { replace as historyReplace, replace as default } from '../../utils/history.js';
+export { historyReplace, historyReplace as default } from '../../utils/history.js';

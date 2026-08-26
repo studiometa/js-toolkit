@@ -1,1 +1,1 @@
-export { loadImage, loadImage as default } from '../../utils/loadElement.js';
+export { loadImage, loadImage as default } from '../../utils/load.js';

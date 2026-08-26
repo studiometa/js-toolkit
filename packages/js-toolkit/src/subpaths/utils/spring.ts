@@ -1,1 +1,1 @@
-export { spring, spring as default } from '../../utils/math/spring.js';
+export { spring, spring as default } from '../../utils/maths.js';

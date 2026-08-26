@@ -1,4 +1,20 @@
 {
-  "extends": "../../tsconfig.json",
-  "include": ["./src/**/*.ts"]
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "paths": {
+      "@studiometa/js-toolkit": ["./src/index.ts"],
+      "@studiometa/js-toolkit/utils": ["./src/utils/index.ts"],
+      "@studiometa/js-toolkit/test": ["./src/test/index.ts"],
+      "@studiometa/js-toolkit/utils/*": ["./src/subpaths/utils/*.ts"],
+      "@studiometa/js-toolkit/*": ["./src/subpaths/*.ts"]
+    },
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": []
+  },
+  "include": ["src/**/*.ts", "demo/**/*.ts", "migration/**/*.ts"]
 }

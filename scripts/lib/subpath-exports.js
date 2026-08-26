@@ -177,13 +177,16 @@ function assertUnique(symbols, label) {
 /** @type {ReadonlyMap<string, ReadonlyMap<string, readonly string[]>>} */
 const COMPANION_TYPES = new Map([
   [
-    resolve(dirname(new URL(import.meta.url).pathname), '../../packages/v4/src/dom-mutations.ts'),
+    resolve(
+      dirname(new URL(import.meta.url).pathname),
+      '../../packages/js-toolkit/src/dom-mutations.ts',
+    ),
     new Map([['watchAttributes', ['AttributeChange', 'AttributeWatcher']]]),
   ],
   [
     resolve(
       dirname(new URL(import.meta.url).pathname),
-      '../../packages/v4/src/attribute-namespaces.ts',
+      '../../packages/js-toolkit/src/attribute-namespaces.ts',
     ),
     new Map([
       [

@@ -1,1 +1,1 @@
-export { untrapFocus, untrapFocus as default } from '../../utils/trapFocus.js';
+export { untrapFocus, untrapFocus as default } from '../../utils/focus.js';

@@ -1,1 +1,1 @@
-export { push as historyPush, push as default } from '../../utils/history.js';
+export { historyPush, historyPush as default } from '../../utils/history.js';

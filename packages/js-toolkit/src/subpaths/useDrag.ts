@@ -1,1 +1,1 @@
-export { useDrag, useDrag as default } from '../services/DragService.js';
+export { useDrag, useDrag as default } from '../services/drag.js';

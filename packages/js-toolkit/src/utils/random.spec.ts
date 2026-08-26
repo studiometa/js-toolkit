@@ -1,60 +1,75 @@
-import { describe, it, expect } from 'vitest';
-import { randomInt, randomItem } from '@studiometa/js-toolkit/utils';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { random, randomInt, randomItem } from './random.js';
 
-describe('The random function', () => {
-  it('should return a random number between bounds values', () => {
-    for (const [a, b] of Array.from({ length: 100 }).map(() => [0.5, 3.4])) {
-      const result1 = randomInt(a);
-      expect(result1).toBeGreaterThanOrEqual(0);
-      expect(result1).toBeLessThanOrEqual(a);
+/** Make `Math.random()` answer the given values, in order. */
+function stubRandom(...values: number[]): void {
+  let index = 0;
+  vi.spyOn(Math, 'random').mockImplementation(() => values[Math.min(index++, values.length - 1)]);
+}
 
-      const result2 = randomInt(a, b);
-      expect(result2).toBeGreaterThanOrEqual(a);
-      expect(result2).toBeLessThanOrEqual(b);
-    }
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+describe('random', () => {
+  it('stays between the bounds', () => {
+    stubRandom(0, 0.5, 0.999999);
+    expect(random(10, 20)).toBe(10);
+    expect(random(10, 20)).toBe(15);
+    expect(random(10, 20)).toBeLessThan(20);
+  });
+
+  it('defaults the second bound to zero', () => {
+    stubRandom(0.5);
+    expect(random(10)).toBe(5);
   });
 });
 
-describe('The randomInt function,', () => {
-  it('should return a random integer between bounds values', () => {
-    for (const [a, b] of Array.from({ length: 100 }).map(() => [10, 20])) {
-      const result1 = randomInt(a);
-      expect(result1).toBeGreaterThanOrEqual(0);
-      expect(result1).toBeLessThanOrEqual(a);
+describe('randomInt', () => {
+  it('includes both bounds, and gives each integer the same chance', () => {
+    // Four integers in `0…3`, so each owns a quarter of the range.
+    stubRandom(0);
+    expect(randomInt(0, 3)).toBe(0);
+    stubRandom(0.2499);
+    expect(randomInt(0, 3)).toBe(0);
+    stubRandom(0.25);
+    expect(randomInt(0, 3)).toBe(1);
+    stubRandom(0.7499);
+    expect(randomInt(0, 3)).toBe(2);
+    stubRandom(0.9999);
+    expect(randomInt(0, 3)).toBe(3);
+  });
 
-      const result2 = randomInt(a, b);
-      expect(result2).toBeGreaterThanOrEqual(a);
-      expect(result2).toBeLessThanOrEqual(b);
-    }
+  it('accepts its bounds in any order, and a negative range', () => {
+    stubRandom(0.9999);
+    expect(randomInt(3, 0)).toBe(3);
+    stubRandom(0);
+    expect(randomInt(-2, 2)).toBe(-2);
+    stubRandom(0.9999);
+    expect(randomInt(-2, 2)).toBe(2);
+  });
+
+  it('defaults the second bound to zero', () => {
+    stubRandom(0.9999);
+    expect(randomInt(5)).toBe(5);
   });
 });
 
-describe('The randomItem function,', () => {
-  it('should return a random item of the provided array', () => {
-    const items = ['a', 'b', 'c', 'd', 'e', 'f'];
-    expect(items).toContain(randomItem(items));
+describe('randomItem', () => {
+  it('picks an item of an array', () => {
+    stubRandom(0);
+    expect(randomItem(['a', 'b', 'c'])).toBe('a');
+    stubRandom(0.9999);
+    expect(randomItem(['a', 'b', 'c'])).toBe('c');
   });
 
-  it('should return a random character of the provided string', () => {
-    const items = 'abcdef';
-    expect(items).toContain(randomItem(items));
+  it('picks a character of a string', () => {
+    stubRandom(0.9999);
+    expect(randomItem('abc')).toBe('c');
   });
 
-  it('should return undefined if the array is empty', () => {
-    const emptyArray = [];
-    expect(randomItem(emptyArray)).toBeUndefined();
-  });
-
-  it('should return undefined if the string is empty', () => {
-    const emptyString = [];
-    expect(randomItem(emptyString)).toBeUndefined();
-  });
-
-  it('should return undefined if the provided parameter is not valid', () => {
-    for (const parameter of [{ 0: 'value0', 1: 'value1', 2: 'value2' }, 3, true]) {
-      expect(() => {
-        randomItem(parameter);
-      }).toThrow();
-    }
+  it('answers undefined for an empty array or string', () => {
+    expect(randomItem([])).toBeUndefined();
+    expect(randomItem('')).toBeUndefined();
   });
 });

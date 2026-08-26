@@ -1,1 +1,1 @@
-export { withLeadingSlash, withLeadingSlash as default } from '../../utils/string/withLeadingSlash.js';
+export { withLeadingSlash, withLeadingSlash as default } from '../../utils/strings.js';

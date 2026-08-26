@@ -1,1 +1,1 @@
-export { noopValue as easeLinear, noopValue as default } from '../../utils/noop.js';
+export { easeLinear, easeLinear as default } from '../../utils/easings.js';

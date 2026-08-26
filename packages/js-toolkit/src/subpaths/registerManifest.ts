@@ -1,1 +1,1 @@
-export { registerManifest, registerManifest as default } from '../autoload/runtime.js';
+export { registerManifest, registerManifest as default } from '../registry.js';

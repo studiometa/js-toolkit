@@ -1,1 +1,1 @@
-export { clamp, clamp as default } from '../../utils/math/clamp.js';
+export { clamp, clamp as default } from '../../utils/maths.js';

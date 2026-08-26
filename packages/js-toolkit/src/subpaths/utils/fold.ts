@@ -1,1 +1,1 @@
-export { fold, fold as default } from '../../utils/math/fold.js';
+export { fold, fold as default } from '../../utils/maths.js';

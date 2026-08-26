@@ -1,1 +1,1 @@
-export { withMutation, withMutation as default } from '../decorators/withMutation.js';
+export { withMutation, withMutation as default } from '../services/mutation.js';

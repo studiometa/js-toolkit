@@ -1,5 +1,13 @@
 name: docs
 
+# The 4.x documentation, served at js-toolkit-v4.studiometa.dev.
+#
+# It keeps that domain for as long as 4.x is a prerelease: `latest` on npm is
+# still 3.x, so js-toolkit.studiometa.dev must keep answering with the 3.x
+# pages. Those are built and deployed from the `3.x` branch, which is also the
+# production branch of the `js-toolkit` Cloudflare Pages project. The two
+# domains swap when 4.0.0 ships.
+
 on:
   push:
     branches: [main]
@@ -8,7 +16,7 @@ on:
       - main
 
 jobs:
-  deploy-v3:
+  deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -23,37 +31,11 @@ jobs:
 
       - run: npm ci
 
-      - name: Build docs
-        run: npm run docs:build
-
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          command: pages deploy packages/docs/.vitepress/dist --project-name=js-toolkit
-
-  deploy-v4:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      deployments: write
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: 'npm'
-
-      - run: npm ci
-
-      # Twoslash resolves the package types out of `dist`, since the v4 exports
+      # Twoslash resolves the package types out of `dist`, since the exports
       # map has no `typescript` condition. The docs build below ignores the
       # committed caches, so this is what it reads.
-      - name: Build the v4 package
-        run: npm run build:v4
+      - name: Build the package
+        run: npm run build:js-toolkit
 
       # Regenerate every twoslash hover instead of trusting the committed caches.
       #
@@ -63,11 +45,11 @@ jobs:
       # cache was first written. That is invisible: the build passes and the page
       # renders, only the tooltip is out of date.
       #
-      # The committed caches stay useful — they keep a local `docs:v4:dev` fast.
+      # The committed caches stay useful — they keep a local `docs:dev` fast.
       # What is published is regenerated, so it cannot drift from the source.
       # Costs about 50s: a 32s build becomes 83s for ~200 samples.
-      - name: Build v4 docs
-        run: npm run docs:v4:build
+      - name: Build the docs
+        run: npm run docs:build
         env:
           TWOSLASH_INLINE_CACHE_IGNORE: '1'
 
@@ -77,4 +59,4 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          command: pages deploy packages/v4/docs/.vitepress/dist --project-name=js-toolkit-v4
+          command: pages deploy packages/js-toolkit/docs/.vitepress/dist --project-name=js-toolkit-v4

@@ -1,1 +1,1 @@
-export { mean, mean as default } from '../../utils/math/mean.js';
+export { mean, mean as default } from '../../utils/maths.js';

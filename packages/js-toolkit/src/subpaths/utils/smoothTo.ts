@@ -1,1 +1,1 @@
-export { smoothTo, smoothTo as default } from '../../utils/math/smoothTo.js';
+export { smoothTo, smoothTo as default } from '../../utils/smoothTo.js';

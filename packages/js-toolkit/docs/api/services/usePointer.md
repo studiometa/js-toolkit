@@ -1,0 +1,93 @@
+# usePointer
+
+```ts
+usePointer(): Service<PointerProps>
+usePointer(target: Element): Service<ElementPointerProps>
+```
+
+The pointer, in the viewport or in a box.
+
+## Props
+
+```ts
+interface PointerProps {
+  readonly event: PointerEvent | null;
+  readonly isDown: boolean;
+  readonly x: number;
+  readonly y: number;
+  readonly deltaX: number;
+  readonly deltaY: number;
+  readonly maxX: number;
+  readonly maxY: number;
+  readonly progressX: number;
+  readonly progressY: number;
+}
+
+interface ElementPointerProps extends PointerProps {
+  readonly relativeX: number;
+  readonly relativeY: number;
+  readonly relativeProgressX: number;
+  readonly relativeProgressY: number;
+}
+```
+
+`isGrabbing` is removed. `usePointer()` uses **pointer events only** and follows one `pointerId` at a time.
+
+## Usage
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"cf0c1cb1694ac9bfacb1ba665b7396e5ad600838e447d275195a76e14e8af304","data":"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="}
+import { Base, usePointer } from '@studiometa/js-toolkit';
+
+class Cursor extends Base {
+  static config = { name: 'Cursor' };
+
+  mounted() {
+    return usePointer().subscribe(({ x, y }) => {
+      this.$el.style.transform = `translate(${x}px, ${y}px)`;
+    });
+  }
+}
+```
+
+## The pointer in a box
+
+`usePointer(el)` is one lazy service per target, and its props add the four `relative*` fields beside the viewport ones:
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"59cdf7ce280d965740ba09c66c45313d66aebe9b03ed1ed261938de8009b6bb7","data":"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"}
+import { Base, usePointer } from '@studiometa/js-toolkit';
+
+class Tilt extends Base {
+  static config = { name: 'Tilt' };
+
+  mounted() {
+    return usePointer(this.$el).subscribe(({ relativeProgressX, relativeProgressY }) => {
+      this.$el.style.setProperty('--tilt-x', String(relativeProgressX * 2 - 1));
+      this.$el.style.setProperty('--tilt-y', String(relativeProgressY * 2 - 1));
+    });
+  }
+}
+```
+
+**The targeted service subscribes to the singleton**, so one set of document listeners serves every target however many boxes are being watched.
+
+## When the box is measured
+
+On demand, and kept until a `scroll` (captured at the document), a `resize`, or the target's `ResizeObserver` can have moved it.
+
+**The layout box is the frame of reference**, so a transform the consumer applies from its own callback does not invalidate it — which is exactly what a tilt or a parallax needs.
+
+## `{ immediate: true }`
+
+Does nothing before the pointer has been seen: there is no current value to deliver, which is what `hasProps()` says.
+
+## Mixin
+
+```js
+class Tilt extends withPointer(Base) {
+  moved({ relativeProgressX }) {}
+}
+```
+
+`withPointer` defaults its target to `$el`.

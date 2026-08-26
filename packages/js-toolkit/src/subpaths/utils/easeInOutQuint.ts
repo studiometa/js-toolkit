@@ -1,1 +1,1 @@
-export { easeInOutQuint, easeInOutQuint as default } from '../../utils/math/ease.js';
+export { easeInOutQuint, easeInOutQuint as default } from '../../utils/easings.js';

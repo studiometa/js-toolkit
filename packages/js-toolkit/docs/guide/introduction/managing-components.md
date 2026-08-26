@@ -1,0 +1,237 @@
+# Components
+
+A component is a class that extends `Base`, a name in the registry, and a `data-component` attribute in the markup. All three are needed, and nothing else is.
+
+[[toc]]
+
+## Declaring a component
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"9f8c95bfa35322049cc2035b26cb1249260fb2882b98d3e46b1759713def814b","data":"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"}
+import { Base, registerComponent } from '@studiometa/js-toolkit';
+
+class Counter extends Base {
+  static config = {
+    name: 'Counter',
+    refs: ['output'],
+    options: { step: { type: Number, default: 1 } },
+  };
+
+  count = 0;
+
+  onClick() {
+    this.count += this.$options.step;
+    this.$refs.output.textContent = String(this.count);
+  }
+}
+
+registerComponent(Counter);
+```
+
+```html
+<button data-component="Counter" data-option-step="5">
+  clicked
+  <span data-ref="output">0</span>
+  times
+</button>
+```
+
+`config.name` is the name the registry uses and the token the markup writes. It is also what gives each instance its [`$id`](/api/instance-properties.html#id).
+
+## Registering
+
+`registerComponent(ComponentClass)` puts one name in the registry and scans the document for it. `registerComponents(...classes)` does the same for several:
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"4dba5539f7d9d067f0d0d010bd73c06c463aae42542dcc17e1afe0f3c63abb76","data":"N4Igdg9gJgpgziAXAbVAFwJ4AcZJACwgDcYAnEAGhDRgA808AKAQwBsBLZuASgAIBjVlzi8AQlxgAeACq86NMFBHi4MAAqkIWEQF4xEjVrgA+ADph2AWywRSafasogoEfgkQhp+GAKFwRMCSkGAIQ1hBgMGD28lFKAHROaMwA5u7IyCAcYADWTvhoaNqIAPQlAFZwALRoEBCsOexoVUQALPFwaACuUOxhMMnxsEQlzFjsJSAAulNUncx2SACcVKxRKWj4SK1UyaQpA3gquKvskUgADFT8+AvM/DTkiEsAvhTo2LgehEFJ8kxsTg8XgAMy6YAefTAvFIMBS7E6ZAAwmEbJFonBGPFsYJhPBEA4YCiwJ1SF0HrZkFNuASiBB2FBzFYbHYYXCEY8UeF0WgELtUulMtk8lQCkU4KUKtVavVGs02h1ur1+oNhqNxiVYfDSRhNezEaQuWiorz4gVLKxprMQPNFogAIwAVlW602SHtAA5+ftDh4tRzkaiIia+Vkzl8riAbncHmR3Y63h8cHgfnHdv8PLj/LwAIL8fi2ZVgJy2hiIADsOyyrq2z29BzLIDzBdIRac2S+ACZrrdSPdHkgAGyJ6ifFPENPUDMgFgcLh8LPKCQyOT0OJL1SGbS8PTHLcmJnhVnHJwuNx4Lw+RdyIIhAvck2rhQJJICpAZMO5fKFYplSo1OoGiaFp2k6Ho+ksAZmCGQJ1QmK05j2Mslm7aswA2Wsqz2BsjgkdtwyQVDoz7WMnk7VoR0wZNvgnch03oJgsE0HA7AwPhm0LKF4gLMAQXYFICWAcxeBE3gwGYSCCVJM4UgAbnMF4SyQ90Li9NCMKHetfSjCI+JSfDzkQABmHsYwHZ5KLHGjfnoxtGCYrQyEwPhxMk3hpPQpSFjLe17RWdS3UQLCFhwjxXJOT8vhMqNe37ONEE7C5LOoghaL+BjMz8EQAGUOFgOibWUh1WjUtZ0MCwctMbXKGUnDskGdGKzPi4d3lHFLUwKmgMpnQF518YRCRXWJFA3dRmN0Ql9zMCwj3sE8qDPdxPG8Abs0CMg7yDHkn3XRJ+TSd8hTOEUCB/CU/2lQC5RAxVwJVaC1TGeCZkQ7z3UHaKyo0oKqtwxxTkMxriLisj7WSr5Upsqcevs5inLY3gavy7jdP4wThNE8KpLQUgZPksBFLeu17XLfzvoqv7MzR/TAa+SqmpI8zXjaqjIc69K7IcljnLEiSYBxvHPOJnylkjCnMKp8B+YM+nTKZ+LEoh8doe6uy+uBf0DSNYMMSxHEsvxQliVJclalIKkaV4OkGUPFl7C1zltpDV9DpQY6v1Fc7JX/GUgPlUClQgqCYJGZ69W1XHdUdwMHwxM00AtBDCvehLfJdcra09KWY8NZ2MVl5Z5dBy5lesyc1bwa8ONbKEvLtTsjPFmsi+oELtJrts6dbkHSPdFmk3ZtLbKrrKkbyydS0I1p7Qzn6Gew7Tkbqgi60ZkvjKS60C1gPBmVsexgEJCg2Uj2PjQxXgXlBTRLF4AByAABMDlUg5IpQA2UmnvgnzGr/NOIRF2qNQkvAhLQncskNA7B+ChF4vxHcYC+ZuXvp3KE98r4ExeH/Mey9SDAKUKA8BIl5jQNgTxPSiCj7YwfngjBLwsHmHMLnHWPJMRoIiCfPB3BZJODfswJAoARpwDrh4SoIAXgvCAA"}
+import { Base, registerComponents } from '@studiometa/js-toolkit';
+
+class Accordion extends Base {
+  static config = { name: 'Accordion' };
+}
+class Slider extends Base {
+  static config = { name: 'Slider' };
+}
+
+registerComponents(Accordion, Slider);
+```
+
+::: tip There is no `createApp()`
+v4 has no root component and no application object. A component is registered, not mounted by a parent, so nothing has to own the page. Register the components a page uses and the registry does the rest.
+:::
+
+**One name gives one entry**, as with `customElements.define()`. A second registration under a name already taken gives a `registry.conflict` warning and is ignored.
+
+## Several components on one element
+
+`data-component` holds a whitespace-separated token list, and each token gets its own instance:
+
+```html
+<a href="/next" data-component="Action Analytics Prefetch">Next</a>
+```
+
+The three instances are independent. They share the element and nothing else.
+
+## Nesting
+
+Children are not constructed by their parent. A nested `data-component` is discovered by the same registry, on its own:
+
+```html
+<div data-component="Accordion">
+  <div data-component="AccordionItem">…</div>
+  <div data-component="AccordionItem">…</div>
+</div>
+```
+
+What the parent declares in `config.components` is a **family**, and it does two jobs:
+
+1. registering that family when the parent registers, so one `registerComponent()` call covers a whole tree;
+2. giving the name set that [`on<Child><Event>`](/guide/introduction/working-with-events.html#child-events) resolution needs.
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"6b7613b59f24da6e49ea980d6d9cb169a7c03d89f0cae052318f057338016cc2","data":"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"}
+import { Base, registerComponent } from '@studiometa/js-toolkit';
+
+class AccordionItem extends Base {
+  static config = { name: 'AccordionItem' };
+}
+
+class Accordion extends Base {
+  static config = {
+    name: 'Accordion',
+    components: { AccordionItem },
+  };
+}
+
+// Registers `Accordion` *and* `AccordionItem`.
+registerComponent(Accordion);
+```
+
+A value can also be a thunk, which makes the child its own chunk:
+
+```js
+static config = {
+  name: 'Accordion',
+  components: {
+    AccordionItem: () => import('./AccordionItem.js'),
+  },
+};
+```
+
+The key supplies the name, so the registry knows `AccordionItem` with nothing downloaded. See [Autoloading](/guide/going-further/autoloading.html).
+
+::: warning `config.components` is not ownership
+Declaring a child does not make the parent construct it, does not make the parent's unmount unmount it, and does not restrict where the child may appear. Nesting is DOM ancestry, always.
+:::
+
+## Finding other components
+
+There is no `$parent` and no `$children`. A component that needs to reach another one has four channels, in order of preference:
+
+| Direction               | Use                                                                              |
+| ----------------------- | -------------------------------------------------------------------------------- |
+| parent → children       | [`$watchChildren()`](/api/instance-methods.html#watchchildren) or `$query(name)` |
+| child → parent          | [`$emit()`](/api/instance-methods.html#emit) and the parent's `on<Child><Event>` |
+| ancestor lookup, ad hoc | [`$closest(name)`](/api/instance-methods.html#closest) — guard the result        |
+| shared state either way | [provide/inject](/guide/going-further/sharing-state.html)                        |
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"587ec5acad5ecc6391dc1256df939fb413d62f44eda78d9d33174e7c7c4de5e6","data":"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"}
+import { Base } from '@studiometa/js-toolkit';
+
+class Accordion extends Base {
+  static config = { name: 'Accordion', components: {} };
+
+  // A live collection, in document order, kept for the life of this instance.
+  items = this.$watchChildren('AccordionItem');
+
+  closeAll() {
+    for (const item of this.items) item.$el.removeAttribute('data-option-open');
+  }
+}
+```
+
+## Page-wide lookups
+
+Outside a component, four functions answer from the DOM. They keep no registry of instances:
+
+```ts twoslash
+// @twoslash-cache: {"v":1,"hash":"10638542733975a203de365c299ff75199b7e4229bf82486d565adc6b47f87cc","data":"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"}
+import {
+  getInstance,
+  getInstances,
+  getMountedInstances,
+  getUnmountedInstances,
+} from '@studiometa/js-toolkit';
+
+const section = document.querySelector('section')!;
+
+getMountedInstances('Dialog'); // the live ones — safe to call a method on
+getInstances('Dialog', section); // every one built in a region
+getUnmountedInstances('Dialog'); // built, then stood down
+getInstance(section, 'Dialog'); // the one on this element, mounted or not
+getInstances(section); // everything on one element
+```
+
+See the [Registry reference](/api/registry/) for the full contract of each.
+
+## Extending a component
+
+There is no `withExtraConfig()`. To extend a component with a different config, declare a class. `$config` walks the prototype chain, so `refs`, `options` and `components` merge:
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"c7b2cb1b9c97cea2e3656c8d7754fe77ae69da467ec0e8d68da83885df7c6415","data":"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"}
+import { Base, registerComponent } from '@studiometa/js-toolkit';
+
+class AbstractControl extends Base {
+  static config = {
+    name: 'AbstractControl',
+    refs: ['button'],
+  };
+}
+
+class NavigationControl extends AbstractControl {
+  static config = {
+    name: 'NavigationControl',
+    // `refs` merges: ['button', 'compass']
+    refs: ['compass'],
+    options: { showCompass: Boolean },
+  };
+}
+
+registerComponent(NavigationControl);
+```
+
+To extend a class you cannot edit, do it in expression position:
+
+```js
+registerComponent(
+  class extends Vendor {
+    static config = { name: 'CompactVendor', options: { compact: Boolean } };
+  },
+);
+```
+
+## When a component mounts
+
+By default an instance mounts as soon as its element enters the document. `config.mountStrategy` and the `data-mount` attribute change that:
+
+```html
+<div data-component="Map" data-mount="visible"></div>
+<div data-component="Chat" data-mount="interaction:page"></div>
+```
+
+A component that waits has **no instance**: it is invisible to `$query()`, `$closest()`, `$watchChildren()` and `getInstances()`, and it announces nothing. See [Mount strategies](/guide/going-further/mount-strategies.html).
+
+## Responsive declarations
+
+`data-component` takes one breakpoint-scoped companion, so a component can exist at some widths and not others:
+
+```html
+<div
+  data-component="Action Analytics"
+  data-component:xxs="MobileMenu"
+  data-component:m="DesktopMenu"></div>
+```
+
+The unconditional set is always active. The scoped set is resolved by walking from the widest active suffix down to the first attribute present, and it **replaces** rather than merges. A name that stops being declared is unmounted and dropped from the element; a crossing back builds a new instance. See [`data-component`](/api/html/data-component.html).

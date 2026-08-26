@@ -1,0 +1,26 @@
+# useWindowSize
+
+```ts
+useWindowSize(): Service<ResizeProps>
+```
+
+The viewport size. It names the default case of [`useResize()`](./useResize.html).
+
+## Usage
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"75eea0e2299b3871b36dec934353fde3789a66701a6dcc7580c01a1331041724","data":"N4Igdg9gJgpgziAXAbVAFwJ4AcZJACwgDcYAnEAGhDRgA808AKAQwBsBLZuASgAIAzAK5gAxmnYQwvQXBgB1dmCgQA7gGV2ALxiNuiXmrJF2ImAB4ASvC0wACqQhY4APgA6YdgFssEUmmmyCkqqGtqUIMoiCIggAKqyvGj4MLyk1tq8sqTGpgK+icm8xjAqPn68gCgEvAAGMjBWcDa61bxgzJ4wUBQFKSrMGO4AaoIw8SlwWBxocDV1AKKsMB1gaKE6MKzcLfwOnrOBisrqTVsAdOFozADm0cjIIBxgANbh+GhoTogA9F8AVnAAWjQEAgrCe7DQAKIABZTnA0IIoBIOpdTrAiF9mFh2F8sjl4F86kEjmtTm9PKwQABdKlUeHMPxIACcVEWYCuSSQAEYAMxUS6kK4wBgxImHEI2cKPXCIAAMVBE+AZzDEZGZAF8KOhsDKCMQ1fy6CKQCJJPDpGA4IIAEZwESkdjWmD6WKWm12h1O8L0xmIABsfIeMHZnMQXK5/IZQuNwittvtjtwrMUMoATAqlaQVTRyP7NdqcHhCCRyIb6Ew2JweAF5OLjtpdPpDNkTOYGjZ7I4XO4vGV/GLgvWkxEIFE8GMeql0uMjK28qRJ8VSr5/FVarJ2w2tq12p1uklev0hiMJxMpjN1zAFktg6smhttzsIHtL8SJVvqudIzckHcHooXioN4Pjgb4/kBYFQXBSEYThBEkWfYVmDRGAMSxHE8VbOBCQOQdSXJSkaTpAURQAdlI1lgw5fBuUDAVozwAcSUlZMwDTDNlVVXNU1lfNqB1It9VLagjSYFFCCgPhm3xSxp07JxuiICB2CgZw4XdBMnUYEQ2FYa0VSeJtZ1MABhXT9JEJ5ZMabR5LgRTlNU7pHHEM0AH4mw0z0YAAeSwVzLT0XhXTjD1E3CSJohANQvMTRIIEnTDTG6H1xHZXgIQy/gMv8PoZkgfxSGEDx2S/ahrlue40gRUhLXCELYqdU5eAAFUKJLxmBJxeBUCF8BymZWC4fxQs0shziIkBUuZQM2Wo5lI0FYU8FG7ypRTJB0xNTNszVRAeT9PjMELGJiwNETyxiRgsGVFEyD4XqoCSfQwEETwnWE6aw1lP1KJDGjEAAVkWhiYkezlWPY7bOJzJBoSZI6BNOoSLlEq6bqzO7SD4ZJ2CuN4Xrej7vRI7leT++b/RB5bTpgPG3nWtjNo4rMuKQQHDq1fiTr1EtUcukBrtu4V7t4Xx2FvZgAv0TdfIdSWApJhkRS5VMIyDf6yep41xYViQwEZqHFRhva/WhRGebO4SaAFogGV4U1LVBZ1eBMs1naV30uWhWaqNDCjyqW41HbgD3IaQQNjdZ2HEFTC3dSt/njUYcToD4N2ncWU5WAgK5GFOAuoCl5h9GYMAMGQKkgqUlSItHKK2pSAAqJvqhD53s9z5oW8yS5xBEXhU6gMXBA+UeZmYQf4Dga4UmBSd26z9x3GQABZAARAA5XgrH4Mhg1MKlGGAz4fnRDZHHGzwIE0dhWCG05fCuL5Iq+OQYGtL4AEFbAASS+ReMAvg5yuAAfXpP3bgnsVaA3VnNUMdEow0weLnQ2EcWa7VzFyXiXNjoJxRmWZOGNdw5geipZ6rQibnS+lyQGwMNaU3ofRZB4MaLh32hgtmYZza4KRrzc6NsiHC1IbwXG+M0CE3etQ0mYY/RbXgQDX6gdQYEDpuItBHDobRz2mreOgk+aEKYMQrGfBdYrClvrGW04fLy3MYrYiytuSkXlAw0M4ZtZ4DMX3fWGjI47S4amBGtITTQF1L2FcvBgA1jfEOXg6oBC7F4AAcgAALwkRMiJC4EgQgjBBCJJABuZeogzT9jdPGbyvAAC80S6xrF0OpCpiZGCMCiaw7oYi3jOVsd4yQcS+BVOcJE9wvAHbuyziAxg7TRFqK6WLHpFjJDcCKWAdUyzwgomYEgUARpgyNEkHgf4IB1TqiAA==="}
+import { useWindowSize } from '@studiometa/js-toolkit';
+
+const unsubscribe = useWindowSize().subscribe(({ width, height, orientation }) => {
+  console.log(width, height, orientation);
+});
+```
+
+Props are [`useResize()`](./useResize.html)'s.
+
+## The viewport is not an observed box
+
+A `ResizeObserver` reports the box of the element it observes. For the root element, `clientWidth` and `clientHeight` report the **viewport** and are decoupled from that box, so this service keeps a `resize` listener beside the observer.
+
+That is the difference between asking for the window and asking for an element that happens to be full-width.

@@ -1,39 +1,33 @@
-import { isArray, isString } from './is.js';
+/** Random values, in the ranges a component describes. */
 
 /**
- * Get a random number between given bounds.
- * @param  {number} a   First bound.
- * @param  {number} [b] Second bound, defaults to 0.
- * @return {number} A number between `a` and `b`.
- * @link https://js-toolkit.studiometa.dev/utils/random.html
+ * A random number between the two bounds, the second defaulting to `0`.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/objects.html#random
  */
 export function random(a: number, b = 0): number {
   return Math.random() * (b - a) + a;
 }
 
 /**
- * Get a random integer between bounds
+ * A random integer between the two bounds, both included and the second
+ * defaulting to `0`.
  *
- * @param {number} a First bound.
- * @param {number} b Second bound.
- * @return {number} An integer between `a` and `b`;
- * @link https://js-toolkit.studiometa.dev/utils/randomInt.html
+ * Every integer in the range is equally likely. Rounding a random float
+ * instead — which is what v3 did — gives the two bounds half a chance each.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/objects.html#randomint
  */
 export function randomInt(a: number, b = 0): number {
-  return Math.round(random(a, b));
+  const min = Math.ceil(Math.min(a, b));
+  const max = Math.floor(Math.max(a, b));
+  return min + Math.floor(Math.random() * (max - min + 1));
 }
 
 /**
- * Get a random item of an array or a random character of a string
- *
- * @param {T[] | string} items Array or string
- * @return {T | undefined}
- * @throws {Error} Throws an error if `items` is not an array or a string.
- * @link https://js-toolkit.studiometa.dev/utils/randomItem.html
+ * A random item of an array, or a random character of a string.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/objects.html#randomitem
  */
-export function randomItem<T>(items: T[] | string): T | string | undefined {
-  if (!isArray(items) && !isString(items)) {
-    throw new Error('randomItem() expects an array or a string as argument.');
-  }
-  return items.length > 0 ? items[randomInt(items.length - 1)] : undefined;
+export function randomItem<T>(items: readonly T[]): T | undefined;
+export function randomItem(items: string): string | undefined;
+export function randomItem<T>(items: readonly T[] | string): T | string | undefined {
+  return items.length > 0 ? items[randomInt(0, items.length - 1)] : undefined;
 }

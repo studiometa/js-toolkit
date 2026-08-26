@@ -1,0 +1,73 @@
+# Objects & random
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"1f1947522d1869b643d161e127d187b5bdbaa97852aeb8bb174cad587fb1e3c4","data":"N4Igdg9gJgpgziAXAbVAFwJ4AcZJACwgDcYAnEAGhDRgA808AKAQwBsBLZuASgAIAzAK5gAxmnYQwvWDCwBbMgHMYjAHTrWzDGTiJeAJRgiIpKAB44aUuzCKKvYQGtIAdzAA+ZAF1uew8dMLKxs7BzBnCDd3AB0wdjksEzRpGFkFUmVKECgIEQREEABZJRheGBJSDF5NbVJqmH5ktAhea0V8NHs0fFK2jrkIS14XGzjbVVjYgDkWmyxBZPY4XjkF5hooe2YwKF5u3vhBVmS4fGZSeF5IXixNG14IACMAKyNkk15z0i1h9m7PsAYWIQfh7HpyVS8ADyYFKNTIvCWYLIDRMpWYKVkvGMWCqIMRnQBu2u8LqSIABsAAL7kiZgADKWAuzF2GI4Q0egnYx0+yVIwnECj05Jk8hKag0Wh03FpWTQzEU+WQyBAdGYCVYuCo5J1zzgsVF6WUjGAZWMcnSIhgelNIkEpAuogwegA5ABRACq+hdvCpvvspqMEAtZCtNoJMDkul4yAAjF5fb7uABuWIAejTvED5st1qz2PtjpEzt47q9Lvsf0j0bjCb9VNiOvJIC8FBVHHCWQ6aCwugzeoAtM0IKxHH8B0QACyqSyCKASBTy1SwIhphbcuBpp6vMRwVT9VgAYkNJRbrZAlnODEQAE4qJrbN0kHfqOdlNfsqkxRktSAO7hEAABioEQzm+MQyGfKkKHQbAAIIYhIKoGh6CYNhOB4ARhDECQpG+HZgxYPQwEEORHjIexHgAfmI0jyNIXwrjoshYniRJSD5bYcjkLIcjyPAAEFWi44MmLIhFyLQFxUikfY9hcFpHggYQoDgLoel4OAgx2FJ+GYI5xFsPYWnJQDZWQhUlXbGxHC7NAez7NNB2HUdxynGc0DnBcYCXFc13EVhN23N49wPQ98O4s8qEvDikAAJmAv8YEffAkAANgsn8Pwi4Msn/JBEtA85mAg8hEAS6DYJwPBCAqOU6A/FgOC4PghFEcRJGEgi5AASTANAiLE+jKJooayEYkjxNIViEiSLruL6hgqD4/IQCEnK5ERfqYGUOpJOk5LkXkxTlJ2NTeCU/4bBEVg5xgVkdLkrTjB2A0Gn044QmM3hTNpSYwDdCoqhsGhdq2o78OURFlhgABHQQ2FYKoOEcGAkchfRTvnIyMQ2gRWAgdZWLASwYBZXhABQCYZ8HYUDoep9ZeCIABmaR2F2KnFHYEhljkqSTpU5YzlYUEMSK0RSjJ0DVDlSykGVP8bLshzEH7OAhwgEcxzQCdp1nedgx85hl3KfyNy3F4Qv3NA5CPDaQaii95Vi8qAA572SxQn1vTL3zwDbFrymwAMKsCSpoMq4tdyrqDgmrEPIZCGrQ5rMLanDOoDmg5DMAAVdxGCrKM9GZHIwCR3hc+8Rjc94AAfMJYH4YPdkYABqWMHgqAmWW4Gb2M47qeuz3jclW9aRM2ouHlFqQvi0ewPlxyfsTD0qZ8+TTgnGWXFXl6zOyobte1Vpz1Zc7XdY8rzDd80310Ci2dzQUKbbtyei8dmLr2Zl8Hy91KiBYyJWdn7AoWdIxB1hAVECa8I5IF/lSc8xhYB4DYnNU0J4fz2A2jgyei08FD2zomfgpBRIugAAL628vKM+GstZ/DNoFF0yYsiLmYEgUADVkpwFwngPUIAqRUiAA==="}
+import { deepmerge, random, randomInt, randomItem } from '@studiometa/js-toolkit/utils';
+```
+
+[[toc]]
+
+## Merging
+
+### deepmerge
+
+```ts
+deepmerge(...layers: Record<string, unknown>[]): Record<string, unknown>
+```
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"70e574dbeb4d2d57d2b9bd4e051f3229ee80e9b26cb1c256f4690e6b2b95d5e8","data":"N4Igdg9gJgpgziAXAbVAFwJ4AcZJACwgDcYAnEAGhDRgA808AKAQwBsBLZuASgAIAzAK5gAxmnYQwvWDCwBbMgHMYjAHTrWzDGTiJeAJRgiIpKAB44aUuzCKKvYQGtIAdzAA+ZAF1uew8dMLKxs7BzBnCDd3AB0wdjksEzRpGFkFUmVKECgIEQREEABZJRheGBJSDF5NbVJqmH5ktAhea0V8NHs0fFK2jrkIS14XGzjbVVjYgDkWmyxBZPY4XjkF5hooe2YwKF5u3vhBVmS4fGZSeF5IXixNG14IACMAKyNkk15z0i1h9m7PsAYWIQfh7HpyVS8ADyYFKNTIvCWYLIDRMpWYKVkvGMWCqIMRnQBu2u8LqSIABsAAL7kiZgADKWAuzF2GI4Q0egnYx0+yVIwnECj05Jk8hKag0Wh03FpWTQzEU+WQyBAdGYCVYuCo5J1zzgsVF6WUjGAZWMcnSIhgelNIkEpAuogwegA5ABRACq+hdvCpvvspqMEAtZCtNoJMDkul4yAAjF5fb7uABuWIAejTvED5st1qz2PtjpEzt47q9Lvsf0j0bjCb9VNiOvJIC8FBVHHCWQ6aCwugzeoAtM0IKxHH8B0QACyqSyCKASBTy1SwIhphbcuBpp6vMRwVT9VgAYkNJRbrZAlnODEQAE4qJrbN0kHfqOdlNfsqkxRktSAO7hEAABioEQzm+MQyGfKkKHQbAAIIYhIKoGh6CYNhOB4TFv2NdRVFJaN/BMcxLGsWx7CcVwPG8XwDCDQISJCcjwkomI4gSJIsKNX8cjyPBih/MoKiqUl6kaPYWj6Ql9ladh2jQAYhhGMAxkUOlplmMB5kWZZVnlDYth2ZFWkOHlTnOS5rluZh7m3N4HjqL4fhGf5tiBSBQX2CFoVhaopTJZZ9gufg0U+LDsQgXEHlBP4DOJFoRIpalaViRlmVZaolmSTluWSdZWgFeI8xFL8uIlPC/J4WVkIVJUVTVDVfybPUDRK8Vs2DXNwztB0YCdV1PW9RNoPzIMQ1IMN8yrKM9FrIaU3TTN2rGibbULXri368tKxoaaY3jIbGx1Fs2z/GxHC7NAez7NNB2HUdxynGc0DnBcYCXFc13EVhN1s3d93ko8Tx/M8qEvUhrwAVhfB9FCfW9qp/D8gcye8bAAgAmECwOYCDyCA6DYJwPBCAqOU6A/RgmQishMD4NAXFSMAbViXhWbKLg8wY2xUykNmoHtdYJCZq5BDkR4yB5qksjB68AHZY3vXrYfwJAIYR988Hpxmsn/JBMZAUDzhxmg8djdGCeoODicQ8hkPJpgqZwcGMD4GAOb0LnFGl+VwaQAAOYC/yVuHJ3Vt68DduBf11xB9cN8CTb12MLcwImChJpDqHtgpKdIannb4fnvnESQ9DAUXxdti8fevG8ADZFcfFXED9sOkYFkuwB1tG9axo3caQABmWWU6t9ObbJ1Cc8dmmXb2BneuZ3nWcjzngm52IpdBmukFjWNZcb5XVbbzWF671HYV7g3sYHxAIb90e04Q0m7ankBc/z2n2ajj31697ery73Rg3IOTckCh1fIjCOHNu6X1jn3BOkFEB1xHueYwsA8DxESODfMyNSh+n4HnOQpYAACs55zBjeswG6cAhwQBHGONAn0Nwuh5i1NIbV56M3DKvV0/5zgVmkB3IWehB6AUAkNAMXDF4jXdqWVeA4IALB9PWeaYAMz5i1jIwMciXQKKUWgQRRdBal14GIiR9YsiLmYEgUA5NepwCFngPUIAqRUiAA==="}
+import { deepmerge } from '@studiometa/js-toolkit/utils';
+
+deepmerge({ tween: { ease: 'linear', duration: 300 } }, { tween: { ease: 'ease-out' } });
+// { tween: { ease: 'ease-out', duration: 300 } }
+```
+
+Later layers win, at every depth. Plain objects merge; anything else — an array, a `Date`, an element, a class instance — **replaces**.
+
+That last rule is the one worth knowing: an array is a value, not a structure to merge, because merging two arrays by index is almost never what a caller meant.
+
+::: tip It ships for the consumer, not for core
+A utility is judged by consumer need, not by whether core calls it. Layering a default config under an author's config is the case every component author meets, and getting the array rule wrong is exactly how a hand-rolled merge misbehaves.
+:::
+
+## Random
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"1560de5f3d58658a742fd5fd0d2b4635109ac9cbc64013b6fd553829cab3bcdf","data":"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="}
+import { random, randomInt, randomItem } from '@studiometa/js-toolkit/utils';
+
+random(10); // 0 → 10
+random(5, 10); // 5 → 10
+randomInt(10); // an integer, 0 → 10
+randomItem(['a', 'b', 'c']);
+```
+
+**One argument is a maximum; two are a range.**
+
+### random
+
+```ts
+random(a: number, b?: number): number
+```
+
+A float in the range.
+
+### randomInt
+
+```ts
+randomInt(a: number, b?: number): number
+```
+
+An integer in the range, bounds inclusive.
+
+### randomItem
+
+```ts
+randomItem<T>(items: readonly T[]): T | undefined
+randomItem(items: string): string | undefined
+```
+
+One item from an array, or one character from a string.
+
+The return includes `undefined` because an empty input has no item to give — and a signature that pretended otherwise would put the bug three lines later.

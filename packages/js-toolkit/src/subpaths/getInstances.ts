@@ -1,1 +1,1 @@
-export { getInstances, getInstances as default } from '../Base/utils.js';
+export { getInstances, getInstances as default } from '../instances.js';

@@ -1,1 +1,1 @@
-export { fromWebpackContext, fromWebpackContext as default } from '../autoload/modules.js';
+export { fromWebpackContext, fromWebpackContext as default } from '../manifest.js';

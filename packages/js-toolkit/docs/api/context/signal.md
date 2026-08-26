@@ -1,0 +1,88 @@
+# signal
+
+```ts
+signal<T>(initialValue: T): Signal<T>
+```
+
+A reactive value. The accessor is `.value`.
+
+```ts
+interface Signal<T = unknown> {
+  value: T;
+  subscribe(callback: (value: T) => void, options?: { immediate?: boolean }): () => void;
+}
+```
+
+## Usage
+
+```ts twoslash
+// @twoslash-cache: {"v":1,"hash":"5e6bae8295e85f9d59ffb590205cee82faca8abe70e47ec51649b8040a9d8b77","data":"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"}
+import { signal } from '@studiometa/js-toolkit';
+
+const count = signal(0);
+
+const unsubscribe = count.subscribe((value) => console.log(value), { immediate: true });
+
+count.value = 1;
+count.value += 1;
+
+unsubscribe();
+```
+
+**Parameters**
+
+- `initialValue` (`T`).
+
+**Return value**
+
+- `Signal<T>`. `subscribe()` returns the unsubscribe function.
+
+## A write settles synchronously, and the newest value wins
+
+The delivery loop re-reads the value after each callback. If the value moved, the loop **abandons the round and starts again on the new value**, so a subscriber that was not reached yet skips the old value entirely.
+
+Delivery stays in the same task. There is no batching and no microtask.
+
+::: danger A subscriber that writes on every delivery live-locks the loop
+Each write restarts the round, so the loop never finishes. Guard the write, or move it out of the subscriber.
+:::
+
+## It is a factory over a closure
+
+There is no class and no proxy. `signal()` closes over the value and a subscriber set, which is why it is the right thing to _provide_: the value crossing a context boundary is the signal itself, and the type of the key says so.
+
+```ts twoslash
+// @twoslash-cache: {"v":1,"hash":"a355dfe60ae4992920adc3c867f03166d05b56b4c8c7a4ad43f220953b194918","data":"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"}
+import { Base, createContext, signal, type Signal } from '@studiometa/js-toolkit';
+
+const CountContext = createContext<Signal<number>>('count');
+// ---cut---
+class Counter extends Base {
+  static config = { name: 'Counter' };
+
+  count = this.$provide(CountContext, signal(0));
+
+  increment() {
+    this.count.value += 1;
+  }
+}
+
+class CounterOutput extends Base {
+  static config = { name: 'CounterOutput' };
+
+  async mounted() {
+    const count = await this.$inject(CountContext);
+    return count.subscribe((value) => {
+      this.$el.textContent = String(value);
+    });
+  }
+}
+```
+
+## Failures
+
+A subscriber that throws is isolated and reported as `callback.signal-failed`, so one subscriber cannot stop the others.
+
+## `toggle()` works on it
+
+[`toggle(subscribe)`](/api/services/toggle.html) takes anything that returns its own unsubscribe function, a `Signal` included.

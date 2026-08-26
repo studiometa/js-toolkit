@@ -16,18 +16,7 @@
     "packages/*/dist/",
     "packages/js-toolkit/README.md",
     "packages/js-toolkit/src/subpaths/",
-    "packages/docs/guide/recipes/counter-component/Counter.html",
-    "packages/docs/guide/recipes/scroll-linked-animation/ScrollLinkedAnimation.html",
-    "packages/docs/.vitepress/cache",
-    "packages/docs/.vitepress/dist",
-    "packages/v4/src/subpaths/"
-  ],
-  "overrides": [
-    {
-      "files": ["packages/docs/**/*.md"],
-      "options": {
-        "printWidth": 78
-      }
-    }
+    "packages/js-toolkit/docs/.vitepress/cache",
+    "packages/js-toolkit/docs/.vitepress/dist"
   ]
 }

@@ -1,1 +1,1 @@
-export { easeOutCubic, easeOutCubic as default } from '../../utils/math/ease.js';
+export { easeOutCubic, easeOutCubic as default } from '../../utils/easings.js';

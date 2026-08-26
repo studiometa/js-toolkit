@@ -1,1 +1,1 @@
-export { saveActiveElement, saveActiveElement as default } from '../../utils/trapFocus.js';
+export { saveActiveElement, saveActiveElement as default } from '../../utils/focus.js';

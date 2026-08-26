@@ -1,1 +1,1 @@
-export { lowerCase, lowerCase as default } from '../../utils/string/changeCase.js';
+export { lowerCase, lowerCase as default } from '../../utils/strings.js';

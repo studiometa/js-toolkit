@@ -1,1 +1,1 @@
-export { fromMetaGlob, fromMetaGlob as default } from '../autoload/modules.js';
+export { fromMetaGlob, fromMetaGlob as default } from '../manifest.js';

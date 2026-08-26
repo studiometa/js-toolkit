@@ -1,66 +1,16 @@
-export { debounce } from './debounce.js';
-export { saveActiveElement, trapFocus, untrapFocus } from './trapFocus.js';
-export { keyCodes } from './keyCodes.js';
-export { memoize } from './memoize.js';
-export { nextFrame } from './nextFrame.js';
-export { nextTick } from './nextTick.js';
-export { nextMicrotask } from './nextMicrotask.js';
-export { throttle } from './throttle.js';
-export { scrollTo } from './scrollTo.js';
-export { getComponentResolver } from './getComponentResolver.js';
+/** Public entry point for `@studiometa/js-toolkit/utils`. */
+
+export { deepmerge } from './deepmerge.js';
 export {
-  isArray,
-  isBoolean,
-  isDefined,
-  isDev,
-  isEmpty,
-  isEmptyString,
-  isFunction,
-  isNull,
-  isNumber,
-  isObject,
-  isString,
-} from './is.js';
-export { hasWindow } from './has.js';
-export {
-  addClass,
-  addStyle,
-  animate,
+  createElement,
   getOffsetSizes,
-  matrix,
-  removeClass,
-  removeStyle,
-  toggleClass,
-  transform,
-  transition,
-  type Animate,
-  type AnimateOptions,
-  type CSSCustomPropertyName,
-  type Keyframe,
-  type NormalizedKeyframe,
-  type TransformProps,
-} from './css/index.js';
+  type CreateElementAttributes,
+  type CreateElementChildren,
+  type OffsetSizes,
+} from './dom.js';
 export {
-  objectToURLSearchParams,
-  push as historyPush,
-  replace as historyReplace,
-} from './history.js';
-export {
-  boundingRectToCircle,
-  collideCircleCircle,
-  collideCircleRect,
-  collidePointCircle,
-  collidePointRect,
-  collideRectRect,
-} from './collide/index.js';
-export {
-  clamp,
-  clamp01,
   createEaseInOut,
   createEaseOut,
-  createRange,
-  damp,
-  ease,
   easeInCirc,
   easeInCubic,
   easeInExpo,
@@ -83,78 +33,93 @@ export {
   easeOutQuart,
   easeOutQuint,
   easeOutSine,
+  type EasingFunction,
+} from './easings.js';
+export { saveActiveElement, trapFocus, untrapFocus } from './focus.js';
+export {
+  historyPush,
+  historyReplace,
+  objectToURLSearchParams,
+  type HistoryOptions,
+  type SearchParamInput,
+} from './history.js';
+export { isBoolean, isDefined, isFunction, isNull, isNumber, isObject, isString } from './is.js';
+export { loadImage, loadLink, loadScript } from './load.js';
+export {
+  clamp,
+  clamp01,
+  clampDampFactor,
+  createRange,
+  damp,
+  decayOver,
+  DEFAULT_DAMP_FACTOR,
   fold,
+  inertiaDecay,
   inertiaFinalValue,
+  inertiaStep,
+  inertiaTimeConstant,
+  INERTIA_FRAME,
   lerp,
   map,
+  MAX_SPRING_RATIO,
   mean,
   round,
-  smoothTo,
   spring,
   wrap,
-  type EasingFunction,
-} from './math/index.js';
+  type SpringOptions,
+} from './maths.js';
+export { memo, type Memo } from './memo.js';
+export { noop, noopValue } from './noop.js';
+export { random, randomInt, randomItem } from './random.js';
+export {
+  SCROLL_ALIGNMENTS,
+  SCROLL_AXES,
+  scrollPosition,
+  scrollTo,
+  type ScrollAlign,
+  type ScrollAxis,
+  type ScrollPosition,
+  type ScrollPositionOptions,
+  type ScrollToOptions,
+  type ScrollToTarget,
+} from './scrollTo.js';
+export { lockScroll } from './scroll-lock.js';
+export { selectorFor } from './selectors.js';
+export { smoothTo, type SmoothTo, type SmoothToOptions } from './smoothTo.js';
 export {
   camelCase,
-  dashCase,
-  endsWith,
+  capitalize,
+  kebabCase,
   lowerCase,
   pascalCase,
   snakeCase,
-  startsWith,
   upperCase,
   withLeadingCharacters,
   withLeadingSlash,
-  withTrailingCharacters,
-  withTrailingSlash,
   withoutLeadingCharacters,
   withoutLeadingCharactersRecursive,
   withoutLeadingSlash,
   withoutTrailingCharacters,
   withoutTrailingCharactersRecursive,
   withoutTrailingSlash,
-} from './string/index.js';
-export { domScheduler, useScheduler } from './scheduler.js';
-export { noop, noopValue } from './noop.js';
-export { tween } from './tween.js';
-export { Queue } from './Queue.js';
-export { SmartQueue } from './SmartQueue.js';
-export { createElement, getAncestorWhere, getAncestorWhereUntil } from './dom/index.js';
-export { wait } from './wait.js';
-export { random, randomInt, randomItem } from './random.js';
-export { memo } from './memo.js';
+  withTrailingCharacters,
+  withTrailingSlash,
+} from './strings.js';
+export { debounce, throttle, wait } from './timing.js';
 export {
-  loadElement,
-  loadIframe,
-  loadImage,
-  loadLink,
-  loadScript,
-  type LoadElementsOptions,
-  type LoadElementsReturnType,
-  type LoadableElements,
-  type LoadableElementsNames,
-} from './loadElement.js';
-export { cache } from './cache.js';
+  enterTransition,
+  leaveTransition,
+  setClassesOrStyles,
+  transition,
+  TRANSITION_OPTIONS,
+  type ClassesOrStyles,
+  type TransitionOptions,
+  type TransitionStyles,
+} from './transition.js';
 export {
-  createLocalStorage,
-  createLocalStorageProvider,
-  createMemoryStorageProvider,
-  createNoopProvider,
-  createSessionStorage,
-  createSessionStorageProvider,
-  createStorage,
-  createUrlSearchParamsInHashProvider,
-  createUrlSearchParamsInHashStorage,
-  createUrlSearchParamsProvider,
-  createUrlSearchParamsStorage,
-  localStorageProvider,
-  memoryStorageProvider,
-  sessionStorageProvider,
-  urlSearchParamsInHashProvider,
-  urlSearchParamsProvider,
-  type StorageInstance,
-  type StorageOptions,
-  type StorageProvider,
-  type StorageSerializer,
-  type UrlProviderOptions,
-} from './storage.js';
+  matrix,
+  transform,
+  TRANSFORM_PROPS,
+  type MatrixProps,
+  type TransformProps,
+} from './transform.js';

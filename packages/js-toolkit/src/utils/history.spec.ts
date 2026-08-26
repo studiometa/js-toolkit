@@ -1,89 +1,92 @@
-import { describe, test as it, expect, beforeEach, vi } from 'vitest';
-import { historyPush as push, historyReplace as replace } from '@studiometa/js-toolkit/utils';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { historyPush, historyReplace, objectToURLSearchParams } from './history.js';
 
-let location = new URL('/', 'http://localhost');
-
-function updateLocation(url) {
-  location = new URL(url, 'http://localhost');
-}
-
-beforeEach(() => {
-  const spy = vi.spyOn(window, 'location', 'get');
-  spy.mockImplementation(() => location);
-  Object.defineProperties(window.history, {
-    replaceState: {
-      configurable: true,
-      value: (data, title, url) => updateLocation(url),
-    },
-    pushState: {
-      configurable: true,
-      value: (data, title, url) => updateLocation(url),
-    },
-  });
-  window.history.replaceState({}, '', '/');
-});
-
-describe('The history `push` method', () => {
-  it('should work', () => {
-    expect(window.location.href).toBe('http://localhost/');
-    push({ path: 'bar', search: { query: 'baz', baz: false }, hash: 'foo' });
-    expect(window.location.href).toBe('http://localhost/bar?query=baz&baz=false#foo');
-  });
-
-  it('should remove search params when their value is null, undefined or an empty string', () => {
-    window.history.replaceState({}, '', '/?query=foo&nullish=foo&notDefined=foo&false=true');
-    expect(window.location.href).toBe(
-      'http://localhost/?query=foo&nullish=foo&notDefined=foo&false=true',
-    );
-    push({
-      search: { query: '', notPresent: '', nullish: null, notDefined: undefined, false: false },
-    });
-    expect(window.location.href).toBe('http://localhost/?false=false');
-  });
-
-  it('should remove the hash when none given', () => {
-    window.history.replaceState({}, '', '/#foo');
-    expect(window.location.href).toBe('http://localhost/#foo');
-    push({ hash: '' });
-    expect(window.location.href).toBe('http://localhost/');
-  });
-
-  it('should convert arrays and objects to valid PHP $_GET params', () => {
-    push({ search: { array: [1, 2, { obj: true }], object: { foo: 'foo', bar: { baz: 'bar' } } } });
-    expect(decodeURI(window.location.href)).toBe(
-      'http://localhost/?array[0]=1&array[1]=2&array[2][obj]=true&object[foo]=foo&object[bar][baz]=bar',
+describe('objectToURLSearchParams', () => {
+  it('writes flat values', () => {
+    expect(objectToURLSearchParams({ a: 'foo', b: 1, c: true }, '').toString()).toBe(
+      'a=foo&b=1&c=true',
     );
   });
 
-  it.skip('should fail silently when the history API is not supported', () => {
-    const historyMock = vi.spyOn(window, 'history', 'get');
-    historyMock.mockImplementation(() => undefined);
-    const { href } = window.location;
-    push({ path: 'baz' });
-    expect(href).toBe(window.location.href);
-    historyMock.mockRestore();
+  it('writes arrays and objects as bracketed names', () => {
+    expect(objectToURLSearchParams({ a: ['foo', 'bar'] }, '').toString()).toBe(
+      'a%5B0%5D=foo&a%5B1%5D=bar',
+    );
+    expect(objectToURLSearchParams({ a: { b: { c: 'foo' } } }, '').toString()).toBe(
+      'a%5Bb%5D%5Bc%5D=foo',
+    );
   });
 
-  it.skip('should pass the data and title to the history API', () => {
-    const pushMock = vi.spyOn(window.history, 'pushState');
-    push({ path: '/foo' }, { data: 'foo' }, 'title');
-    expect(pushMock).toHaveBeenCalledWith({ data: 'foo' }, 'title', '/foo');
-    push({ path: '/bar' });
-    expect(pushMock).toHaveBeenCalledWith({}, '', '/bar');
-    pushMock.mockRestore();
+  it('deletes a param set to an empty value', () => {
+    expect(objectToURLSearchParams({ a: '' }, 'a=foo&b=bar').toString()).toBe('b=bar');
+    expect(objectToURLSearchParams({ a: null }, 'a=foo').toString()).toBe('');
+    expect(objectToURLSearchParams({ a: undefined }, 'a=foo').toString()).toBe('');
   });
 
-  it('should accept URLSearchParams instance as search', () => {
-    const search = new URLSearchParams();
-    search.set('foo', 'bar');
-    push({ search });
-    expect(window.location.href).toBe('http://localhost/?foo=bar');
+  it('merges into the given search', () => {
+    expect(objectToURLSearchParams({ b: 'two' }, 'a=one').toString()).toBe('a=one&b=two');
+    expect(objectToURLSearchParams({ a: 'two' }, 'a=one').toString()).toBe('a=two');
+  });
+
+  it('merges into the current search by default', () => {
+    history.replaceState({}, '', '?a=one');
+    expect(objectToURLSearchParams({ b: 'two' }).toString()).toBe('a=one&b=two');
   });
 });
 
-describe('The history `replace` method', () => {
-  it('should work', () => {
-    replace({ path: 'bar', search: { query: 'baz' }, hash: '#foo' });
-    expect(window.location.href).toBe('http://localhost/bar?query=baz#foo');
+describe('historyPush and historyReplace', () => {
+  let initial: string;
+
+  beforeEach(() => {
+    initial = location.href;
+    history.replaceState({}, '', '/base?a=one#section');
+  });
+
+  afterEach(() => {
+    history.replaceState({}, '', initial);
+  });
+
+  it('keeps the parts the caller does not name', () => {
+    historyReplace({ path: '/other' });
+    expect(location.pathname).toBe('/other');
+    expect(location.search).toBe('?a=one');
+    expect(location.hash).toBe('#section');
+  });
+
+  it('merges an object into the current search', () => {
+    historyReplace({ search: { b: 'two' } });
+    expect(location.search).toBe('?a=one&b=two');
+  });
+
+  it('replaces the search when given a URLSearchParams', () => {
+    historyReplace({ search: new URLSearchParams('c=three') });
+    expect(location.search).toBe('?c=three');
+  });
+
+  it('accepts a hash with or without its number sign', () => {
+    historyReplace({ hash: 'other' });
+    expect(location.hash).toBe('#other');
+    historyReplace({ hash: '#third' });
+    expect(location.hash).toBe('#third');
+  });
+
+  it('drops the search when every param is emptied', () => {
+    historyReplace({ search: { a: '' } });
+    expect(location.search).toBe('');
+    expect(location.hash).toBe('#section');
+  });
+
+  it('stores the state and adds an entry only when pushing', () => {
+    const { length } = history;
+    historyReplace({ path: '/replaced' }, { step: 1 });
+    expect(history.state).toEqual({ step: 1 });
+    expect(history.length).toBe(length);
+
+    historyPush({ path: '/pushed' }, { step: 2 });
+    expect(history.state).toEqual({ step: 2 });
+    expect(location.pathname).toBe('/pushed');
+    expect(history.length).toBe(length + 1);
+
+    history.back();
   });
 });

@@ -1,142 +1,105 @@
-import { isArray, isObject } from './is.js';
-import { startsWith } from './string/startsWith.js';
-import { hasWindow } from './has.js';
+/** Update the URL without navigating, from the parts of it a component owns. */
 
 export interface HistoryOptions {
+  /** The pathname. Defaults to the current one. */
   path?: string;
-  search?: URLSearchParams | { [key: string]: unknown };
+  /** The search params, as an object or a `URLSearchParams`. Defaults to the current ones. */
+  search?: URLSearchParams | Record<string, SearchParamInput>;
+  /** The hash, with or without its `#`. Defaults to the current one. */
   hash?: string;
 }
 
-type SearchParamValue = string | number | boolean;
+/** A value a search param can hold, or a nested structure of them. */
+export type SearchParamInput =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | readonly SearchParamInput[]
+  | { readonly [key: string]: SearchParamInput };
 
 /**
- * Set a param in a URLSearchParam instance.
+ * Set one param, recursing into arrays and objects as bracketed names.
  *
- * @param  {URLSearchParams}                    params The params to update.
- * @param  {string}                             name   The name of the param to update.
- * @param  {string|number|boolean|Array|Object} value  The value for this param.
- * @return {URLSearchParams}                           The updated URLSearchParams instance.
+ * An empty value deletes the param instead of writing it, so a component
+ * clears its own part of the URL by setting it to `''`.
  */
 function updateUrlSearchParam(
   params: URLSearchParams,
   name: string,
-  value: SearchParamValue | Array<SearchParamValue> | Record<string, SearchParamValue>,
+  value: SearchParamInput,
 ): URLSearchParams {
   if (value === '' || value === null || value === undefined) {
-    if (params.has(name)) {
-      params.delete(name);
+    params.delete(name);
+    return params;
+  }
+
+  if (Array.isArray(value)) {
+    // `Array.isArray()` widens a readonly array to `any[]`; name the element type back.
+    const items: readonly SearchParamInput[] = value;
+    for (const [index, item] of items.entries()) {
+      updateUrlSearchParam(params, `${name}[${index}]`, item);
     }
     return params;
   }
 
-  if (isArray(value)) {
-    for (const [index, val] of value.entries()) {
-      const arrayName = `${name}[${index}]`;
-      updateUrlSearchParam(params, arrayName, val);
+  if (typeof value === 'object') {
+    for (const [key, item] of Object.entries(value)) {
+      updateUrlSearchParam(params, `${name}[${key}]`, item);
     }
     return params;
   }
 
-  if (isObject(value)) {
-    for (const [key, val] of Object.entries(value)) {
-      const objectName = `${name}[${key}]`;
-      updateUrlSearchParam(params, objectName, val);
-    }
-    return params;
-  }
-
-  params.set(name, value as string);
+  params.set(name, String(value));
   return params;
 }
 
 /**
- * Transform an object to an URLSearchParams instance.
+ * Convert an object to `URLSearchParams`, over the current search by default.
  *
- * @param  {Object}          obj           The object to convert.
- * @param  {string}          defaultSearch A string of defaults search params.
- * @return {URLSearchParams}
- * @link https://js-toolkit.studiometa.dev/utils/history/objectToURLSearchParams.html
+ * @example
+ * ```js
+ * objectToURLSearchParams({ filters: { color: 'red' } }, '').toString();
+ * // filters%5Bcolor%5D=red
+ * ```
+ * @link https://js-toolkit-v4.studiometa.dev/utils/history.html#objecttourlsearchparams
  */
 export function objectToURLSearchParams(
-  obj: unknown,
-  defaultSearch = hasWindow() ? window.location.search : '',
+  object: Record<string, SearchParamInput>,
+  defaultSearch: string = location.search,
 ): URLSearchParams {
-  return Object.entries(obj).reduce(
-    (urlSearchParams: URLSearchParams, [name, value]) =>
-      updateUrlSearchParam(urlSearchParams, name, value),
-    new URLSearchParams(defaultSearch),
-  ) as URLSearchParams;
+  const params = new URLSearchParams(defaultSearch);
+  for (const [name, value] of Object.entries(object)) {
+    updateUrlSearchParam(params, name, value);
+  }
+  return params;
+}
+
+/** Build the URL from the parts the caller gave, keeping the current ones. */
+function urlFor({ path, search, hash }: HistoryOptions): string {
+  const params = search instanceof URLSearchParams ? search : objectToURLSearchParams(search ?? {});
+  const query = params.toString();
+  const fragment = hash ?? location.hash;
+
+  let url = path ?? location.pathname;
+  if (query) url += `?${query}`;
+  if (fragment) url += fragment.startsWith('#') ? fragment : `#${fragment}`;
+  return url;
 }
 
 /**
- * Update the history with a new state.
- *
- * @param  {string}         mode
- * @param  {HistoryOptions} options
- * @param  {Object}         [data]
- * @param  {string}         [title]
- * @return {void}
+ * Push a new history entry for the given URL parts.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/history.html#historypush
  */
-function updateHistory(
-  mode: 'push' | 'replace',
-  options: HistoryOptions,
-  data: unknown = {},
-  title = '',
-) {
-  if (!window.history) {
-    return;
-  }
-
-  const { path, search, hash }: HistoryOptions = {
-    path: window.location.pathname,
-    search: new URLSearchParams(window.location.search),
-    hash: window.location.hash,
-    ...options,
-  };
-
-  let url = path;
-
-  const mergedSearch = search instanceof URLSearchParams ? search : objectToURLSearchParams(search);
-
-  if (mergedSearch.toString()) {
-    url += `?${mergedSearch.toString()}`;
-  }
-
-  if (hash) {
-    if (startsWith(hash, '#')) {
-      url += hash;
-    } else {
-      url += `#${hash}`;
-    }
-  }
-
-  const method = `${mode}State`;
-  window.history[method](data, title, url);
+export function historyPush(options: HistoryOptions, data: unknown = {}, title = ''): void {
+  history.pushState(data, title, urlFor(options));
 }
 
 /**
- * Push a new state.
- *
- * @param  {HistoryOptions} options The new state.
- * @param  {Object}         [data]  The data for the new state.
- * @param  {string}         [title] The title for the new state.
- * @return {void}
- * @link https://js-toolkit.studiometa.dev/utils/history/historyPush.html
+ * Replace the current history entry with the given URL parts.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/history.html#historyreplace
  */
-export function push(options: HistoryOptions, data: unknown = {}, title = '') {
-  updateHistory('push', options, data, title);
-}
-
-/**
- * Replace a new state.
- *
- * @param  {HistoryOptions} options The new state.
- * @param  {Object}         [data]  The data for the new state.
- * @param  {string}         [title] The title for the new state.
- * @return {void}
- * @link https://js-toolkit.studiometa.dev/utils/history/historyReplace.html
- */
-export function replace(options: HistoryOptions, data: unknown = {}, title = '') {
-  updateHistory('replace', options, data, title);
+export function historyReplace(options: HistoryOptions, data: unknown = {}, title = ''): void {
+  history.replaceState(data, title, urlFor(options));
 }

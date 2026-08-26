@@ -1,0 +1,105 @@
+# CSS
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"d62b08805c01da25fba26a95811580ea6c15c731d31bde2726827dd369738940","data":"N4Igdg9gJgpgziAXAbVAFwJ4AcZJACwgDcYAnEAGhDRgA808AKAQwBsBLZuASgAIAzAK5gAxmnYQwvALbM0pdrUZZSELHAD8iXgFk5C2gAVV67trjz2YAOYAdMO2lYIpNDP2LKIKBBEJEIABiLrJuzLwAwgDKUbzyzGBw/CHulrQAdF5ozNb+yMggdMxOrLhUAAaVAFZw9qEGjMC8cCJsMAAa2gAM6QCsFM2tpQCa3X28AL7cANz2APRzqQ09/bxdA+trfRsb3PaV5SAAuhQFHGAA1l74aGjqiAs1ALRoEBCsF+xoT0QALOkWQRQCTSGDZdKwIhzQTiVhwOZ+ODpG7SVgAYnqniOJxAFmYriQAE4qKUbGh8EgAGxUbKkaxgvCY2hec64RDrEAifD45hiMhEiYUdDYNkEYj8ml0BgBFgcLh8ISicSSOKkBJJELKExwbQAFTViWSpGkxjUPHMlhs9kczlcqvVRukXh8fjwwWNcl44WisXihpC6Xs9l1+BgcXwpBgYeYtHgvAg/C99sSrDkEik+LDkjD5T9cFTNAAzFBygMElBw2G4IRXNywBWE/ZwqpssqwGXBm146Qk3ALjAAO68AdWODxkg9r5jnCkJ4x9jTkxkcTwTI0nJ5ApFEplEAHGr2POOxq8WjaACMXU2LTaY16kxm80WeYLMGLjEvXSwtA239/tD4G9SkYFY9jAA5jlOEBziuKgbjuHVHjgF43g+L4fn+QFgQgUFwUhaFYXhRFkTQVE0SPEJjhxPECUQc8AHYSRgMkKUQYlqHxelpWoA0NWNFkrDZDkuR5PlyDo+iJhxERoFFG0XDcJomQGCjjUmARVGkXgAHIAAEsJBMFmDmZ5XneT40AI9g4W06YvFw5gkFAKVmLgdM8BqEAJgmIA=="}
+import { matrix, transform } from '@studiometa/js-toolkit/utils';
+```
+
+[[toc]]
+
+## Transforms
+
+### transform
+
+```ts
+transform(props: TransformProps): string
+```
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"074459e75d91f6381317187590594a7891844c79675ec574bed75ae94ff122c9","data":"N4Igdg9gJgpgziAXAbVAFwJ4AcZJACwgDcYAnEAGhDRgA808AKAQwBsBLZuASgAIAzAK5gAxmnYQwvNKWZg4/CKQC2jLKQhY4iXgBVZ8xSoAKGrdx1wZ7MAHMAOmHbKsStNIMKlyyiCgQRBEQQADFvZndmXgBhAGVYjzkvFQA6R0ddfBhpfFIYbOZaeF4Ifl4omSTWCIkpZjySsGyAA0r5apoAZihminKwKBzsuEJSNHw5QdLHKI00Gsk+qLgRNmylct44AGsYAHdePZs4EpJSXnY0E5xSAFpC9muzMnF4FN952yDkZBA6ZhcrFwVGaoIAVnBHG1kqpgLxaDoAIwABmRfRWax0yJSAFZeABfbgAbkcAHpSYl2hEYN1GCjkVhaH0GUzeCy+BigYxsTjuI5Qc0QABdCi/Dhgba+fBoNBaRDkiG3NAQCCsbaXW5EAAsKSsgigEmUMHmKVgRFJgnErDgpMCcBS0uUrAAxNCjD4hSKQFZ6gxEABOKhAuzjJCB6j1WzGvBu7y+cW4RBokAiCayMRkMP4ijobCJgjETNUGj0JhsTg8SkwtRmbR6Tzu0yaHiWax2RzOVxjKvu3z+QJ4MIqCKbOIJWOpdJgTLZcZ5ApFE6lTbQjq1coNSQtVfU7q9fqDcbDUbjSYlfgzXhzBZgJZbVZAkrnZa7A5HeSnMgXK68G73WiPL+zxjOwbwfMwXxID8fy0ACWBAr4AoQlCDbeIwcIIrw9Log+MBYriBLEmSFI7l0UB0qijLMlRbKMhyuHcrifJgAKwqiiA4qSlQ0qytoCpwEqKpqhq2q6mg+qGsazCmjA5qWuw1q2nA9qOi6E4el6PpjEgOLhsGtihgGxaRtGwTqfGNiJgATFQqb1MwGbkEm2a5jgeCEGcHx0H6IA1poLwYHw+hJI2tYpLQAD8OhgIIygAEZfgAPrwwiwPwllQL4Wl+gA7IiQYwCG+BIPlEakFGPm0BZTRIDZKZpg5NBOYiVkudQebuYW5DFt5TDqP5YyBfWIXeE2WgpBgUW8DF8VJSlAwwOlTSZVQ2VIDlAAcBVFSVxnlaZIAYNV1m2Q1jklf6bWYG5wQeUW1C9cEfk3JgQWoSYYWcjAU0zQl5zJali0ZVl8zaYgG04ttBnFYgkNlRVeBfcdtWnfZ52IFZABsV0dbdXVeaWT39S9Q3BYYo1hdeNA/bFf28ADC1LTAK3eqDfr+jlUOGZje0I8EVPAhxlko/VaNNUgnQbfiXoiNA+adm4vBwupBICBoyi8AA5AAAnqBoQEa8ykoqyqquqaAWlacCaySYAoSNKjofCSJorwGA6FZrtfUiuJ9ALOhanihJEr4hvMEgoDeYVcC1HgEIgPi+JAA="}
+import { transform } from '@studiometa/js-toolkit/utils';
+
+transform({ x: 10, y: 20, scale: 1.5, rotate: 45 });
+```
+
+Builds a `transform` value from named parts, so a component composes a transform instead of assembling a string. `TransformProps` takes `x`, `y`, `z`, `rotate`, `rotateX`, `rotateY`, `rotateZ`, `scale`, `scaleX`, `scaleY`, `scaleZ`, `skew` and the rest of the family.
+
+**The order is fixed by `TRANSFORM_PROPS`, not by the object.** Transform functions do not commute, so two components building "the same" transform from differently-ordered literals must still get the same matrix.
+
+### matrix
+
+```ts
+matrix(props?: MatrixProps): string
+```
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"f53445804020f0bcdbf3aac439b46d22e6d708f64c205d77d4135e2fceb0d5cd","data":"N4Igdg9gJgpgziAXAbVAFwJ4AcZJACwgDcYAnEAGhDRgA808AKAQwBsBLZuASgAIAzAK5gAxmnYQwvALbM0pdrUZZSELHAD8iXgFk5C2gAVV67trjz2YAOYAdMO2lYIpNDP2LKIKBBEJEIABiLrJuzLwAwgDKUbzyzGBw/CHulrQAdF5ozNb+yMggdMxOrLhUAAaVAFZw9qEGjMC8cCJsMAAa2gAM6QCsFM2tpQCa3X28AL7cANz2APRzqQ09/bxdA+trfRsb3PaV5SAAuhQFHGAA1l74aGjqiAs1ALRoEBCsF+xoT0QALOkWQRQCTSGDZdKwIhzQTiVhwOZ+ODpG7SVgAYnqniOJxAFmYriQAE4qKUbGh8EgAGxUbKkaxgvCY2hec64RDrEAifD45hiMhEiYUdDYNkEYj8ml0BgBFgcLh8JnKEyabR6NLGNQ8cyWGz2RzOVxLTxUHx+PDBUihXjhaKxeKJZKWo0ZLI5PIFIolMogA41OoeJRNFptTpbVbBkZjXqTGbzRaKlY7NYbbbJtZ7MAHY6nEDnK5UG53OAPObPV7vT7fP4AtBAkFg5gQmBQmHsOEIuBIlHopnHHF4gmIXrU3MwMkUxAj2n06UgXskqxsgBMVC5PL55HZguFODwhBI5El9CYKjUZEwfDVBg16gBQw6Wl4YEE0gARmReAAfXjCWD8RdQF4pr+CAAAq+AwIMbS8JIcQQbwtDWrQ7BIrwAAiMD8MwgisGgcBxBAvDlAAjOUmRUAO0qUv0o7jlSNL4jOeARh0LKLkgK6ctypC8jQm6Etu1Ainu4qHtQUoniY54YJeAY3ki9pwKwcgPtoz5vh+36/phAFAb4IHgZBinKeIsGweSkGIcwyGoRhWE4XhBFEV0ZFeJRSAAOwjqS1jkkgxEctODIBMZKntGxYDLqu3G8fyiBLl0Ew4iI0CivqLhuE0TKTAIqjSLwADkAACgLAhAoLZKWcAvG8HxfNCsJwAVsxgP6aSNFBpShiucQ8YkJkdNoAUxtMXgVcwSCgFKY5wBIYB4DUIATBMQA"}
+import { matrix } from '@studiometa/js-toolkit/utils';
+
+matrix({ scaleX: 2, translateX: 10 });
+```
+
+A `matrix()` string. Reach for it when a value has to be interpolated as a matrix rather than as separate functions.
+
+### TRANSFORM_PROPS
+
+```ts
+const TRANSFORM_PROPS: readonly (keyof TransformProps)[];
+```
+
+The ordered list of keys `transform()` reads.
+
+## Measuring
+
+### getOffsetSizes
+
+```ts
+getOffsetSizes(element: HTMLElement): { x, y, width, height, top, right, bottom, left }
+```
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"23f208cb3ef16b4c31e185372931cd3cf1404d2ca65251beea814b8cc9048609","data":"N4Igdg9gJgpgziAXAbVAFwJ4AcZJACwgDcYAnEAGhDRgA808AKAQwBsBLZuASgAIAzAK5gAxmnYQwvAOYw0AeX784cgMrsAXvEYxWMALYwwaRLwASAFQCyAGQCiew8e6nFytZvgAdMO31YIUjQZOTcVNHUtBCooCBEERBArGC5BUhheZildAyM0AHI4XgAjCFpMotZmDAhBYKwqkRgoXnY0Cl4Adzb8XhgSUgxeNFIsuH5A/V5JVuCsqB8ZtqKsprg0QKL2aUh0lsAUAi78ZmCAA1k0ACFasCh2MGkAYQ48gCUYMUZuU67a1haxp0yK1+D5IGh8PdpF0yBkRmMJqRDFAAHS8R4QQJ3MAneCZdLDfAZIjsGCdAJBQodLiEk68QwQ6CFFE+HwAQV4WDSGXSzCgpghGREbD0pGmnTARUFnOOKlmvGOWBwktaYBRlGozGkCWQyBAHDAAGsNfg0GgsHBEAB6K0AKzgAFoNhBWIa2g6iAAWFHrQR3CAM5go2BEK11disOBW+JwFGm/SsADEFwgSnCcE8CAAulmqOtmEEkABOKh6B4QpAARk9VDQBYueAuYQ8UQ1BtwiAADFQRMdRmIyMWAL4UdDYDsEYiD2t0BiJESSdYlMquNMt+Aa/OFxAAdm7+qM0griAAzLX63I8KVaG37h2AEw9vvMAfkRAANhHY5weEIAw1ND0EwbCcDwIQKGuESZjojh5KYli2A4uTOKu7hQVEPh+BSwRNpBkQbjEcQJEkKRwNymTZLBxiFMu5Q0lUNR1JyjTNLMHTdBCfQDEM8KSoiUxLHMtyLFIywUWsGykFsOyBKxhydMcZwXNcwjYk8LzGO8nzfL8gj/BRcBAmK7CgmA4KQg8MIErx4yTM0aIYli9y4is1lErwJJkthVIVLSwQMoQUDMqyYAclyBK8vyhJCiKwIQBKUruVgsoZG0CrMEqRhbGqAFajqeoGsaVCmualo2vaTqYq67pej6aB+hIgbBv0YbiJG0ZwLG8ZJimkEZq2OZ5nW247u+paHse1bnqQDaJLhaH4dE+p3kgj4gL2BYvjQb6VveX7UOOv5TuQM5AYkRAFrwsQiIITgmLwAAicS3XkGrXcRABUH2nN0tzxcGz13acX28Ok9WkCqzCgzA/CwqIcIQNFV2A3kvALsYzB3i09xI79sSdCyYA+MgVgPQAcrw7yw+k8NZowJUWtaVohroEA4KQKL6BAGgRlUKKBNIzNEVaADqMDFFabIAAoAJKi/c+NCzdd3cJuw1zkWlbjeW+BIAAHNNs0gNdL3GLeYAPk+m2vqtO77ZgP6JH+07ULOTBYKQbNkJgfBPcreQoqUUAYPB1j2FRDCEfEeAWO5X2nH7ptoIH0AYMDH2cp77OYNDHvwHkiUZAAPEHGAAHzTGKRf8KMhjhBXkCwNM/BIzdpA08EJt3R0gS8GAemsCCfeI2RvZ9BHfS0Ow6yxiFJPk5TMNw00dMM2VzP9Kz7Oc9zvNBgLStRmLEvS3Lid3Vapeq0NBZzpWnb7mWR664gNaajNl6JKX5uW+tz426eT8uZ1rQAnFhQIwRgDgWbOhPEQ4BCeymPkAAAr6f0gY7SOmdNVNArUIxwHyAAbhCujJc15eAAF5oF4Wgl3AOV9CEakDEgUAs4soSDAHge0IAhxDiAA"}
+import { getOffsetSizes } from '@studiometa/js-toolkit/utils';
+
+const box = getOffsetSizes(document.body);
+```
+
+The element's box from its **offset** properties rather than from `getBoundingClientRect()` — so a transform the component itself applied does not move the measurement.
+
+That is exactly what a drag or a tilt needs: the layout box is the frame of reference, and the transform is the output.
+
+::: tip It is a layout read
+Call it from the `read` phase — [`$read()`](/api/instance-methods.html#read-and-write) — so it batches with every other measurement of the frame.
+:::
+
+## Applying
+
+### setClassesOrStyles
+
+```ts
+setClassesOrStyles(
+  el: HTMLElement,
+  value: string | string[] | Partial<CSSStyleDeclaration> | undefined,
+  method?: 'add' | 'remove',
+): void
+```
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"ceefaf680c4b369fbd75d7e2443e11c6600fd3d198ef614b9239629ff54f2590","data":"N4Igdg9gJgpgziAXAbVAFwJ4AcZJACwgDcYAnEAGhDRgA808AKAQwBsBLZuASgAIAzAK5gAxmnYQwvODDQBhVlxlwA8qQDKmVvEYxWiXgAkAKgFkAMgFFtAWxhg0FXkTaCYBhUvhrNGbXF4AH15hWH52MBgoJzs0QigAfgMAHRBmKChUoN5U0hgbYhhU7gMiCHZMsHYbLAhSNGlZTzhlHy14SmpmAHMEFGQQDjAAa078NDQsOEQAehmAKzgAWjQICFZh9jQlogAWADo4NEEoCVjmfdgiGcFxVjgZkRb98ZtWAGIZNBFFFvg6o5+DoAXWBVCOzHqSAAnFRtGBunEkABGAAcVDQkO6sjwX2arQ07QQcIiuEQAAYqCJ8JDmGIyDCAL4UdDYMkEQrkDF0BiIEAiSRHXh6AwmCzWfL2BjgzFQxAAdl2cPsiPwSAATBisTi+XpOkMyZr+TTSHSaOREAA2ZmsnB4QgkLnUHl4FykXhQCAiQR2BwGAAiXp9Us6nqeeAAVBGAAYAdwintjlyDvrQ0ajvDyx1IYACzEzMH4ZHsIhgvFW5fwZbDwYcvAFDmYpKgvAilbL8bAif2yTAveQpn9ADleAAlQvF0QwYGMcaTaZzK56CA4Uj7AoAL3YrEU+zq3RmYYeAHUYAAjGYAQQACgBJGbHhMQWOHlNS7idCFy+WwwYqpGIOiXSkNivIgDWqb6qSGpUiaZoMogyLIja1BsvanKdDQ9BMFgpArmQmB8IG3qpvsZ7QBgopmFYtghlQR54MYVa8FG0bEbWaBkRR6YRrwuH4fUGAFrh8BSgEcRlgAPORUAYAAfLwdS8JJ/CmnYXwKZAsCKfw7b1oIpB5HWEFSk4SlgIIO6trpkDSII1LCrRdZ0OwRxwD2fZgAOw5jhORmljOc5TLMh4wCQrACeuEBbjuFz7q+TwPueV53jM7GpjMMkYB+MqQryqJAfCqpIEqwGgXgWVQZEMHGrS9IWuq5IoZgdp8g6DLcthfIsBwXB8HivwEr4/i6PoRjURKqZOC4rBuB4g3eISQIBMEoSFs2MSyPESQ5GkGRZMEuT5IUxSlOUlTVLU9SNPIC2qEt/iYT0fTIAMQyjFQQULgsyyrOsmzbHshzHKcEDnJcYU3HcDxPO5rwfF8PxeHAAJEiAoK5XK0IAKzKgiAFolqIE6iAA3I20y1VWSpXUnV5pIE1LKoa1HKOphLp8g2QoiuN4pOdKpOyrySGlUVAFGrK5W6qwVMlbBdMIci0LNWhbUYZ1YE9ZwPA3fii3DToPNijRkoONNrjuLwev3QbK0hF262RNEvCxNtKR7ZkIDZEdBQkKdzjnb2l11A0ZN/DbaNar0SCvYMEQfQQEzBXMiwrGsGxbDsBxHCcZyyBcVxQ9uMPPPDnyyEj4eo5TGOC3lKK7AAzHjxWIUBksk2HQ2R3H1WILjtWmvVDMqyz7VOlhYFcw0RsTfzn5CyilpGmLaqIBL2pgXqJJ9wPtND/TiHK0zLXsuP7NdSAWt9brd0UyNs986bjjOBb83kw98DZGt4RO5tcTQB2qkdIntvYgDyL7IoIASgBwqEHGoIdb4f1tk9aO/Re4Jy+iFVOf0M6A2ziDPOmIIbXFuMXR4pc0BvHLt8O61dHq1y/LyRqot/xr0JmVTuTQ76f2JL3Mklp5YHwQozW0Z91bOkvtPRyVEn6QUxsw9Uzc/z4zXhvYmW8ZY7wEUI+CFolaj3EWzDWOE8KrkIopLAdItgYB2kcUgERujfwdr/KIoYvR9BAExMsrEVzWMwDxK26h1B8TMQRISXxxLMT8SIGxOleDMCkHoZ++xeAqCsbEzArYonVhgN0PIZYKyxnwOwByDYaB1jPDAEpXYElJP5tk3gJSMj2CcIklsrk9IrlqHALYZYIC6TQKaXMVj/IYA8v2QcI5xxFn8tOWcSdvpLgiquKKMVdzxSPElC8chgkzBmZOUsMxrxhPqOweAMwYk2JynXOU6p1S/lXkgeURMpYgCuZgWWVpdHD3XtjQx6FjGSM1mwbW/VuHIKJKNWRJspqv1mpba298v6rRcRtF2W1AHuxAQdXaECTrQLOnAqoCDrpd31j3TEaDY7vTGIs7Bv104AyzsDXOYN84kKLvcChcMqEIwrnQ0ggIGFglucwy0yinlt1eVw26kLKbaOeT8w+ojmZGI6sCvA0jH6wromKjUqIV5sJqh3TRXyXmDz0SiZWoqBSwDwMHa6wAkHh2RQERkAg8I2F4AAcgAAI51BucH6ad/pbC5XAH1ABuXsvZtWsF4AAXg9G+BwXFZIxs8uSiOy1RpOB9a5JYZp2AkB9dwKNvA5gJPrINXs2a3V5t4MgAtyxi2lvzYW/CYAfXAnLZWmYjRHRsDrRC11vDG3Oo+ZRX15IfW8EZH2qtEQDTSCJCOuVY7baNpbUWsQJaYA+vzfi0ti6B2hAgK2AW5wkCgB5PYXpkg8CLBAIyRkQA==="}
+import { setClassesOrStyles } from '@studiometa/js-toolkit/utils';
+
+const el = document.body;
+
+setClassesOrStyles(el, 'is-active'); // a class
+setClassesOrStyles(el, ['is-active', 'is-open']); // several
+setClassesOrStyles(el, { opacity: '0' }); // inline styles
+setClassesOrStyles(el, 'is-active', 'remove'); // undo it
+```
+
+Applies a value that may be **either** classes or inline styles, which is what lets [`transition()`](./transitions.html) take one option in both forms.
+
+An `undefined` value does nothing, so a caller with an optional state does not have to branch.
+
+## What is not here
+
+`addClass`, `removeClass`, `toggleClass`, `addStyle`, `removeStyle` and `animate` are not shipped. `el.classList` and `el.style` say the first five, and time-based playback belongs to the separate `ui-animation` package.

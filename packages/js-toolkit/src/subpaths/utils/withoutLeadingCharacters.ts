@@ -1,1 +1,1 @@
-export { withoutLeadingCharacters, withoutLeadingCharacters as default } from '../../utils/string/withoutLeadingCharacters.js';
+export { withoutLeadingCharacters, withoutLeadingCharacters as default } from '../../utils/strings.js';

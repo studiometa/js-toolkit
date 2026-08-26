@@ -49,7 +49,16 @@ Its main objectives are:
 - Initializing components in the right place at the right time
 - Defining dependencies between components
 
-Visit [js-toolkit.studiometa.dev](https://js-toolkit.studiometa.dev) to learn more, jump to [ui.studiometa.dev](https://ui.studiometa.dev) to discover existing components, or open [the playground](https://ui.studiometa.dev/-/play/) to test it live.
+Visit [js-toolkit-v4.studiometa.dev](https://js-toolkit-v4.studiometa.dev) to learn more, jump to [ui.studiometa.dev](https://ui.studiometa.dev) to discover existing components, or open [the playground](https://ui.studiometa.dev/-/play/) to test it live.
+
+## Branches
+
+| Branch                                                     | Line                | npm      | Documentation                                                        |
+| ---------------------------------------------------------- | ------------------- | -------- | -------------------------------------------------------------------- |
+| `main`                                                     | 4.x                 | `next`   | [js-toolkit-v4.studiometa.dev](https://js-toolkit-v4.studiometa.dev) |
+| [`3.x`](https://github.com/studiometa/js-toolkit/tree/3.x) | 3.x, in maintenance | `latest` | [js-toolkit.studiometa.dev](https://js-toolkit.studiometa.dev)       |
+
+4.0 is a breaking major and is currently an alpha, so `latest` still installs 3.x. The two domains swap when 4.0.0 ships. Open a fix for the 3.x line against the `3.x` branch, and anything about 4.x against `main`.
 
 ## Packages
 
@@ -57,18 +66,17 @@ Visit [js-toolkit.studiometa.dev](https://js-toolkit.studiometa.dev) to learn mo
 | ------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | [`@studiometa/js-toolkit`](./packages/js-toolkit/)                  | The framework and its utility functions.                                         |
 | [`@studiometa/eslint-plugin-js-toolkit`](./packages/eslint-plugin/) | Oxlint/ESLint rules enforcing the framework's best practices.                    |
-| [`packages/v4`](./packages/v4/)                                     | The v4 prototype, private and not published.                                     |
-| [`packages/docs`](./packages/docs/)                                 | Sources of [js-toolkit.studiometa.dev](https://js-toolkit.studiometa.dev).       |
-| [`packages/v4/docs`](./packages/v4/docs/)                           | Sources of [js-toolkit-v4.studiometa.dev](https://js-toolkit-v4.studiometa.dev). |
-| [`packages/demo`](./packages/demo/)                                 | A playground application used during development.                                |
+| [`packages/js-toolkit/docs`](./packages/js-toolkit/docs/)           | Sources of [js-toolkit-v4.studiometa.dev](https://js-toolkit-v4.studiometa.dev). |
+| [`packages/js-toolkit/demo`](./packages/js-toolkit/demo/)           | A playground application used during development.                                |
+| [`packages/js-toolkit/migration`](./packages/js-toolkit/migration/) | `@studiometa/ui` families ported onto v4 to measure what a migration costs.      |
 
 ## Installation
 
 ```bash
-npm install @studiometa/js-toolkit
+npm install @studiometa/js-toolkit@next
 ```
 
-See the [package README](./packages/js-toolkit/README.md) for a longer introduction, or the [Getting Started guide](https://js-toolkit.studiometa.dev/guide/).
+See the [package README](./packages/js-toolkit/README.md) for a longer introduction, or the [Getting Started guide](https://js-toolkit-v4.studiometa.dev/guide/).
 
 ## Contributing
 

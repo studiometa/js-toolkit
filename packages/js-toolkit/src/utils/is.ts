@@ -1,83 +1,61 @@
-// eslint-disable-next-line no-undef
-/**
- * @link https://js-toolkit.studiometa.dev/utils/is/isDev.html
- */
-export const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
+/** Type guards for the values a component reads from the DOM or its options. */
 
 /**
- * Test is the given value is null.
- * @link https://js-toolkit.studiometa.dev/utils/is/isNull.html
+ * Whether a value is `null`.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/is.html#isnull
  */
-export const isNull = (value: unknown): value is null => value === null;
+export function isNull(value: unknown): value is null {
+  return value === null;
+}
 
 /**
- * Test if the given value is a function.
- * @link https://js-toolkit.studiometa.dev/utils/is/isFunction.html
+ * Whether a value is anything but `undefined`.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/is.html#isdefined
  */
-// eslint-disable-next-line @typescript-eslint/ban-types
-export const isFunction = (value: unknown): value is Function => typeof value === 'function';
+export function isDefined<T>(value: T | undefined): value is T {
+  return typeof value !== 'undefined';
+}
 
 /**
- * Test if a value is defined or not.
- * @link https://js-toolkit.studiometa.dev/utils/is/isDefined.html
+ * Whether a value is a string.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/is.html#isstring
  */
-export const isDefined = (value: unknown): boolean => typeof value !== 'undefined';
+export function isString(value: unknown): value is string {
+  return typeof value === 'string';
+}
 
 /**
- * Test if value is a string.
- * @link https://js-toolkit.studiometa.dev/utils/is/isString.html
+ * Whether a value is a number, `NaN` excluded.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/is.html#isnumber
  */
-export const isString = (value: unknown): value is string => typeof value === 'string';
+export function isNumber(value: unknown): value is number {
+  return typeof value === 'number' && !Number.isNaN(value);
+}
 
 /**
- * Test if the given value is an object.
- * @link https://js-toolkit.studiometa.dev/utils/is/isObject.html
+ * Whether a value is a boolean.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/is.html#isboolean
  */
-export const isObject = (value: unknown): boolean =>
-  typeof value === 'object' && !!value && value.toString() === '[object Object]';
+export function isBoolean(value: unknown): value is boolean {
+  return typeof value === 'boolean';
+}
 
 /**
- * Test if a given value is a number.
- * @link https://js-toolkit.studiometa.dev/utils/is/isNumber.html
+ * Whether a value is callable.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/is.html#isfunction
  */
-export const isNumber = (value: unknown): value is number =>
-  typeof value === 'number' && !Number.isNaN(value);
+export function isFunction(value: unknown): value is (...args: unknown[]) => unknown {
+  return typeof value === 'function';
+}
 
 /**
- * Test if a given value is a boolean.
- * @link https://js-toolkit.studiometa.dev/utils/is/isBoolean.html
+ * Whether a value is a plain object: an array, a `Date`, a DOM node and `null`
+ * are all excluded.
+ *
+ * The tag is read through `Object.prototype`, so an object with no prototype
+ * answers instead of throwing on a missing `toString`.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/is.html#isobject
  */
-export const isBoolean = (value: unknown): value is boolean => typeof value === 'boolean';
-
-// eslint-disable-next-line prefer-destructuring
-/**
- * Test if a given value is an array.
- * @link https://js-toolkit.studiometa.dev/utils/is/isArray.html
- */
-export const isArray = Array.isArray;
-
-/**
- * Test if a given value is an empty string.
- * @link https://js-toolkit.studiometa.dev/utils/is/isEmptyString.html
- */
-export const isEmptyString = (value?: unknown): boolean => isString(value) && value.length === 0;
-
-/**
- * Test if the given value is empty.
- * @link https://js-toolkit.studiometa.dev/utils/is/isEmpty.html
- */
-export const isEmpty = (value?) => {
-  if (isNull(value) || !isDefined(value)) {
-    return true;
-  }
-
-  if (isString(value) || isArray(value)) {
-    return value.length === 0;
-  }
-
-  if (isObject(value)) {
-    return value.constructor === Object && Object.keys(value).length === 0;
-  }
-
-  return false;
-};
+export function isObject(value: unknown): value is Record<string, unknown> {
+  return Object.prototype.toString.call(value) === '[object Object]';
+}

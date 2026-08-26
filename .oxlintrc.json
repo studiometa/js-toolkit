@@ -1,5 +1,5 @@
 {
-  "ignorePatterns": ["packages/js-toolkit/src/subpaths/", "packages/v4/src/subpaths/"],
+  "ignorePatterns": ["packages/js-toolkit/src/subpaths/"],
   "jsPlugins": [
     {
       "name": "js-toolkit",
@@ -28,7 +28,7 @@
       }
     },
     {
-      "files": ["packages/v4/**/*.ts"],
+      "files": ["packages/js-toolkit/**/*.ts"],
       "plugins": ["import"],
       "rules": {
         "import/extensions": [
@@ -91,21 +91,23 @@
       }
     },
     {
-      "files": ["packages/js-toolkit/src/**/*.ts", "packages/demo/**/*.{ts,js}"],
+      // The component-authoring rules, on the two places this repository
+      // writes components rather than framework: the ported `@studiometa/ui`
+      // families and the demo application.
+      //
+      // `require-config` and `async-lifecycle-methods` are deliberately absent.
+      // Both encode a v3 shape: v4 lets an abstract base declare no config, and
+      // `mounted()` returns its cleanup function, so making it `async` is the
+      // mistake rather than the rule.
+      "files": ["packages/js-toolkit/migration/**/*.ts", "packages/js-toolkit/demo/**/*.{ts,js}"],
       "rules": {
-        "js-toolkit/require-config": "error",
         "js-toolkit/require-config-name-pascal-case": "error",
         "js-toolkit/refs-camel-case": "error",
         "js-toolkit/refs-plural-multiple": "error",
         "js-toolkit/options-camel-case": "error",
-        "js-toolkit/async-lifecycle-methods": "error",
         "js-toolkit/on-handler-naming": "error",
         "js-toolkit/on-global-handler-prefix": "warn",
-        "js-toolkit/no-deprecated-properties": "error",
-        "js-toolkit/no-dispatch-event": "warn",
-        "js-toolkit/no-shadow-dom": "error",
-        "js-toolkit/no-create-app": "warn",
-        "js-toolkit/no-event-listener-methods": "error"
+        "js-toolkit/no-create-app": "warn"
       }
     },
     {
@@ -113,9 +115,9 @@
         "**/*.spec.ts",
         "**/*.bench.ts",
         "**/__benchmarks__/**",
-        "packages/v4/test/**",
-        "packages/v4/scripts/**",
-        "packages/v4/docs/**"
+        "packages/js-toolkit/test/**",
+        "packages/js-toolkit/scripts/**",
+        "packages/js-toolkit/docs/**"
       ],
       "rules": {
         "complexity": "off",

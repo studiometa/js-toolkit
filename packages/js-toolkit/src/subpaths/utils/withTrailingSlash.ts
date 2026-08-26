@@ -1,1 +1,1 @@
-export { withTrailingSlash, withTrailingSlash as default } from '../../utils/string/withTrailingSlash.js';
+export { withTrailingSlash, withTrailingSlash as default } from '../../utils/strings.js';
