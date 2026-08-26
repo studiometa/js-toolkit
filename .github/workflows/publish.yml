@@ -15,7 +15,11 @@ on:
 
 jobs:
   publish-and-release:
-    runs-on: macos-latest
+    # Ubuntu, not macOS: the specs run in a real Chromium, and `playwright
+    # install --with-deps` only installs system dependencies on Ubuntu. It also
+    # makes the release run the suite in the same environment `tests.yml`
+    # verifies every pull request in.
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       id-token: write
