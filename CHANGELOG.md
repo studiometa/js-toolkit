@@ -4,28 +4,42 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
-### Fixed
+## [4.0.0-alpha.0](https://github.com/studiometa/js-toolkit/compare/3.9.0..4.0.0-alpha.0) (2026-08-26)
 
-- Fix v4 services being identified by how their options were written rather than by what they observe: `useDrag(el, { axis, inertia })` and `useDrag(el, { inertia, axis })` describe one drag and bound two services, and a mixin's own `manual`, `immediate` and `target` options entered the key, so `withDrag(Base, { manual: true })` bound a second drag service — a second pointer listener set and a second `touch-action` claim — on an element the plain `withDrag(Base)` already owned ([#839](https://github.com/studiometa/js-toolkit/pull/839))
-- Fix a v4 handler stacking `@on` with `@read` or `@write` binding twice, and firing twice, whenever the phase decorator was written above the `@on`: the magic `on<…>` name scan now skips a decorated handler by its method name instead of by the function it was declared with, which the phase decorators replace ([#840](https://github.com/studiometa/js-toolkit/pull/840))
-- Fix `Queue` and `SmartQueue` draining in quadratic time, which cost a page of 5 000 components several seconds of mounting: 5 548 ms becomes 294 ms ([#833](https://github.com/studiometa/js-toolkit/pull/833))
+**4.0 is a rewrite, and this is its first published release.** It goes to the `next` dist-tag, so `latest` still installs 3.x. The API is stable and documented; the alpha label says it has not yet run on a production project.
 
-### Removed
+Read [the migration guide](https://js-toolkit-v4.studiometa.dev/guide/migration/v3-to-v4.html) before upgrading. `DESIGN.md` states what v4 does and `RATIONALE.md` states why, which options were refused, and what the measurements are.
 
-- Drop the dedicated subpaths of the 89 type-only symbols, such as `@studiometa/js-toolkit/BaseConfig`. Import types from `@studiometa/js-toolkit` or `@studiometa/js-toolkit/utils` instead ([#777](https://github.com/studiometa/js-toolkit/pull/777))
-- **Breaking:** drop `createLocalStorageProvider` and `createSessionStorageProvider` from the published surface of `@studiometa/js-toolkit`, root entry and subpaths alike. Both returned an adapter behaving exactly like the `localStorageProvider` and `sessionStorageProvider` instances the package already exports — the adapter holds no state — so use those instances instead ([#841](https://github.com/studiometa/js-toolkit/pull/841))
+One sentence carries the change: **the registry is the framework, and the DOM is the component tree.** An instance exists because its element is in the document and its class is registered. In 3.x a parent constructed its children and a child had to find its parent; in 4.0 neither happens.
+
+### Added
+
+- Provide/inject in core, with the shape of Vue and the mechanics of the WICG context protocol: `$provide`, `$inject`, `$injectSync`, `createContext`, `subscribeContext`, and a `signal` primitive whose delivery is reentrancy-safe
+- `$watchChildren()` and `@children()`, live DOM-ordered collections that answer for a child appearing after mount, matched by class so a named subclass is included
+- Delegated `on<Child><Event>`, `onWindow<Event>` and `onDocument<Event>` handlers, resolved by name and bound once per mount cycle
+- Mount strategies on one attribute — `data-mount="visible[:<rootMargin>]"`, `in-view`, `idle`, `interaction`, `media` — replacing the decorators that wrapped a constructor
+- Lazy manifests: `defineManifest()`, `registerManifest()`, `fromMetaGlob()` and `fromWebpackContext()`
+- A service layer that is lazy and reference-counted, with `toggle()` to suspend a subscription inside a mount cycle, plus `useInView`, `useScrollProgress`, `useDrag`, `useKey`, `useMediaQuery` and `perTarget`
+- Test helpers on `@studiometa/js-toolkit/test`: `mount`, `settle`, `frames`, `waitFor`, `recordEvents`, `countRequestedFrames` and `resetDom`
+- A cancelable diagnostic channel with stable codes, plus `$warn()` and `$error()` on every instance
+- `swap()` for DOM content replacement, native view transitions, `$id`, and a `utils` surface chosen by what consumers needed
 
 ### Changed
 
-- Schedule every v4 component through one algorithm: a registered class and a lazy manifest entry now share one controller per element/component pair, and `mount-strategies` answers whether a strategy is reversible or eager instead of the registry re-deriving it from strategy names ([#843](https://github.com/studiometa/js-toolkit/pull/843))
-- Give the v4 attribute vocabulary one owner, `attributes.ts`: the framework attribute names, the `data-option-` spelling and the batch coalescing rule were each written down in several modules, and the mutation engine kept them as string literals to avoid an import cycle. The engine's relevance test and the observer's `attributeFilter` are now the same set, so a framework attribute added to one can no longer be dropped by the other. Internal to the v4 prototype; no public API changes ([#842](https://github.com/studiometa/js-toolkit/pull/842))
-- Assemble the published package in `packages/js-toolkit/` instead of a repository-level `dist/`. The subpaths a consumer imports are unchanged ([#777](https://github.com/studiometa/js-toolkit/pull/777))
-- Build with tsdown (rolldown) instead of esbuild plus a separate `tsgo --build` pass, in every package ([#777](https://github.com/studiometa/js-toolkit/pull/777))
-- Format with `oxfmt` instead of Prettier, across the whole tree; the demo keeps Prettier for its Twig templates ([#777](https://github.com/studiometa/js-toolkit/pull/777))
-- Move the toolchain to the released `typescript@7` (`tsc`) instead of `@typescript/native-preview` (`tsgo`), and `oxlint` to 1.77.0 ([#777](https://github.com/studiometa/js-toolkit/pull/777))
-- Move the test runner to Vitest 4.1.10, with each package owning its runner config ([#777](https://github.com/studiometa/js-toolkit/pull/777))
-- Run v3's benchmarks in a real Chromium instead of Node with happy-dom, add the v3-against-v4 mounting comparison, and track regressions with `.github/actions/bench-diff` instead of CodSpeed, which is removed ([#830](https://github.com/studiometa/js-toolkit/pull/830))
-- Commit the subpath stubs instead of regenerating them before every build, test and lint run. `npm run subpaths` rewrites them and the `exports` map together ([#777](https://github.com/studiometa/js-toolkit/pull/777))
+- **Breaking:** `mounted()` returns its cleanup function instead of pairing with `destroyed()`, and the lifecycle vocabulary is `mount`/`unmount` only — both reversible
+- **Breaking:** `$options` is a read-only view over the attributes, typed `Readonly<…>`. Every option is responsive
+- **Breaking:** `config` merges along the prototype chain, so a subclass no longer respreads its parent's refs and components
+- **Breaking:** a boolean option reads presence, and `data-option-no-<name>` turns a true-default off
+- **Breaking:** an `Object` or `Array` option default must be a factory function
+
+### Removed
+
+- **Breaking:** `$children`, `$parent`, `$root`, `$update()`, `$terminate()`, `terminated()`, `updated()`, `config.emits`, `$services.enable()`/`.disable()`, and the constructor-wrapping mount decorators. `@studiometa/eslint-plugin-js-toolkit` flags every one of them through `configs.v4`
+
+### Notes
+
+- The 3.x line continues on the [`3.x` branch](https://github.com/studiometa/js-toolkit/tree/3.x), which keeps `latest`, its documentation at [js-toolkit.studiometa.dev](https://js-toolkit.studiometa.dev), and its own entries in this file
+- Two v4 fixes landed after the documentation was written: a service is now identified by what it observes rather than by the order its options were written ([#839](https://github.com/studiometa/js-toolkit/pull/839)), and a handler stacking `@on` with `@read` or `@write` no longer binds twice ([#840](https://github.com/studiometa/js-toolkit/pull/840))
 
 ## [v3.9.0](https://github.com/studiometa/js-toolkit/compare/3.8.2..3.9.0) (2026-08-10)
 
