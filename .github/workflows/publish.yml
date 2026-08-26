@@ -1,5 +1,13 @@
 name: publish-and-release
 
+# A tag publishes the packages that live on the branch it points at, so this
+# file needs no version gate: a `4.x` tag is created here and publishes v4,
+# while a `3.x` tag is created on the `3.x` branch, whose copy of this file
+# publishes v3. The workflow always runs from the ref of the tag.
+#
+# A prerelease goes to the `next` dist-tag, which is what keeps `latest` on
+# 3.x while 4.x is an alpha.
+
 on:
   push:
     tags:
@@ -39,18 +47,24 @@ jobs:
       - name: Build the published packages
         run: npm run build
 
-      - name: Test js-toolkit
-        run: npm test -- --retry=3 --coverage.enabled
+      # The specs run in a real browser, so the runner needs one. They cover
+      # native view transitions, frame-aligned scheduling and DOM lifecycle,
+      # which is what makes them worth running again on the release commit
+      # rather than trusting the pull request that produced it.
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
         working-directory: packages/js-toolkit
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: packages/js-toolkit/coverage/clover.xml
-          flags: js-toolkit
-          fail_ci_if_error: false
-          verbose: true
+      - name: Test js-toolkit
+        run: npm test
+        working-directory: packages/js-toolkit
+
+      # The last gate before the tarball goes out: packs the package and runs
+      # the result through a Node, a browser and a TypeScript consumer, without
+      # the workspace aliases. What passes here is what a consumer installs.
+      - name: Check the packed package
+        run: npm run check:package
+        working-directory: packages/js-toolkit
 
       - name: Test oxlint-plugin
         run: npm test -- --retry=3 --coverage.enabled
