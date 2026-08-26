@@ -805,6 +805,9 @@
     "demo:dev": "vite demo --host",
     "demo:build": "vite build demo",
     "demo:preview": "vite preview demo --host",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
     "test": "npm run check:diagnostics && npm run test:fixtures && vitest run",
     "test:fixtures": "node scripts/build-runtime-fixtures.js",
     "test:runtime": "npm run test:fixtures && vitest run src/shared-runtime.spec.ts src/duplicate-runtime.spec.ts",
@@ -819,13 +822,19 @@
   },
   "devDependencies": {
     "@rollup/plugin-swc": "^0.4.1",
+    "@shikijs/vitepress-twoslash": "4.0.2",
+    "@studiometa/tailwind-config": "3.0.0",
     "@swc/core": "^1.15.47",
+    "@tailwindcss/vite": "4.2.2",
     "@vitest/browser": "4.1.10",
     "@vitest/browser-playwright": "4.1.10",
     "fast-glob": "3.3.3",
     "playwright": "^1.50.0",
+    "tailwindcss": "4.2.2",
     "tsdown": "0.22.14",
     "vite": "8.2.1",
+    "vitepress": "2.0.0-alpha.19",
+    "vitepress-plugin-llms": "1.12.0",
     "vitest": "4.1.10"
   }
 }

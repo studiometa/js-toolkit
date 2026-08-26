@@ -36,6 +36,8 @@ packages/demo/dist/
 .bench-report.json
 /packages/docs/.vitepress/cache
 /packages/docs/.vitepress/dist
+/packages/v4/docs/.vitepress/cache
+/packages/v4/docs/.vitepress/dist
 coverage/
 /full.d.ts
 /index.d.ts

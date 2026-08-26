@@ -1,0 +1,82 @@
+# toggle
+
+```ts
+toggle(subscribe: () => Unsubscribe): Toggle
+```
+
+Turns anything that returns its own unsubscribe function into a switch.
+
+```ts
+interface Toggle {
+  readonly isActive: boolean;
+  start: () => void;
+  stop: () => void;
+}
+```
+
+`start` and `stop` are **bound**, so each is a callback as it is.
+
+## Usage
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"621ef112413ba5b1b6589eabd9afe771a0511bb45592c79e3678c707c4e0119f","data":"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"}
+import { Base, toggle, useRaf } from '@studiometa/js-toolkit-v4';
+
+class SliderItem extends Base {
+  static config = { name: 'SliderItem' };
+
+  #frame = toggle(() => useRaf().subscribe(({ delta }) => this.follow(delta)));
+
+  mounted() {
+    // `stop` is bound, so it is a cleanup as it is.
+    return this.#frame.stop;
+  }
+
+  follow(delta) {}
+
+  onIndexChange() {
+    this.#frame.start();
+  }
+
+  onSettled() {
+    this.#frame.stop();
+  }
+}
+```
+
+`start()` is idempotent and `stop()` is safe to repeat.
+
+## What it works on
+
+Anything whose subscribe call returns a release:
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"82e9aa6707a24d625a4dcd36b75cc18547117c28b5364d3a5dcb0ca1c13c0340","data":"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"}
+import { signal, toggle, useScroll } from '@studiometa/js-toolkit-v4';
+
+const count = signal(0);
+const el = document.body;
+
+// a service
+toggle(() => useScroll().subscribe(() => {}));
+
+// a signal
+toggle(() => count.subscribe(() => {}));
+
+// a bare listener
+toggle(() => {
+  const handler = () => {};
+  el.addEventListener('click', handler);
+  return () => el.removeEventListener('click', handler);
+});
+```
+
+It knows nothing about `Base`, so it works outside a component too.
+
+## Why it exists
+
+The scheduler has no permanent rAF loop: it requests the next frame while a tick subscriber stays. So **a component that needs the loop for part of a cycle should not hold a subscription for the whole cycle** — and hand-rolling "unsubscribe if subscribed, and remember which" at every call site is the bug this removes.
+
+`{ manual: true }` on a service mixin gives you the same object under `$services.<hook>`. See [Mixins](./mixins.html#manual).
+
+`smoothTo()` is a `toggle()` over `useRaf()`: one subscription however many times the target is set, started when the value has somewhere to go, released when it arrives.
