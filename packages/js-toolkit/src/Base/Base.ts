@@ -549,7 +549,40 @@ export class Base<T extends BaseProps = BaseProps> {
   }
 
   /**
-   * Terminate a child instance when it is not needed anymore.
+   * Terminate a component instance when it is not needed anymore.
+   *
+   * Terminating stamps the element's `__base__` entry with a `'terminated'`
+   * marker instead of deleting it. That is deliberate: commit `9bc6f838` ("Fix
+   * terminated feature", Feb. 2022) changed `__base__.delete(...)` to
+   * `__base__.set(..., 'terminated')` so that the marker survives and keeps the
+   * element excluded from component resolution. `$children`, `$parent` and
+   * `queryComponent()` all read `__base__` and special-case the `'terminated'`
+   * string (see `ChildrenManager.__getChild()` and `helpers/queryComponent.ts`);
+   * with the entry deleted they would instead build a brand new instance for the
+   * element.
+   *
+   * The document-wide auto-mount scan (see `mutationCallback` in
+   * `Base/utils.ts`) reads the same marker: it is truthy, so
+   * `getInstanceFromElement()` returns it and the element is treated as already
+   * having an instance. **The auto-mount scan will therefore never mount this
+   * element again**, even when the very same node is re-inserted into the DOM.
+   * Two escape hatches remain: give the component a brand new node (no
+   * `__base__` entry, so a fresh instance is mounted), or instantiate explicitly
+   * — `new Ctor(el).$mount()` overwrites the marker with the new instance and
+   * mounts it.
+   *
+   * Sharp edge: most of the time you never call `$terminate()` yourself. The
+   * second pass of `mutationCallback()` terminates any instance whose element is
+   * no longer connected, so an element detached and re-inserted one mutation
+   * batch later is silently and permanently skipped by the auto-mount scan. This
+   * combination is emergent rather than designed — the marker was added in 2022
+   * and the terminate-on-disconnect pass in 2024 (issue #552), for unrelated
+   * reasons. When a node has to survive a detach/re-attach cycle, either
+   * re-parent it synchronously (it stays connected when the scan runs, so the
+   * instance is left untouched), keep it in the DOM and use `$destroy()` /
+   * `$mount()` on the retained instance, or re-mount it explicitly with
+   * `new Ctor(el).$mount()`.
+   *
    * @link https://js-toolkit.studiometa.dev/api/instance-methods.html#terminate
    */
   async $terminate(): Promise<void> {

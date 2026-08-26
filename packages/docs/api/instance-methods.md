@@ -277,3 +277,38 @@ Terminate the component. Its instance becomes available for garbage collection.
 :::warning
 A terminated component can not be re-mounted, use with precaution.
 :::
+
+### Removing an element terminates its component
+
+You rarely call `$terminate()` yourself. js-toolkit watches the document and terminates any instance whose root element is no longer connected to the DOM. Removing an element is therefore enough to terminate its component.
+
+Terminating leaves a `'terminated'` marker on the element, and the automatic mount scan skips marked elements. **Re-inserting the very same node does not mount a new component on it.** Patterns that detach and re-attach a node — animated modal teardown, virtual list recycling, view transitions, drag & drop re-parenting — hit this without ever calling `$terminate()`.
+
+```js
+const el = document.querySelector('[data-component="Modal"]');
+
+el.remove(); // The `Modal` instance is terminated.
+document.body.append(el); // Nothing is mounted: the element stays terminated.
+```
+
+Three ways to keep components working across a detach:
+
+1. **Re-parent synchronously.** Moving a node in a single task never leaves it disconnected when the scan runs, so its instance is left untouched and stays mounted.
+
+   ```js
+   el.remove();
+   otherContainer.append(el); // Same task: the instance survives.
+   ```
+
+2. **Insert a new node.** A brand new element has no marker, so the scan mounts a fresh instance on it.
+
+3. **Instantiate explicitly.** [`new Component(el)`](./instantiation.md) overwrites the marker, so `$mount()` mounts the terminated element again.
+
+   ```js
+   document.body.append(el);
+   new Modal(el).$mount();
+   ```
+
+:::tip
+To hide and show a component, prefer [`$destroy()`](#destroy) and [`$mount()`](#mount) on an instance you keep a reference to, and leave the element in the DOM. This is what [`withMountWhenInView`](./decorators/withMountWhenInView.md) does: it mounts and destroys the same instance every time its element enters or leaves the viewport.
+:::

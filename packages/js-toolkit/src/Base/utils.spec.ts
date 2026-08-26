@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { Base, withName, getInstances } from '@studiometa/js-toolkit';
+import { Base, BaseConfig, withName, getInstances } from '@studiometa/js-toolkit';
 import { nextTick } from '@studiometa/js-toolkit/utils';
 import {
   getComponentElements,
@@ -271,6 +271,151 @@ describe('The Base utils', () => {
 
       // Clean up
       container.remove();
+    });
+  });
+
+  describe('The terminated marker and the auto-mount scan', () => {
+    it('should never auto-mount a terminated element again, even when re-inserted', async () => {
+      // Pins the contract behind the `'terminated'` marker: once an element is
+      // stamped, the document-wide auto-mount scan in `mutationCallback()` skips
+      // it forever. Note the test never calls `$terminate()` — removing the
+      // element from the DOM is enough, the terminate pass of the same scan does
+      // it. That is the sharp edge users actually hit.
+      let mountedCount = 0;
+      class PermanentComponent extends Base {
+        static config: BaseConfig = { name: 'PermanentTerminatedComponent' };
+
+        mounted() {
+          mountedCount += 1;
+        }
+      }
+
+      let controlMountedCount = 0;
+      class ControlComponent extends Base {
+        static config: BaseConfig = { name: 'TerminatedControlComponent' };
+
+        mounted() {
+          controlMountedCount += 1;
+        }
+      }
+
+      addToRegistry('PermanentTerminatedComponent', PermanentComponent);
+      addToRegistry('TerminatedControlComponent', ControlComponent);
+
+      const container = h('div');
+      document.body.appendChild(container);
+
+      const el = h('div', { 'data-component': 'PermanentTerminatedComponent' });
+      container.appendChild(el);
+
+      // Wait for the mutation observer to mount the component.
+      await nextTick();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(getInstances(PermanentComponent).size).toBe(1);
+      expect(mountedCount).toBe(1);
+      const firstInstance = Array.from(getInstances(PermanentComponent))[0];
+
+      // Remove the element: the terminate pass of the scan terminates the
+      // instance and stamps the marker. `$terminate()` is never called by hand.
+      el.remove();
+      await nextTick();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(getInstances(PermanentComponent).size).toBe(0);
+      expect((el as any).__base__.get('PermanentTerminatedComponent')).toBe('terminated');
+
+      // Re-insert the SAME element, together with a brand new control element in
+      // the same mutation. The control is a positive control: it proves the scan
+      // did run, so the assertions on `el` below are a real "skipped", not a
+      // "the observer never fired".
+      const controlEl = h('div', { 'data-component': 'TerminatedControlComponent' });
+      container.append(el, controlEl);
+      await nextTick();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Positive control: the scan ran during this very mutation batch.
+      expect(controlMountedCount).toBe(1);
+      expect(getInstances(ControlComponent).size).toBe(1);
+
+      // The re-inserted element stayed terminated and was skipped.
+      expect(getInstances(PermanentComponent).size).toBe(0);
+      expect(mountedCount).toBe(1);
+      expect((el as any).__base__.get('PermanentTerminatedComponent')).toBe('terminated');
+
+      // Escape hatch #1 — a BRAND NEW node carrying the same `data-component`
+      // has no `__base__` marker, so the scan mounts a fresh instance.
+      el.remove();
+      const freshEl = h('div', { 'data-component': 'PermanentTerminatedComponent' });
+      container.appendChild(freshEl);
+      await nextTick();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(getInstances(PermanentComponent).size).toBe(1);
+      expect(mountedCount).toBe(2);
+      const freshInstance = Array.from(getInstances(PermanentComponent))[0];
+      expect(freshInstance).not.toBe(firstInstance);
+      expect(freshInstance.$el).toBe(freshEl);
+
+      // Clean up
+      container.remove();
+      await Promise.all(
+        [...getInstances(PermanentComponent), ...getInstances(ControlComponent)].map((i) =>
+          i.$destroy(),
+        ),
+      );
+    });
+
+    it('should still mount a terminated element through explicit instantiation', async () => {
+      // The scan skips terminated elements, but nothing makes the element itself
+      // unmountable: the constructor overwrites `__base__` unconditionally
+      // (`Base.ts`), so `new Ctor(el).$mount()` clears the marker and mounts.
+      let mountedCount = 0;
+      class RevivableComponent extends Base {
+        static config: BaseConfig = { name: 'RevivableTerminatedComponent' };
+
+        mounted() {
+          mountedCount += 1;
+        }
+      }
+
+      addToRegistry('RevivableTerminatedComponent', RevivableComponent);
+
+      const container = h('div');
+      document.body.appendChild(container);
+
+      const el = h('div', { 'data-component': 'RevivableTerminatedComponent' });
+      container.appendChild(el);
+
+      await nextTick();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(mountedCount).toBe(1);
+
+      // Detach + re-attach so the element ends up terminated but connected.
+      el.remove();
+      await nextTick();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      container.appendChild(el);
+      await nextTick();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect((el as any).__base__.get('RevivableTerminatedComponent')).toBe('terminated');
+      expect(mountedCount).toBe(1);
+
+      // Explicit instantiation is the documented escape hatch.
+      const revived = new RevivableComponent(el);
+      expect((el as any).__base__.get('RevivableTerminatedComponent')).toBe(revived);
+
+      await revived.$mount();
+
+      expect(revived.$isMounted).toBe(true);
+      expect(mountedCount).toBe(2);
+      expect(getInstances(RevivableComponent).has(revived)).toBe(true);
+
+      // Clean up
+      container.remove();
+      await Promise.all(Array.from(getInstances(RevivableComponent)).map((i) => i.$destroy()));
     });
   });
 });
