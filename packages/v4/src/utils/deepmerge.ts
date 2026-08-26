@@ -83,6 +83,7 @@ function merge(
  * deepmerge({ ecommerce: { currency: 'EUR' } }, { ecommerce: { items: [1] } });
  * // { ecommerce: { currency: 'EUR', items: [1] } }
  * ```
+ * @link https://js-toolkit-v4.studiometa.dev/utils/objects.html#deepmerge
  */
 export function deepmerge(...layers: Record<string, unknown>[]): Record<string, unknown> {
   return layers.reduce<Record<string, unknown>>(merge, {});

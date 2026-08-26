@@ -37,6 +37,7 @@ const state = /* @__PURE__ */ getSharedRuntimeSlot('scroll-lock', 1, () => ({
  * // …later, whichever comes first
  * release();
  * ```
+ * @link https://js-toolkit-v4.studiometa.dev/utils/scroll.html#lockscroll
  */
 export function lockScroll(target: HTMLElement = document.documentElement): () => void {
   const lock = state.locks.get(target);

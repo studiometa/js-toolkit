@@ -49,6 +49,7 @@ function dispatchDiagnostic(
  * A component reports through {@link Base.$error}, which fills in its own name
  * and element. This is the form for code with no instance to report as — a
  * module-level helper, or a class which is not a `Base`.
+ * @link https://js-toolkit-v4.studiometa.dev/api/diagnostics/reportDiagnostic.html
  */
 export function reportDiagnostic(
   code: ToolkitDiagnosticCode,
@@ -88,6 +89,7 @@ export function isolateCallbackFailure(
  * A component reports through {@link Base.$warn}, which fills in its own name
  * and element. This is the form for code with no instance to report as — a
  * module-level helper, or a class which is not a `Base`.
+ * @link https://js-toolkit-v4.studiometa.dev/api/diagnostics/warn.html
  */
 export function warn(
   code: ToolkitDiagnosticCode,

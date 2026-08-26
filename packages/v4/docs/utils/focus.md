@@ -7,19 +7,7 @@ import { saveActiveElement, trapFocus, untrapFocus } from '@studiometa/js-toolki
 
 The three calls a modal surface needs.
 
-## The three
-
-```ts
-saveActiveElement(): void
-trapFocus(el: HTMLElement, event: KeyboardEvent): void
-untrapFocus(): void
-```
-
-| Function               | Does                                                          |
-| ---------------------- | ------------------------------------------------------------- |
-| `saveActiveElement()`  | remembers what had focus, so `untrapFocus()` can give it back |
-| `trapFocus(el, event)` | keeps `Tab` and `Shift+Tab` inside `el`                       |
-| `untrapFocus()`        | releases the trap and restores focus to the saved element     |
+[[toc]]
 
 ## Usage
 
@@ -62,6 +50,32 @@ mounted() {
 ::: tip This is why the key listeners are not passive
 `trapFocus()` calls `preventDefault()` on the event it is handed, and a passive listener cannot. See [`useKey()`](/api/services/useKey.html#the-listeners-are-neither-passive-nor-capturing).
 :::
+
+## The three
+
+### saveActiveElement
+
+```ts
+saveActiveElement(): void
+```
+
+Remembers what had focus, so `untrapFocus()` can give it back.
+
+### trapFocus
+
+```ts
+trapFocus(el: HTMLElement, event: KeyboardEvent): void
+```
+
+Keeps `Tab` and `Shift+Tab` inside `el`.
+
+### untrapFocus
+
+```ts
+untrapFocus(): void
+```
+
+Releases the trap and restores focus to the saved element.
 
 ## The saved element is shared across copies
 

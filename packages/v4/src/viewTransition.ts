@@ -22,6 +22,7 @@ let vtTail = Promise.resolve();
  * animation when the API is unavailable.
  *
  * @returns Resolved once the transition has finished.
+ * @link https://js-toolkit-v4.studiometa.dev/api/scheduler/viewTransition.html
  */
 export function viewTransition(update: ViewTransitionUpdate): Promise<void> {
   return new Promise((resolve, reject) => {

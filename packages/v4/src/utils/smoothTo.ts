@@ -70,7 +70,10 @@ export interface SmoothToRecord<K extends string> {
   destroy(): void;
 }
 
-/** Smooth a value toward a target with one shared frame subscription. */
+/**
+ * Smooth a value toward a target with one shared frame subscription.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/motion.html#smoothto
+ */
 export function smoothTo(start?: number, options?: SmoothToOptions): SmoothTo;
 /**
  * Smooth several named values toward their targets, on one frame subscription,

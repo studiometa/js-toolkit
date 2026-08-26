@@ -7,15 +7,7 @@ import { isDefined, isNumber, isObject, isString } from '@studiometa/js-toolkit-
 
 Each one narrows the type.
 
-| Function            | Signature                                  |
-| ------------------- | ------------------------------------------ |
-| `isNull(value)`     | `value is null`                            |
-| `isDefined(value)`  | `value is T` — for `T \| undefined`        |
-| `isString(value)`   | `value is string`                          |
-| `isNumber(value)`   | `value is number`                          |
-| `isBoolean(value)`  | `value is boolean`                         |
-| `isFunction(value)` | `value is (...args: unknown[]) => unknown` |
-| `isObject(value)`   | `value is Record<string, unknown>`         |
+[[toc]]
 
 ## Usage
 
@@ -36,13 +28,53 @@ function first<T>(items: (T | undefined)[]): T[] {
 
 `isDefined` as a `filter` predicate is the case that earns the export: it is the one narrowing TypeScript will not do from a truthiness check.
 
-## `isNumber` rejects `NaN`
+## The guards
 
-```js
-isNumber(NaN); // false
+### isNull
+
+```ts
+isNull(value: unknown): value is null
 ```
 
-Because a `NaN` that passes a number check is a bug that surfaces three functions later.
+### isDefined
+
+```ts
+isDefined<T>(value: T | undefined): value is T
+```
+
+Narrows `T | undefined` to `T`. Passing it by reference to `filter` is what it is for.
+
+### isString
+
+```ts
+isString(value: unknown): value is string
+```
+
+### isNumber
+
+```ts
+isNumber(value: unknown): value is number
+```
+
+**It rejects `NaN`**, because a `NaN` that passes a number check is a bug that surfaces three functions later.
+
+### isBoolean
+
+```ts
+isBoolean(value: unknown): value is boolean
+```
+
+### isFunction
+
+```ts
+isFunction(value: unknown): value is (...args: unknown[]) => unknown
+```
+
+### isObject
+
+```ts
+isObject(value: unknown): value is Record<string, unknown>
+```
 
 ## What is not here
 

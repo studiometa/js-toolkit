@@ -26,6 +26,7 @@ function toClassList(value: string | string[]): string[] {
   return (Array.isArray(value) ? value : value.split(' ')).filter(Boolean);
 }
 
+/** @link https://js-toolkit-v4.studiometa.dev/utils/css.html#setclassesorstyles */
 export function setClassesOrStyles(
   el: HTMLElement,
   value: ClassesOrStyles | undefined,
@@ -57,6 +58,7 @@ function hasTransition(el: HTMLElement): boolean {
  * awaiting it is never left waiting for an end which will not come.
  *
  * @param mode Whether the `to` state is kept or removed at the end.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/transitions.html#transition
  */
 export async function transition(
   el: HTMLElement,
@@ -127,7 +129,10 @@ export async function transition(
   end(mode);
 }
 
-/** Shared transition option definitions. */
+/**
+ * Shared transition option definitions.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/transitions.html#transition-options
+ */
 export const TRANSITION_OPTIONS: Record<string, OptionDefinition> = {
   enterFrom: String,
   enterActive: String,
@@ -168,6 +173,7 @@ function removeClasses(el: HTMLElement, classes: string): void {
  * The opposite direction's `to` classes are cleared first: with `enterKeep` or
  * `leaveKeep` they are still on the element from the last transition, and a
  * `to` state left behind fights the one being applied.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/transitions.html#entertransition
  */
 export async function enterTransition(el: HTMLElement, options: TransitionOptions): Promise<void> {
   const { enterFrom, enterActive, enterTo, enterKeep, leaveTo } = options;
@@ -180,7 +186,10 @@ export async function enterTransition(el: HTMLElement, options: TransitionOption
   );
 }
 
-/** Run the leave transition on an element. */
+/**
+ * Run the leave transition on an element.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/transitions.html#leavetransition
+ */
 export async function leaveTransition(el: HTMLElement, options: TransitionOptions): Promise<void> {
   const { leaveFrom, leaveActive, leaveTo, leaveKeep, enterTo } = options;
   removeClasses(el, enterTo);

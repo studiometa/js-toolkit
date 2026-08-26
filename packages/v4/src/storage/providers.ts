@@ -46,7 +46,10 @@ function createWebStorageProvider(name: 'localStorage' | 'sessionStorage'): Stor
   };
 }
 
-/** A provider backed by a `Map`, for tests and for opting out of persistence. */
+/**
+ * A provider backed by a `Map`, for tests and for opting out of persistence.
+ * @link https://js-toolkit-v4.studiometa.dev/api/storage/providers.html
+ */
 export function createMemoryStorageProvider(): StorageProvider {
   const map = new Map<string, string>();
 
@@ -60,7 +63,10 @@ export function createMemoryStorageProvider(): StorageProvider {
   };
 }
 
-/** Read from the first provider holding the key; write through to all of them. */
+/**
+ * Read from the first provider holding the key; write through to all of them.
+ * @link https://js-toolkit-v4.studiometa.dev/api/storage/providers.html
+ */
 export function createFallbackProvider(...providers: StorageProvider[]): StorageProvider {
   const syncEvents = [...new Set(providers.flatMap((provider) => provider.syncEvents ?? []))];
 
@@ -129,7 +135,10 @@ function createUrlProvider(
   };
 }
 
-/** Store values in the query string. */
+/**
+ * Store values in the query string.
+ * @link https://js-toolkit-v4.studiometa.dev/api/storage/providers.html
+ */
 export function createUrlSearchParamsProvider(options: UrlProviderOptions = {}): StorageProvider {
   return createUrlProvider(
     () => new URLSearchParams(location.search),
@@ -147,6 +156,7 @@ export function createUrlSearchParamsProvider(options: UrlProviderOptions = {}):
  *
  * Back and forward navigation announces itself as `hashchange`, and as
  * `popstate` when the write replaced the entry rather than pushing one.
+ * @link https://js-toolkit-v4.studiometa.dev/api/storage/providers.html
  */
 export function createUrlSearchParamsInHashProvider(
   options: UrlProviderOptions = {},
@@ -174,8 +184,28 @@ const defaults = /* @__PURE__ */ getSharedRuntimeSlot('storage:providers', 1, ()
   urlSearchParamsInHash: createUrlSearchParamsInHashProvider(),
 }));
 
+/**
+ * A storage provider over `localStorage`.
+ * @link https://js-toolkit-v4.studiometa.dev/api/storage/providers.html
+ */
 export const localStorageProvider = defaults.local;
+/**
+ * A storage provider over `sessionStorage`.
+ * @link https://js-toolkit-v4.studiometa.dev/api/storage/providers.html
+ */
 export const sessionStorageProvider = defaults.session;
+/**
+ * The shared in-memory storage provider.
+ * @link https://js-toolkit-v4.studiometa.dev/api/storage/providers.html
+ */
 export const memoryStorageProvider = defaults.memory;
+/**
+ * A storage provider over `location.search`.
+ * @link https://js-toolkit-v4.studiometa.dev/api/storage/providers.html
+ */
 export const urlSearchParamsProvider = defaults.urlSearchParams;
+/**
+ * A storage provider over `location.hash`, read as search params.
+ * @link https://js-toolkit-v4.studiometa.dev/api/storage/providers.html
+ */
 export const urlSearchParamsInHashProvider = defaults.urlSearchParamsInHash;

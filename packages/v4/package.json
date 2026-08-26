@@ -6,7 +6,7 @@
   "sideEffects": [
     "./dist/responsive-options.js"
   ],
-  "description": "v4 prototype — tested in a real browser through Vitest browser mode",
+  "description": "v4 prototype \u2014 tested in a real browser through Vitest browser mode",
   "files": [
     "dist"
   ],
@@ -801,6 +801,7 @@
     "build": "node scripts/build.js",
     "check:constant-subpaths": "node scripts/check-constant-subpaths.js",
     "check:diagnostics": "node scripts/check-diagnostics.js",
+    "check:doc-links": "node scripts/check-doc-links.js",
     "check:package": "npm run build && node scripts/check-package.js",
     "demo:dev": "vite demo --host",
     "demo:build": "vite build demo",
@@ -808,7 +809,7 @@
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
-    "test": "npm run check:diagnostics && npm run test:fixtures && vitest run",
+    "test": "npm run check:diagnostics && npm run check:doc-links && npm run test:fixtures && vitest run",
     "test:fixtures": "node scripts/build-runtime-fixtures.js",
     "test:runtime": "npm run test:fixtures && vitest run src/shared-runtime.spec.ts src/duplicate-runtime.spec.ts",
     "test:watch": "vitest",

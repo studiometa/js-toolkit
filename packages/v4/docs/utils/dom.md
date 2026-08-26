@@ -7,7 +7,7 @@ import { createElement, selectorFor } from '@studiometa/js-toolkit-v4/utils';
 
 [[toc]]
 
-## `createElement`
+## createElement
 
 ```ts
 createElement(tag?, children?): HTMLElement
@@ -32,7 +32,7 @@ createElement('button', { class: 'btn', data: { component: 'Action' } }, 'Send')
 
 The `data` key is why this exists rather than three lines of `document.createElement`: building an element that carries `data-component` and a few `data-option-*` is the common case, and spelling each `setAttribute()` out loses the shape.
 
-## `selectorFor`
+## selectorFor
 
 ```ts
 selectorFor(name: string): string

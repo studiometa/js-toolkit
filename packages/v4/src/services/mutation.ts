@@ -102,6 +102,7 @@ const mutationServices = /* @__PURE__ */ getSharedRuntimeSlot('service:mutation'
  * internal observer handles component discovery and declared options; nothing
  * here replaces it, and a subscriber that needs the framework's own ordering
  * awaits `whenDOMSettled()` from its callback.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/useMutation.html
  */
 export function useMutation(
   target: Node,
@@ -120,6 +121,7 @@ export type MutationMixinOptions = MutationObserverInit & ServiceMixinOptions<No
 /**
  * Subscribe `mutated()` for each mount cycle, watching the root element's
  * subtree unless the options name another observation.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/mixins.html
  */
 export const withMutation = /* @__PURE__ */ createServiceMixin<
   MutationHook & ServiceHandles<'mutated'>,

@@ -100,6 +100,7 @@ function withInitializer<This extends Base, Value>(
  * Decorate a method as an event handler.
  * One string binds an event on the component root. A string and event type bind a child or ref.
  * A component class binds that child type. `window` and `document` bind global events.
+ * @link https://js-toolkit-v4.studiometa.dev/api/decorators/on.html
  */
 export function on<K extends keyof HTMLElementEventMap>(
   type: K,
@@ -179,10 +180,16 @@ function inPhase(phase: '$read' | '$write') {
   };
 }
 
-/** Schedule the method body in the next read phase. Destruction cancels pending work. */
+/**
+ * Schedule the method body in the next read phase. Destruction cancels pending work.
+ * @link https://js-toolkit-v4.studiometa.dev/api/decorators/read-write.html
+ */
 export const read = inPhase('$read');
 
-/** Schedule the method body in the next write phase. Destruction cancels pending work. */
+/**
+ * Schedule the method body in the next write phase. Destruction cancels pending work.
+ * @link https://js-toolkit-v4.studiometa.dev/api/decorators/read-write.html
+ */
 export const write = inPhase('$write');
 
 /** Config keys that merge rather than override; the rest are compared as scalars. */
@@ -254,7 +261,10 @@ function conflictingEntries(
   return conflicts;
 }
 
-/** Set the component config and register the class when it is defined. */
+/**
+ * Set the component config and register the class when it is defined.
+ * @link https://js-toolkit-v4.studiometa.dev/api/decorators/component.html
+ */
 export function component(config: BaseConfig) {
   return function decorate<T extends BaseConstructor>(
     value: T,
@@ -301,7 +311,10 @@ export function component(config: BaseConfig) {
   };
 }
 
-/** Provide the decorated field to descendants. The nearest provider wins. */
+/**
+ * Provide the decorated field to descendants. The nearest provider wins.
+ * @link https://js-toolkit-v4.studiometa.dev/api/decorators/provide.html
+ */
 export function provide<T>(key: ContextKey<T>): ValueDecorator<T> {
   return function decorate<This extends Base>(
     _target: unknown,
@@ -316,6 +329,7 @@ export function provide<T>(key: ContextKey<T>): ValueDecorator<T> {
 /**
  * Resolve the nearest provided value into the decorated field. The field stays `undefined` until resolution.
  * Resolution starts once at construction and does not restart after destruction.
+ * @link https://js-toolkit-v4.studiometa.dev/api/decorators/inject.html
  */
 export function inject<T>(key: ContextKey<T>): ValueObserver<T | undefined> {
   return function decorate<This extends Base>(
@@ -333,6 +347,7 @@ export function inject<T>(key: ContextKey<T>): ValueObserver<T | undefined> {
 /**
  * Track mounted descendants as a live collection. Strings match `config.name` exactly.
  * Component classes include named subclasses. Callbacks bind to the host component.
+ * @link https://js-toolkit-v4.studiometa.dev/api/decorators/children.html
  */
 export function children<T extends Base = Base, Host = any>(
   name: string,

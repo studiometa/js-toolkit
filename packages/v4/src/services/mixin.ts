@@ -122,6 +122,7 @@ export type MixedClass<T extends BaseConstructor, Instance> = Pick<T, keyof T> &
 
 /**
  * Build a lifecycle-bound service mixin. Automatic subscriptions last for one mount cycle. Manual subscriptions also stop on unmount.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/createServiceMixin.html
  */
 export function createServiceMixin<Instance, Target, Options extends object = object>(
   definition: ServiceMixinDefinition<Target, Options>,

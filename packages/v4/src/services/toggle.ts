@@ -14,6 +14,7 @@ export interface Toggle {
  * Make an unsubscribe-producing operation suspendable and resumable.
  *
  * `start()` and `stop()` are idempotent.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/toggle.html
  */
 export function toggle(subscribe: () => Unsubscribe): Toggle {
   let unsubscribe: Unsubscribe | null = null;

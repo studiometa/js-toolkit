@@ -54,6 +54,7 @@ interface Subscription<T, R> {
 
 /**
  * Build a service from its definition.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/createService.html
  */
 export function createService<T, R = void>({
   props,
@@ -178,6 +179,7 @@ export function stableKey(...args: unknown[]): string {
  *
  * @param create Called once per target and argument pair.
  * @param keyOf Serializes arguments. Defaults to {@link stableKey}.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/perTarget.html
  */
 export function perTarget<Target extends WeakKey, Args extends unknown[], T, R = void>(
   create: (target: Target, ...args: Args) => Service<T, R>,

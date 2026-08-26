@@ -2,7 +2,10 @@ import morphdom from 'morphdom';
 import { warn } from './diagnostics.js';
 import { whenDOMSettled } from './dom-mutations.js';
 
-/** Named content swap modes. */
+/**
+ * Named content swap modes.
+ * @link https://js-toolkit-v4.studiometa.dev/api/dom/swap.html
+ */
 export const SWAP_MODES = {
   REPLACE: 'replace',
   PREPEND: 'prepend',
@@ -43,6 +46,7 @@ export interface SwapOptions {
  * @param target The element whose content changes. With `self`, the element itself.
  * @param content The new content.
  * @returns Resolves after eager lifecycle work. Conditional mount strategies are not awaited.
+ * @link https://js-toolkit-v4.studiometa.dev/api/dom/swap.html
  */
 export async function swap(
   target: Element,

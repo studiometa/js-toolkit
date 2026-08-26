@@ -11,22 +11,20 @@ An `EasingFunction` takes a `0 → 1` progress and returns a shaped `0 → 1` va
 
 [[toc]]
 
-## The 24 functions
+## Choosing one
 
-Eight curves, three directions each:
+Eight curves, three directions each. Every `out` and `in-out` is derived from its `in`.
 
-| Curve  | In            | Out            | In-out           |
-| ------ | ------------- | -------------- | ---------------- |
-| linear | `easeLinear`  | —              | —                |
-| quad   | `easeInQuad`  | `easeOutQuad`  | `easeInOutQuad`  |
-| cubic  | `easeInCubic` | `easeOutCubic` | `easeInOutCubic` |
-| quart  | `easeInQuart` | `easeOutQuart` | `easeInOutQuart` |
-| quint  | `easeInQuint` | `easeOutQuint` | `easeInOutQuint` |
-| sine   | `easeInSine`  | `easeOutSine`  | `easeInOutSine`  |
-| circ   | `easeInCirc`  | `easeOutCirc`  | `easeInOutCirc`  |
-| expo   | `easeInExpo`  | `easeOutExpo`  | `easeInOutExpo`  |
-
-`easeLinear` is the identity, and it exists so a call site can name "no easing" rather than branch on `undefined`.
+| Curve  | In                            | Out                             | In-out                              |
+| ------ | ----------------------------- | ------------------------------- | ----------------------------------- |
+| linear | [`easeLinear`](#easelinear)   | —                               | —                                   |
+| quad   | [`easeInQuad`](#easeinquad)   | [`easeOutQuad`](#easeoutquad)   | [`easeInOutQuad`](#easeinoutquad)   |
+| cubic  | [`easeInCubic`](#easeincubic) | [`easeOutCubic`](#easeoutcubic) | [`easeInOutCubic`](#easeinoutcubic) |
+| quart  | [`easeInQuart`](#easeinquart) | [`easeOutQuart`](#easeoutquart) | [`easeInOutQuart`](#easeinoutquart) |
+| quint  | [`easeInQuint`](#easeinquint) | [`easeOutQuint`](#easeoutquint) | [`easeInOutQuint`](#easeinoutquint) |
+| sine   | [`easeInSine`](#easeinsine)   | [`easeOutSine`](#easeoutsine)   | [`easeInOutSine`](#easeinoutsine)   |
+| circ   | [`easeInCirc`](#easeincirc)   | [`easeOutCirc`](#easeoutcirc)   | [`easeInOutCirc`](#easeinoutcirc)   |
+| expo   | [`easeInExpo`](#easeinexpo)   | [`easeOutExpo`](#easeoutexpo)   | [`easeInOutExpo`](#easeinoutexpo)   |
 
 ## Deriving one
 
@@ -53,7 +51,23 @@ const easeInOutBack = createEaseInOut(easeInBack);
 
 That is why only the eight `in` functions are written out and the other sixteen are derived: an `out` is an `in` run backwards, and writing it twice is how the two drift apart.
 
-## Usage
+### createEaseOut
+
+```ts
+createEaseOut(easeIn: EasingFunction): EasingFunction
+```
+
+Mirror an `in` curve into its `out`.
+
+### createEaseInOut
+
+```ts
+createEaseInOut(easeIn: EasingFunction): EasingFunction
+```
+
+Compose an `in` curve into its symmetric `in-out`.
+
+## Using one
 
 ```js twoslash
 // @twoslash-cache: {"v":1,"hash":"09933edf6d2a922b7f27e4d7327afd8598ff86255acb641b0754c36ba307675c","data":"N4Igdg9gJgpgziAXAbVAFwJ4AcZJACwgDcYAnEAGhDRgA808AKAQwBsBLZuASgAIBjCGDhpeMLjADyAVzQBhaQCN2/RLwCiXdmADmAMWlh+adkIA6YdgFssEUqPFwpshcv6UQI5vaQBOKqwwumj4SACMAExUaN46MAyIII7O8koqHhxguIgADFT8+N7MxmR+AL4U6NjZBMSl0XQJICwcXHwAZobGpmC8gaRYjFbaamDSVopkFLxWzLSj45Ok06TMJhALE2Tcm0sW1rb2fWRYHlAQ/AiJAJJgNAMQrGswvMy8q+u8k2gA7jBBvF+EC+EEMUDgADoPF4fIgIgBmAJBHQhJAAFmisXieH6pwC2myeRABSKJXIcPhFSqODwhBI5Aa9DwnSM616tjg7DZAEE0IwsKQIDpSPA4GpmGAMDteGMtgzPDFYQAOImBYKhRBhImKuJNDlcnq8jIEpBRYmFVZk8qVajVWl1eU0JmJflFKzxba8AVCkVwMWvSXQxUJXxhJHqpBKzGkXV4b3C0XGrKm/IW4r3U05Km2mmJOn1aiNJhsTg8Y4DIYjGWLKYzOa7WsfUwN0jS2V7Sw2OyiXFnC5XEC3e62J40V7vNamL7xP4AoEgsGQoPeBJhSLhlEajHULFNXv45OIRHm0kZxC+bOYXO1ekeJ1NFqlvjJGSpNz8wUJv0tts10j7LsjhfFw0ncKgYVXCIAFYN1RTUzR1bFEmAt90gPbJjxJS0zwiCJLztPMHTvIsXSwN0PVbL1P19f0JQwZdYTCeEoxANVN0jaNY0SeMaKTDDU1PUojygsoAF18mgGoDm7XhgDECRX1cFRplxXgyl4dpBSsXgAHIAAERGkKBTHdGIAHoACs4AAWjQCBHgAay5ayiDRMzZHYVg4B0gBuCwLBZbohC9CBOR5PkeNFPhgAsXh3niaRSF6XFGDyXg0RyNKUKU/gPx9KLuD8sAyg8UzmCQUBGiCTkhDwKyQDKMogA="}
@@ -66,9 +80,147 @@ function positionAt(progress) {
 
 An easing shapes a **progress**, so it pairs with a value that already runs `0 → 1`: a [`useScrollProgress()`](/api/services/useScrollProgress.html) subscriber, or a `map()` of anything else.
 
-## What they are not for
+## They do not animate
 
-They do not animate. There is no clock here — an easing is a pure function of a progress you already have.
+There is no clock here — an easing is a pure function of a progress you already have.
 
 - For a value chasing a target frame by frame, use [`damp()` or `smoothTo()`](./motion.html).
 - For time-based playback, stagger and sequencing, that is the separate `ui-animation` package. `tween` and `animate` are not shipped.
+
+## The functions
+
+Each takes a `0 → 1` progress and returns the shaped value.
+
+### easeLinear
+
+```ts
+easeLinear(progress: number): number
+```
+
+The identity. It exists so a call site can name "no easing" rather than branch on `undefined`.
+
+### easeInQuad
+
+```ts
+easeInQuad(progress: number): number
+```
+
+### easeOutQuad
+
+```ts
+easeOutQuad(progress: number): number
+```
+
+### easeInOutQuad
+
+```ts
+easeInOutQuad(progress: number): number
+```
+
+### easeInCubic
+
+```ts
+easeInCubic(progress: number): number
+```
+
+### easeOutCubic
+
+```ts
+easeOutCubic(progress: number): number
+```
+
+### easeInOutCubic
+
+```ts
+easeInOutCubic(progress: number): number
+```
+
+### easeInQuart
+
+```ts
+easeInQuart(progress: number): number
+```
+
+### easeOutQuart
+
+```ts
+easeOutQuart(progress: number): number
+```
+
+### easeInOutQuart
+
+```ts
+easeInOutQuart(progress: number): number
+```
+
+### easeInQuint
+
+```ts
+easeInQuint(progress: number): number
+```
+
+### easeOutQuint
+
+```ts
+easeOutQuint(progress: number): number
+```
+
+### easeInOutQuint
+
+```ts
+easeInOutQuint(progress: number): number
+```
+
+### easeInSine
+
+```ts
+easeInSine(progress: number): number
+```
+
+### easeOutSine
+
+```ts
+easeOutSine(progress: number): number
+```
+
+### easeInOutSine
+
+```ts
+easeInOutSine(progress: number): number
+```
+
+### easeInCirc
+
+```ts
+easeInCirc(progress: number): number
+```
+
+### easeOutCirc
+
+```ts
+easeOutCirc(progress: number): number
+```
+
+### easeInOutCirc
+
+```ts
+easeInOutCirc(progress: number): number
+```
+
+### easeInExpo
+
+```ts
+easeInExpo(progress: number): number
+```
+
+### easeOutExpo
+
+```ts
+easeOutExpo(progress: number): number
+```
+
+### easeInOutExpo
+
+```ts
+easeInOutExpo(progress: number): number
+```

@@ -85,7 +85,10 @@ const resizeServices = /* @__PURE__ */ getSharedRuntimeSlot('service:resize', 1,
   perTarget(createResizeService),
 );
 
-/** Use one resize service per element. Defaults to the document element. */
+/**
+ * Use one resize service per element. Defaults to the document element.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/useResize.html
+ */
 export function useResize(target: Element = document.documentElement): Service<ResizeProps> {
   return resizeServices(target);
 }
@@ -93,6 +96,7 @@ export function useResize(target: Element = document.documentElement): Service<R
 /**
  * Use the resize service for the viewport — `useResize()` named, the way
  * VueUse splits `useElementSize(el)` from `useWindowSize()`.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/useWindowSize.html
  */
 export function useWindowSize(): Service<ResizeProps> {
   return resizeServices(document.documentElement);
@@ -105,7 +109,10 @@ export interface ResizeHook {
 
 export type ResizeMixinOptions = ServiceMixinOptions<Element>;
 
-/** Subscribe `resized()` for each mount cycle. The document element is the default target. */
+/**
+ * Subscribe `resized()` for each mount cycle. The document element is the default target.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/mixins.html
+ */
 export const withResize = /* @__PURE__ */ createServiceMixin<
   ResizeHook & ServiceHandles<'resized'>,
   Element

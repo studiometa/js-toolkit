@@ -36,7 +36,10 @@ import { kebabCase } from './utils/strings.js';
 /** Declares one or more component names, as whitespace-separated tokens. */
 export const COMPONENT_ATTRIBUTE = 'data-component';
 
-/** Overrides the mount strategy of the element's declared components. */
+/**
+ * Overrides the mount strategy of the element's declared components.
+ * @link https://js-toolkit-v4.studiometa.dev/api/html/data-mount.html
+ */
 export const MOUNT_ATTRIBUTE = 'data-mount';
 
 /** Names an element as a ref of the component which owns it. */
@@ -84,6 +87,7 @@ export function isInNamespace(namespace: string, name: string | null): name is s
  * The qualifier a name carries within a namespace, or `null` when the name is
  * outside it — the bare namespace included, since a namespace with nothing
  * after the colon declares nothing.
+ * @link https://js-toolkit-v4.studiometa.dev/guide/concepts/attribute-grammar.html
  */
 export function namespaceQualifier(namespace: string, name: string): string | null {
   const prefix = `${namespace}${QUALIFIER_SEPARATOR}`;

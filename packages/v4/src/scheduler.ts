@@ -308,13 +308,20 @@ export class Scheduler {
   }
 }
 
+/**
+ * The one frame-aligned scheduler: the clock of the framework.
+ * @link https://js-toolkit-v4.studiometa.dev/api/scheduler/defaultScheduler.html
+ */
 export const defaultScheduler = /* @__PURE__ */ getSharedRuntimeSlot(
   'scheduler:default',
   1,
   () => new Scheduler(),
 );
 
-/** Await the next animation frame. */
+/**
+ * Await the next animation frame.
+ * @link https://js-toolkit-v4.studiometa.dev/api/scheduler/nextFrame.html
+ */
 export function nextFrame(): Promise<void> {
   return new Promise((resolve) => requestAnimationFrame(() => resolve()));
 }

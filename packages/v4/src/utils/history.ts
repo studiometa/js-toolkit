@@ -63,6 +63,7 @@ function updateUrlSearchParam(
  * objectToURLSearchParams({ filters: { color: 'red' } }, '').toString();
  * // filters%5Bcolor%5D=red
  * ```
+ * @link https://js-toolkit-v4.studiometa.dev/utils/history.html#objecttourlsearchparams
  */
 export function objectToURLSearchParams(
   object: Record<string, SearchParamInput>,
@@ -87,12 +88,18 @@ function urlFor({ path, search, hash }: HistoryOptions): string {
   return url;
 }
 
-/** Push a new history entry for the given URL parts. */
+/**
+ * Push a new history entry for the given URL parts.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/history.html#historypush
+ */
 export function historyPush(options: HistoryOptions, data: unknown = {}, title = ''): void {
   history.pushState(data, title, urlFor(options));
 }
 
-/** Replace the current history entry with the given URL parts. */
+/**
+ * Replace the current history entry with the given URL parts.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/history.html#historyreplace
+ */
 export function historyReplace(options: HistoryOptions, data: unknown = {}, title = ''): void {
   history.replaceState(data, title, urlFor(options));
 }

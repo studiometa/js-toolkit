@@ -1,13 +1,20 @@
 /** Time-based functions take elapsed milliseconds. */
 
-/** The default inertia factor. */
+/**
+ * The default inertia factor.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/motion.html#default-damp-factor
+ */
 export const DEFAULT_DAMP_FACTOR = 0.85;
 
-/** The 60 Hz reference frame for damping factors, in milliseconds. */
+/**
+ * The 60 Hz reference frame for damping factors, in milliseconds.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/motion.html#inertia-frame
+ */
 export const INERTIA_FRAME = 1000 / 60;
 
 /**
  * Clamp a value in a given range.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/math.html#clamp
  */
 export function clamp(value: number, min: number, max: number): number {
   if (min < max) {
@@ -18,6 +25,7 @@ export function clamp(value: number, min: number, max: number): number {
 
 /**
  * Clamp a value in the 0–1 range.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/math.html#clamp01
  */
 export function clamp01(value: number): number {
   return clamp(value, 0, 1);
@@ -25,6 +33,7 @@ export function clamp01(value: number): number {
 
 /**
  * Map a value from one range onto another.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/math.html#map
  */
 export function map(
   value: number,
@@ -38,6 +47,7 @@ export function map(
 
 /**
  * Interpolate a ratio between two bounds.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/math.html#lerp
  */
 export function lerp(min: number, max: number, ratio: number): number {
   return (1 - ratio) * min + ratio * max;
@@ -45,6 +55,7 @@ export function lerp(min: number, max: number, ratio: number): number {
 
 /**
  * Wrap a value in a range: it leaves by one bound and comes back by the other.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/math.html#wrap
  */
 export function wrap(value: number, min: number, max: number): number {
   const range = max - min;
@@ -58,6 +69,7 @@ export function wrap(value: number, min: number, max: number): number {
 
 /**
  * Fold a value back and forth in a range: it bounces off both bounds.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/math.html#fold
  */
 export function fold(value: number, min: number, max: number): number {
   const range = max - min;
@@ -72,6 +84,7 @@ export function fold(value: number, min: number, max: number): number {
 
 /**
  * Round a value to the given number of decimals.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/math.html#round
  */
 export function round(value: number, decimals = 0): number {
   return Number(value.toFixed(decimals));
@@ -79,6 +92,7 @@ export function round(value: number, decimals = 0): number {
 
 /**
  * The arithmetic mean of the given numbers. An empty list averages to `0`.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/math.html#mean
  */
 export function mean(numbers: readonly number[]): number {
   if (numbers.length === 0) {
@@ -98,6 +112,7 @@ export function mean(numbers: readonly number[]): number {
  * Each value is computed from the index rather than accumulated, so a
  * fractional step does not drift. A step which is not positive and finite
  * describes no range and returns an empty array.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/math.html#createrange
  */
 export function createRange(min: number, max: number, step: number): number[] {
   if (!Number.isFinite(step) || step <= 0 || !Number.isFinite(max - min) || max < min) {
@@ -112,6 +127,7 @@ export function createRange(min: number, max: number, step: number): number[] {
  * Return the fraction retained after `elapsed` milliseconds.
  *
  * Retention is clamped to `[0, 1]`, elapsed time to non-negative values, and non-finite inputs return `0`.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/motion.html#decayover
  */
 export function decayOver(retained: number, elapsed: number): number {
   if (!Number.isFinite(retained) || !Number.isFinite(elapsed)) {
@@ -120,7 +136,10 @@ export function decayOver(retained: number, elapsed: number): number {
   return Math.min(Math.max(retained, 0), 1) ** (Math.max(elapsed, 0) / INERTIA_FRAME);
 }
 
-/** Return the next time-based damped value and snap within `precision`. */
+/**
+ * Return the next time-based damped value and snap within `precision`.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/motion.html#damp
+ */
 export function damp(
   targetValue: number,
   currentValue: number,
@@ -136,7 +155,10 @@ export function damp(
   return currentValue + (targetValue - currentValue) * closed;
 }
 
-/** Clamp an inertia damping factor to a finite decaying range. */
+/**
+ * Clamp an inertia damping factor to a finite decaying range.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/motion.html#clampdampfactor
+ */
 export function clampDampFactor(factor: number): number {
   if (!Number.isFinite(factor)) {
     return DEFAULT_DAMP_FACTOR;
@@ -144,23 +166,33 @@ export function clampDampFactor(factor: number): number {
   return Math.min(Math.max(factor, 0), 0.99999);
 }
 
-/** Return the velocity fraction retained after elapsed time. */
+/**
+ * Return the velocity fraction retained after elapsed time.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/motion.html#inertiadecay
+ */
 export function inertiaDecay(dampFactor: number, elapsed: number): number {
   return decayOver(clampDampFactor(dampFactor), elapsed);
 }
 
-/** Return the inertia decay time constant in milliseconds. */
+/**
+ * Return the inertia decay time constant in milliseconds.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/motion.html#inertiatimeconstant
+ */
 export function inertiaTimeConstant(dampFactor: number): number {
   return INERTIA_FRAME / Math.log(1 / clampDampFactor(dampFactor));
 }
 
-/** Integrate one inertia step exactly for velocity in pixels per millisecond. */
+/**
+ * Integrate one inertia step exactly for velocity in pixels per millisecond.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/motion.html#inertiastep
+ */
 export function inertiaStep(velocity: number, dampFactor: number, elapsed: number): number {
   return velocity * inertiaTimeConstant(dampFactor) * (1 - inertiaDecay(dampFactor, elapsed));
 }
 
 /**
  * Return the exact coast destination for velocity in pixels per millisecond. The destination remains invariant during the coast.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/motion.html#inertiafinalvalue
  */
 export function inertiaFinalValue(value: number, velocity: number, dampFactor: number): number {
   return value + velocity * inertiaTimeConstant(dampFactor);
@@ -169,7 +201,10 @@ export function inertiaFinalValue(value: number, velocity: number, dampFactor: n
 /** Fixed spring integration step in milliseconds. */
 const SPRING_STEP = INERTIA_FRAME / 4;
 
-/** Largest stable `stiffness / mass` ratio for {@link SPRING_STEP}. */
+/**
+ * Largest stable `stiffness / mass` ratio for {@link SPRING_STEP}.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/motion.html#max-spring-ratio
+ */
 export const MAX_SPRING_RATIO = (4 / (SPRING_STEP / INERTIA_FRAME) ** 2) * 0.9;
 
 export interface SpringOptions {
@@ -187,6 +222,7 @@ export interface SpringOptions {
  * Advance a spring by elapsed milliseconds with fixed, bounded substeps. Stiffness-to-mass ratio is clamped for stability.
  *
  * Returns the exact target and zero velocity within `precision`.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/motion.html#spring
  */
 export function spring(
   targetValue: number,

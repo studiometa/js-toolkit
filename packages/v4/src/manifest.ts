@@ -30,6 +30,7 @@ function deriveToken(path: string): string {
 /**
  * Build a lazy component manifest from bundler module importers without importing or registering
  * anything. The registry resolves direct classes, named exports and default exports when needed.
+ * @link https://js-toolkit-v4.studiometa.dev/api/registry/defineManifest.html
  */
 export function defineManifest({
   modules,
@@ -61,7 +62,10 @@ export function defineManifest({
   return manifest;
 }
 
-/** Return a lazy Vite glob unchanged, and reject eager glob values immediately. */
+/**
+ * Return a lazy Vite glob unchanged, and reject eager glob values immediately.
+ * @link https://js-toolkit-v4.studiometa.dev/api/registry/fromMetaGlob.html
+ */
 export function fromMetaGlob(glob: Record<string, unknown>): ModuleRecord {
   for (const [path, importer] of Object.entries(glob)) {
     if (typeof importer !== 'function') {
@@ -73,7 +77,10 @@ export function fromMetaGlob(glob: Record<string, unknown>): ModuleRecord {
   return glob as ModuleRecord;
 }
 
-/** Convert a webpack context to lazy importers without loading any matched module. */
+/**
+ * Convert a webpack context to lazy importers without loading any matched module.
+ * @link https://js-toolkit-v4.studiometa.dev/api/registry/fromWebpackContext.html
+ */
 export function fromWebpackContext(context: WebpackContextLike): ModuleRecord {
   return Object.fromEntries(
     context.keys().map((key) => [key, () => Promise.resolve(context(key))]),

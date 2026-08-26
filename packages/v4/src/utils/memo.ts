@@ -14,6 +14,7 @@ function isWeakKey(value: unknown): value is WeakKey {
  * Cache a function's result per argument, until told to forget.
  *
  * @param fn The function to memoise. It takes one argument, or none.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/timing.html#memo
  */
 export function memo<Args extends [] | [key: unknown], Value>(
   fn: (...args: Args) => Value,

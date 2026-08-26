@@ -51,6 +51,7 @@ export interface Group<T extends GroupMember = GroupMember> {
  * A member leaves through the function `join()` returned; nothing sweeps
  * disconnected elements, because v4 unmounts a component when its element
  * leaves the DOM and the member's own teardown is what removes it.
+ * @link https://js-toolkit-v4.studiometa.dev/api/context/createGroup.html
  */
 export function createGroup<T extends GroupMember = GroupMember>(): Group<T> {
   const joined = new Set<T>();

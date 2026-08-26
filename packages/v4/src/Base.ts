@@ -887,6 +887,10 @@ function reportLifecycleFailure(instance: Base, message: string, error: unknown)
 /** What `#guard()` returns instead of a value when the guarded call threw. */
 const GUARD_FAILED = Symbol('guard-failed');
 
+/**
+ * The class every component extends.
+ * @link https://js-toolkit-v4.studiometa.dev/api/
+ */
 export class Base<T extends BaseProps = BaseProps> {
   /** A class-owned brand inherited by subclasses and shared by bundled copies. */
   static readonly [BASE_BRAND] = true;

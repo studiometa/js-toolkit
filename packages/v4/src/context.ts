@@ -6,7 +6,10 @@ const CONTEXT_REQUEST = 'js-toolkit:context:request';
 /** A typed context key. `__context` is type-only. */
 export type ContextKey<T = unknown> = symbol & { readonly __context?: T };
 
-/** Create a typed context key. */
+/**
+ * Create a typed context key.
+ * @link https://js-toolkit-v4.studiometa.dev/api/context/createContext.html
+ */
 export function createContext<T = unknown>(description = 'context'): ContextKey<T> {
   return Symbol(description);
 }
@@ -29,6 +32,7 @@ interface Subscriber<T> {
  * Create a reactive value.
  *
  * Writes settle synchronously. A reentrant write supersedes the current delivery, so no subscriber observes an older value after a newer one.
+ * @link https://js-toolkit-v4.studiometa.dev/api/context/signal.html
  */
 export function signal<T>(initialValue: T): Signal<T> {
   let current = initialValue;
@@ -162,7 +166,10 @@ export function cancelContextRequest(request: ContextRequest): void {
   pendingRequests.delete(request);
 }
 
-/** Provide a value verbatim for a subtree. The nearest provider wins. */
+/**
+ * Provide a value verbatim for a subtree. The nearest provider wins.
+ * @link https://js-toolkit-v4.studiometa.dev/api/context/provideContext.html
+ */
 export function provideContext<T>(
   el: Element,
   key: ContextKey<T>,
@@ -196,6 +203,7 @@ export function provideContext<T>(
  * Provide a document-wide value created once per key. Nearer providers override it.
  *
  * Root providers are page-lifetime and cannot be disposed.
+ * @link https://js-toolkit-v4.studiometa.dev/api/context/provideRootContext.html
  */
 export function provideRootContext<T>(key: ContextKey<T>, create: () => T): T {
   if (rootProviders.has(key)) {
@@ -214,6 +222,7 @@ export function provideRootContext<T>(key: ContextKey<T>, create: () => T): T {
  *
  * The promise stays pending while no provider exists. `cancel()` removes that
  * pending request and does nothing after an answer.
+ * @link https://js-toolkit-v4.studiometa.dev/api/context/injectContext.html
  */
 export function injectContext<T>(
   el: Element,
@@ -234,7 +243,10 @@ export function injectContext<T>(
   return { promise, cancel: () => cancelContextRequest(request) };
 }
 
-/** Resolve the nearest provided value synchronously, or return `undefined`. */
+/**
+ * Resolve the nearest provided value synchronously, or return `undefined`.
+ * @link https://js-toolkit-v4.studiometa.dev/api/context/injectContextSync.html
+ */
 export function injectContextSync<T>(el: Element, key: ContextKey<T>): T | undefined {
   let resolved: T | undefined;
   dispatchContextRequest({
