@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [4.0.0-alpha.1](https://github.com/studiometa/js-toolkit/compare/4.0.0-alpha.0..4.0.0-alpha.1) (2026-08-27)
+
+### Fixed
+
+- Export `SmoothToRecord` from `@studiometa/js-toolkit/utils`. It is the return type of the record overload of `smoothTo()`, so it is part of the public signature, but the barrel named only `SmoothTo` and `SmoothToOptions` and the type never reached `dist` — a consumer holding the record in a field or a signature could not write its type. Found by the `@studiometa/ui` v2 port, which had to copy the interface into its own source ([#873](https://github.com/studiometa/js-toolkit/pull/873))
+
 ## [4.0.0-alpha.0](https://github.com/studiometa/js-toolkit/compare/3.9.0..4.0.0-alpha.0) (2026-08-26)
 
 **4.0 is a rewrite, and this is its first published release.** It goes to the `next` dist-tag, so `latest` still installs 3.x. The API is stable and documented; the alpha label says it has not yet run on a production project.

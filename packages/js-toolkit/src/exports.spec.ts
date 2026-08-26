@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import packageManifest from '../package.json' with { type: 'json' };
-import { clamp, smoothTo } from '@studiometa/js-toolkit/utils';
+import { clamp, smoothTo, type SmoothToRecord } from '@studiometa/js-toolkit/utils';
 import {
   Base,
   DIAGNOSTICS,
@@ -171,6 +171,13 @@ describe('the package entry points', () => {
     const x = smoothTo(3);
     expect(x()).toBe(3);
     x.destroy();
+  });
+
+  it('names the return type of the record overload of smoothTo', () => {
+    // The overload is public, so what it returns has to be nameable from the
+    // entry point — a consumer holding the record in a field or a signature
+    // cannot write its type otherwise.
+    expectTypeOf(smoothTo({ x: 0, y: 0 })).toEqualTypeOf<SmoothToRecord<'x' | 'y'>>();
   });
 
   it('keeps the framework on the root entry, without the utils or removed exports', async () => {

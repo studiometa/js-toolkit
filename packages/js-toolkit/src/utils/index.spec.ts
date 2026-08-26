@@ -19,7 +19,7 @@ import * as strings from './strings.js';
 import * as timing from './timing.js';
 import * as transformModule from './transform.js';
 import * as transitionModule from './transition.js';
-import type { Memo, SmoothTo, SmoothToOptions, SpringOptions } from './index.js';
+import type { Memo, SmoothTo, SmoothToOptions, SmoothToRecord, SpringOptions } from './index.js';
 
 describe('the utils barrel', () => {
   it('names every runtime export of every module it fronts', () => {
@@ -52,11 +52,16 @@ describe('the utils barrel', () => {
     const spring: SpringOptions = { stiffness: 0.2, damping: 0.6, mass: 1 };
     const options: SmoothToOptions = { ...spring, spring: true, precision: 0.01 };
     const value: SmoothTo = barrel.smoothTo(0, options);
+    // The record overload returns a type of its own, so a consumer holding what
+    // it returns has to be able to name it from the barrel.
+    const record: SmoothToRecord<'x' | 'y'> = barrel.smoothTo({ x: 0, y: 0 }, options);
     const upper: Memo<[key: string], string> = barrel.memo((key: string) => key.toUpperCase());
 
     expect(upper('a')).toBe('A');
     expect(value()).toBe(0);
+    expect(record()).toEqual({ x: 0, y: 0 });
     value.destroy();
+    record.destroy();
   });
 
   it('exports nothing the framework barrel also exports', () => {

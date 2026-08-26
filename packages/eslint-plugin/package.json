@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/eslint-plugin-js-toolkit",
-  "version": "4.0.0-alpha.0",
+  "version": "4.0.0-alpha.1",
   "description": "Oxlint/ESLint plugin for @studiometa/js-toolkit best practices",
   "publishConfig": {
     "access": "public"
