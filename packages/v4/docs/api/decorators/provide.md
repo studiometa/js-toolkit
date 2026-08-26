@@ -1,0 +1,83 @@
+# @provide
+
+```ts
+provide<T>(key: ContextKey<T>): ValueDecorator<T>
+```
+
+Field sugar over [`$provide()`](/api/instance-methods.html#provide).
+
+## Usage
+
+```ts twoslash
+// @twoslash-cache: {"v":1,"hash":"c29967a43581bac197d1d9af76b75c288be2c969b7f848f863ff28ebe4f8390b","data":"N4Igdg9gJgpgziAXAbVAFwJ4AcZJACwgDcYAnEAGhDRgA808AKAQwBsBLZuASgAIBjCAFssEMDDBpGgsADN2Ac0S8AQlxgBhMfIXdlAHgAqvOjTBQ4q9VrBw0pAK780EUgD5GRNg5jLDFATEaemUNVi44ABEYQVJmF1IbYLQjNz4AXjdeIgh2KAAdMHYRVzRAkvFJShAoCH4ERBAAZRgytHwYctFKspkdXmZzXlIYBXY7Ml52zv5wuEsAdw6wXnYy8d5YeXEoADpqu2ZSBkQARipWCQV2pABOKjQjhVa8QQqJBgv2cSQABip+PgjsxnGQkKcAL4UdDYXCNQgkcgPUxMLCkCA4Y4YPhqOCabSKXZgZhCXy8Oykb4KA6PY7ggDMFyuN0QABYHk8Xo1iaTqhwfoh/iBAcDQeQzvSoTCcHgEWDkfRXnNLFoHJJ5SBDnTEPSABxMsDXfBIADsHNIzxOIFV6qRIH5cPOwqBcTFSAAbFLqLDZcQNckmGxODwBMqrHijCZ6BILOGYAAFdFYSzpOOJjFwNyFYqiY5xmlHE4AVnZ9uZxrZ5steFxuC+AqdItdNHFACZW17MDL4X67QHGiwOFw+GjiHkYPomopiax9GAHEIAEZkNweADWMAwoSCpgA0pvJ9O2HOF8v3GllAA1bwwaKxeKuQ8KGcnpcrrNFEp50dEcfVWr1Hg6a/rAUwdJsMSuPEMBQLw8gwKwsEuBBcD8DGgxoHAuy8IY4HiEc8BlD+46kLwCzfFhBbau6paXIaLJmtQnJWsRsB8t8cKtgCLogi2SCStC3rdgQvbVP2wpiHYvA2mgSSmNu6r0PuGBPi+85vueVEnCaXFlvRFanLptLVo0MlyYq9acdxop8WckKCV2cIiYiYkogOo6YpgfAyWQuyCGqaDKFOz7HupZ5uFpSC6vqelGkgRZVlyEkBexAqMs6NlgogHYOT6PYuQqVqDsGfBwEes5hSujDfGsnCsNerA+MolWkHovDBWpp4rtmX5lGVIWsP+dQNNaIzQQMwwwLx7AkNkN67IUhQAOqUjQlh4mgaCXOSGBgIC6KQA4cCsBg2EAIKTR8cSSGRq2dHADiYnisCWNMAgOKQIw3bAHCIhgARwBAvCQOSDiLqhlJnrwEDg2QJCWIM0OIZMXiNZ0zCyC2E3iAskxiDA+xUFqJy3O6BpxYgZNMRaSX9TOqVwulTa8Vlpy/J2eXOf6bkgIwpLtNA3kQAFvnfPwIykpIjBtTkeSRXZQp0RT9zUyZIBixLHwM/F1nNllOXSk5cp9jzjAeWQXnScLtp+dbgXteVr7hfLpz0ulSssglqtJf5VSWR6uss+Ktwc8JxuuYq7lJhb2IOwNTsrrsqNNcDXV2gBI24Z04RrWUycwAEYuNVAVKbB9pc/TNZCnS79Iqx7FZe8ZSX59rlOB26ZxFhCAC6ALQE5AACbzdB8jDAMDJJkgA5D5pDT7wELcIUswRFbIukaYMaWLWvDAIUvC8IPrEwIwZk7vQy8rIEAW8KmdNsIwvzcAA3It18azAktSHw+/X4f7Rxi2wCknG8vAADUqZThv2vhCQoEJqj82YEgUAW9bDsDEHgTCIAIQQiAA=="}
+import {
+  Base,
+  component,
+  createContext,
+  provide,
+  signal,
+  type Signal,
+} from '@studiometa/js-toolkit-v4';
+
+const CountContext = createContext<Signal<number>>('count');
+// ---cut---
+@component({ name: 'Counter' })
+class Counter extends Base {
+  @provide(CountContext)
+  count = signal(0);
+
+  increment() {
+    this.count.value += 1;
+  }
+}
+```
+
+The field's value is provided to the subtree, **as it is**. Nothing is wrapped, so the type of the key is the contract from end to end.
+
+## It is instance-scoped
+
+Like `$provide()`, it is never released and dies with the element. A component whose declaration is withdrawn keeps providing until its element goes.
+
+## A plain field or an `accessor`
+
+```ts twoslash
+// @twoslash-cache: {"v":1,"hash":"b8d22042433cd2c5b3aeff7c8610fea8acd41afc1316229644d7ee134330d0de","data":"N4Igdg9gJgpgziAXAbVAFwJ4AcZJACwgDcYAnEAGhDRgA808AKAQwBsBLZuASgAIBjCAFssEMDDBpGgsADN2Ac0S8AQlxgBhMfIXdlAHgAqvOjTBQ4q9VrBw0pAK780EUgD5GRNg5jLDFATEaemUNVi44ABEYQVJmF1IbYLQjNz4AXjdeIgh2KAAdMHYRVzRAkvFJShAoCH4ERBAAZRgytHwYctFKspkdXmZzXlIYBXY7Ml52zv5wuEsAdw6wXnYy8d5YeXEoADpqu2ZSBkQARipWCQV2pABOKjQjhVa8QQqJBgv2cSQABip+PgjsxnGQkKcAL4UdDYXCNQgkcgPUxMLCkCA4Y4YPhqOCabSKXZgZhCXy8Oykb4KA6PY7ggDMFyuN0QABYHk8Xo1iaTqhwfoh/iBAcDQeQzvSoTCcHgEWDkfRXnNLFoHJJ5SBDnTEPSABxMsDXfBIADsHNIzxOIFV6qRIH5cPOwqBcTFSAAbFLqLDZcQNckmGxODwBMqrHijCZ6BILOGYAAFdFYSzpOOJjFwNyFYqiY5xmlHE4AVnZ9uZxrZ5steFxuC+AqdItdNHFACZW17MDL4X67QHGiwOFw+GjiHkYPomopiax9GAHEIAEZkNweADWMAwoSCpgA0pvJ9O2HOF8v3GllAA1bwwaKxeKuQ8KGcnpcrrNFEp50dEcfVWr1Hg6a/rAUwdJsMSuPEMBQLw8gwKwsEuBBcD8DGgxoHAuy8IY4HiEc8BlD+46kLwCzfFhBbau6paXIaLJmtQnJWsRsB8t8cKtgCLogi2SCStC3rdgQvbVP2wpiHYvA2mgSSmNu6r0PuGBPi+85vueVEnCaXFlvRFanLptLVo0MlyYq9acdxop8WckKCV2cIiYiYkogOo6YpgfAyWQuzMMoU7Pse6lnm4WlILq7oGka4JVlyIDMOxAq6U2vFgogrZFp2Po9i5CpWoOwZ8HAR6ziFK6MN8aycKw16sD4yjlaQei8IFamniu2ZfmUJVBaw/51A01ojNBAzDDAvHsCQ2Q3rshSFAA6pSNCWHiaBoJc5IYGAgLopADhwKwGDYQAguNHxxJIZHLZ0cAOJieKwJY0wCA4pAjFdsAcIiGABHAEC8JA5IOIuqGUmevAQKDZAkJYgyQ4hkxePVnTMLILZjeICyTGIMD7FQWonLcQp0TFiBRUxFrxb1M5JVZzo2elra3Nlwlyn2bkgIVw68KxE5tcFHXnowG5btJO5KQeAtlULq4tXVPh3lBCSqYLGmrl1uZEeiIF1jUg1ATr45gZ0sD3jQsHwYhUwA09aHmBhWE4XhE0jFJfOkeRtj45qtInKcvy0eWppxSxRtsZZ/HWc26UCdKTns65iqNDIUlmRLaAKckymqzL6thQTfvgoZ0UsiXlMmdaEBqrJGd01HDMx+Kpz2fHvp5dQnMsPwaHzK43nV7auyLgFpWvqF4USkWpcGaHeCLvXOrR2l4r0qyrMJ6J+WBkOIY02roWVUUaA1QrZJNS10vj51n5a+SpUDYBpkjTQY0jc4U2dMjPhzWAi03atVoG1brbV2mIauh1jq8DOiMC6GFrprFuvdMgj14Am1eu9D4EFvpkF+uSAGQM7qg34ODHG0NSCwwGCsCAiNSLf1RujSYzBAYwGxqRXGPtCYMnuHpMmFNjLUwfpHJejcV78V1BCAAugCaATkAACbxugfEYMAQGJIyQAHIfKkA0bwCE3BCizAiOLGukxTAxksLWXgwBCi8F4HIvmjB06KTQHwZhqZ96sEYL8bgABuWx9jHHOOSG4nu8B/qkUXLwDxpVvF+MKBCaopJHhIFAOY2w7AxB4EwiACEEIgA=="}
+import {
+  Base,
+  component,
+  createContext,
+  provide,
+  signal,
+  type Signal,
+} from '@studiometa/js-toolkit-v4';
+
+const CountContext = createContext<Signal<number>>('count');
+// ---cut---
+@component({ name: 'Counter' })
+class Counter extends Base {
+  @provide(CountContext) a = signal(0);
+  @provide(CountContext) accessor b = signal(0);
+}
+```
+
+## The function form
+
+```ts twoslash
+// @twoslash-cache: {"v":1,"hash":"c69b1959a8bf186bc1c5aeaa807f33ad83f1db4539f8fe34d53285c938ec43aa","data":"N4Igdg9gJgpgziAXAbVAFwJ4AcZJACwgDcYAnEAGhDRgA808BjAGwEM44ACAYQgFcwNclThpWpBogBsVZjDABzNPiQB2KmNIKYkkLwFDKIZgEswuRAAYqjfONaND0gL4V02CwWJkjNengAKVlN2AEpOFnYuACF2GAAeABVOOhowKBi4gAVSCCwuAF5OWLgYHLy4AD4AHTATAFssCAliuKNRcUkAJi7ZeSUVRAAWDXFtXRLcWTMLaxBbe0cfRB7Xdxw8QhJhalTArFycCQxw/UEyADpGCDAAMxMFRE5gWs43zjBWepgn0VIzBQAblqznamkkAGYABx9RTKJAyahjHRMG73BRGUzmJAARhsdlIDicAE41tQPJtvDs/LoAgc8mRMOFPt9fmh/oowZ0kENibCBjzRloUYhwF8psYZrj8YsnF1LGTMBtRVsfBo9qK6YdGScePxzqQrvq0E8AMoPT7MeJgPj1ABGZEqXIkajxxn68MQAFYheNUQZMVLEBCZYSluQVoqKSqqb4NSAAt9lNBwpN4pNyvlKhcACT0ogmWDxc0KS3W20O0iVSoBADWMAwT1453oAGkG8WLcFy/bHZUKJwiME+D9OCWyzbe1XQmau1bJ5WnVQoBBGAhReUC7BOKxB8OYIOyHbWGgGpw0BBz/gD3A+Hb2TAD7dmjuuMwbgpX1eDzA5N9BJwpgkHAFy1Ik14fDA4jwGgnD5oWZCcAA7mYIG1GBEHwbApCcHAJhoFwNzfikf7yGgA6QLBRHKAe9TGhEGAsDAA5wJe+E7mAcBIWQcC1MouR8Ao+ApNsGCcAIdEGBxUCcJJggXJwAByEDKACnCkL+UGlFw7FQaQzCNjuEQQI0NxkbUSGEKUnCwJEhKnkRJhcChyhQISSFgJw9YwPkcG5FuakGCYzCcPhXCaf+sEKBA8AXM6khQiM7pwoMMJIsKuh5v5CGBtiwahkSyw4l6UbKl42xxv4orXJxsFnGgzY0k2Nw0u2GCdqW3YLn28VIMSIbJQKiA4r06V+qK9WNXs0x5QNCxhnKQylZ4qrUvGQQhHA4R4Z184Vo6ARmPhJjBAAavuTzdaQM5jnOPaLrUDRNC0O2WkYK5rng3AaSeB67j9jgmCQe7MCOoFgLUADq/w0FwpRoGgci4RgYC2LkkB8HABkKQAgupj6CISAFITDN58EcpSwFwNERHwpAaQBsBAWQGAsZekC4XecCMP8lacBAdqlKQwEcfzzDYSDI47rcQhGeY3E4WZcUiOCuKWOog2eoimjjSAr3BLlFhzQShURtCzgALo2NAniRBweoGIhqTyBkrTWS8nm4WIp6MMZdwPJwRTAB84pPAA5PVZBh5wzjAhDnvXFJRSqSBWXEAhASTS1qQsXOASWKEoRx6CVBJqwSCgM7nEmDceAESAzjOEAA==="}
+import { Base, createContext, signal, type Signal } from '@studiometa/js-toolkit-v4';
+
+const CountContext = createContext<Signal<number>>('count');
+// ---cut---
+class Counter extends Base {
+  static config = { name: 'Counter' };
+
+  count = this.$provide(CountContext, signal(0));
+}
+```
+
+Identical behaviour, no build step — and `$provide()` returns the value, which is why the field initializer reads the same way.
+
+## See also
+
+- [`@inject`](./inject.html) — the other half
+- [Shared state](/guide/going-further/sharing-state.html)

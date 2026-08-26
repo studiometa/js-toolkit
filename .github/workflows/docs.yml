@@ -8,7 +8,7 @@ on:
       - main
 
 jobs:
-  deploy:
+  deploy-v3:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -33,3 +33,36 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           command: pages deploy packages/docs/.vitepress/dist --project-name=js-toolkit
+
+  deploy-v4:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - run: npm ci
+
+      # The v4 exports map has no `typescript` condition, so twoslash resolves the
+      # package types out of `dist`. The committed `@twoslash-cache` comments make
+      # that unnecessary on a cache hit — this is what keeps a cache *miss* from
+      # failing the build instead of silently type-checking against nothing.
+      - name: Build the v4 package
+        run: npm run build:v4
+
+      - name: Build v4 docs
+        run: npm run docs:v4:build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: pages deploy packages/v4/docs/.vitepress/dist --project-name=js-toolkit-v4

@@ -1,0 +1,94 @@
+# useRaf
+
+```ts
+useRaf(): Service<RafProps, void | RafRender>
+```
+
+The frame clock as a service. It has nothing to scope, so there is one instance.
+
+## Props
+
+```ts
+interface RafProps {
+  readonly time: DOMHighResTimeStamp;
+  readonly delta: number;
+}
+```
+
+`delta` is clamped to `[1, 40]` ms, and the first tick after the loop wakes reports `1000/60`. `time` stays the raw rAF timestamp.
+
+## Usage
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"f9749507beb4363ed2f45c63df1ffa74c7e6bcd0c2af0f22d0e1c9ef143c34d5","data":"N4Igdg9gJgpgziAXAbVAFwJ4AcZJACwgDcYAnEAGhDRgA808AKAQwBsBLZuASgAIBjVlzi8AQlxgAeACq86NMFBHi4MAAqkIWEQF4xEjVrgA+ADph2AWywRSafasog4aZnaQBOKqxhgA5mj4SAAsVK6kfjAMiCAquN7sYLiIAAxU/PhuzPw05IgeAL4U6NjJBMRkTjT0TGycPLwAZgCuYDnsEGC8zaoASsyNjNyIvP2NAMpkROz8MOZWNnbdfQNOUBD8CDEAqqq8gTC8cBkwUM0+pAC0AEbZANanTaTMloeqpNOzAHSjUc2kSSgTVa7U6IlIrV4iX2+EOAHdSOwaLwsJlVF8nC43NEAIwAVm8vgCQUQADYwm5ItEQD0YGMnBwkkg0iAMlkcpVEPiiiUcHhCCRyGF5HhBMJeNIZg8hc5wtFSQSQD5/IEkOTqJSonhJfxpQzEskAEzpTLPDl5Uk86ilfkVGXVaksDhcPhiuDKCQyOT0XxKBzqTTaXh6OKGbRmCzWWz2OKYuVIAAcLOVxJCFIiWpisYSTMQxtZpuyuSQhpxVswfJiAsqwpqMUYWEDZEwfB10q+/E6jXYfhGwHMvEHvDALxgIxciP8AG5zAU49jPOqU6qyemqaKuz39bmAMwm9nF/Llm1Vu1VEX1xtaZsYPgj17jtCTvzz9xclIAdkJKpJoQ1Gepe94iVA0kD3AsD05Q0UmPStykFc86xARhXkCaBWylMgvksCBWhoKAhhGbYwDgZprmORFrmA9ZNjwAAZdhGhgfgMEEQ5CAgO4KF4V5mDAew0AgXgqN4O1ESgWAwB+ABZZgMF4Ug/gBXhmAEHw+OaLBgTaNAOjAcxGFsFSujcZ55IgRoYRgSw+ECZh7AhEjRK6A5h3kXgAAMABJWhwvChg83hABQCI4MDaUTSHMLgwv4RBzAHIdovCvz+NOIZeH7Loh0HTsSPsOAexHVhgxUuFmCRGF2DgL4vMSAArZi0EYcYIFeABhToHW4GcsuyxS0H+LoCr8IqvlI8j+EomBGEYIg2GaGA+B0YwMt4QAyAl4ApuoSwcCnisAAEEBFamwkn470FCgRI/BUnj2FoaF+sGkQ4UyewKvkX0RDYTobrhJF8ChNA4HMCA4TAbjoT4+Skhca64v03qeNw1KCL4TLssHJ7lOQUicFIbCUfwoZuPS5bVo2goAF0euyucqCxN8cUNBNv1TRAv3/dcYhS/Dt2SRU2TNQ9DVgspq3tC9kLqF1ljpAZCNGAZJg+GY5kjRZ7FpekqBorYQF2Q5XOOWEzguG57keRpnleI4pjVn5eiUwFtNBJzHKhFzYV4BEkUOVEJAxBn4y5PEcTZld1XCbmaRWRp+bVfdhc5HEy2Ka04IlxDHVQwgoD4FXPikNswzgbiiAgdggQAHyVxoncUMhjDGsiKPYKjGH4NhWFuXURkLtW2u73u7hkKVS/Lyua7rhvYFIYxuK0XSwQAfn71vJvbmAAHksGXkjhl4Yjxrbqi1g2fXxg3qb9iE437dmbjGd0/wgahSyKrKkRIAc1oLH8IOGo/BbGQMgEA2MSJOGPtfLePxpDe3eEXI4gkgz/UCEDEQQgXBHBgVRAmIAqZU2DguLkpJkxEhXF4LmmZnC4OAoyZI6ohZFigjBdOFZxZnlrI6LAWRUJkD4LAVgrgRhgGaJYPBr5cQfnAsuEkipo40KEa4BOq4ILJzyDuHc1N0jQDKAsaMq04jcW1gMTaTxWq8AAOQAAEXDNCuq1KIzAAD0dU4CXEEhAVgdwkSXCIMEKxPVzBuhEG2MgF0vr+gyglLEul+DHTAN2G6ehgDDlHCMKx4TSBWM2sErKvM0rox2gpZ2csxhDBbhNKaM00nKNUltYMK0MaYxcS49aJStq002rOJwqFmBIFAJ9Eiek8DuJAAUAoQA==="}
+import { Base, useRaf } from '@studiometa/js-toolkit-v4';
+
+class Ticker extends Base {
+  static config = { name: 'Ticker' };
+
+  mounted() {
+    return useRaf().subscribe(({ delta }) => {
+      // …
+    });
+  }
+}
+```
+
+## A callback can return a render function
+
+`useRaf` is the one service whose callback return value is used. Return a function and it runs in the frame's `write` phase:
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"eb97681c2cb02b5643727aeb87d33a02df37dfe08db6e8e72c8692211441e99d","data":"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"}
+import { Base, useRaf } from '@studiometa/js-toolkit-v4';
+
+class Follower extends Base {
+  static config = { name: 'Follower' };
+
+  mounted() {
+    return useRaf().subscribe(({ delta }) => {
+      const x = this.$el.offsetLeft + delta;
+      return () => {
+        this.$el.style.transform = `translateX(${x}px)`;
+      };
+    });
+  }
+}
+```
+
+The service collects the render functions of its callbacks and **cancels a render whose subscriber left between the two phases**.
+
+## It does not own a loop
+
+It subscribes to `scheduler.tick()`. The scheduler requests the next frame while a tick subscriber stays, so there is no permanent rAF loop and no loop of the service's own.
+
+`{ immediate: true }` does nothing here: the frame tick has **no current value between two frames**, which is what its `hasProps()` says.
+
+## Switching it on and off
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"aa7dec470e053803d2bbc00a6f44c858b99b6bc3e243933920a3ef143f51a57e","data":"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"}
+import { Base, toggle, useRaf } from '@studiometa/js-toolkit-v4';
+
+class SliderItem extends Base {
+  static config = { name: 'SliderItem' };
+
+  #frame = toggle(() => useRaf().subscribe(({ delta }) => this.follow(delta)));
+
+  mounted() {
+    return this.#frame.stop;
+  }
+
+  follow(delta) {}
+}
+```
+
+See [`toggle()`](./toggle.html), and `withRaf(Base, { manual: true })` in [Mixins](./mixins.html).
+
+## Mixin
+
+```js
+class Follower extends withRaf(Base) {
+  ticked({ delta }) {}
+}
+```

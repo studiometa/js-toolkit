@@ -1,0 +1,26 @@
+# useWindowScroll
+
+```ts
+useWindowScroll(): Service<ScrollProps>
+```
+
+The page scroll. It names the default case of [`useScroll()`](./useScroll.html), and it is the same instance as `useScroll()` and `useScroll(document.documentElement)`.
+
+## Usage
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"475ac9ea0897b3204df6ab423628157abf2c3da7d0c8806609cb2bedb040a3f7","data":"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="}
+import { useWindowScroll } from '@studiometa/js-toolkit-v4';
+
+const unsubscribe = useWindowScroll().subscribe(({ y, progressY }) => {
+  document.documentElement.style.setProperty('--scroll-progress', String(progressY));
+});
+```
+
+Props, coalescing and extent observation are [`useScroll()`](./useScroll.html)'s.
+
+## Why it exists
+
+`useScroll()` already defaults to the document element, so this export adds no behaviour. It adds a **name**: a call site that means "the page" says so, instead of relying on a reader knowing what the default argument is.
+
+`useWindowSize()` is the same idea for [`useResize()`](./useResize.html).

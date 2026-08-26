@@ -53,13 +53,14 @@ Visit [js-toolkit.studiometa.dev](https://js-toolkit.studiometa.dev) to learn mo
 
 ## Packages
 
-| Package                                                             | Description                                                                |
-| ------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| [`@studiometa/js-toolkit`](./packages/js-toolkit/)                  | The framework and its utility functions.                                   |
-| [`@studiometa/eslint-plugin-js-toolkit`](./packages/eslint-plugin/) | Oxlint/ESLint rules enforcing the framework's best practices.              |
-| [`packages/v4`](./packages/v4/)                                     | The v4 prototype, private and not published.                               |
-| [`packages/docs`](./packages/docs/)                                 | Sources of [js-toolkit.studiometa.dev](https://js-toolkit.studiometa.dev). |
-| [`packages/demo`](./packages/demo/)                                 | A playground application used during development.                          |
+| Package                                                             | Description                                                                      |
+| ------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| [`@studiometa/js-toolkit`](./packages/js-toolkit/)                  | The framework and its utility functions.                                         |
+| [`@studiometa/eslint-plugin-js-toolkit`](./packages/eslint-plugin/) | Oxlint/ESLint rules enforcing the framework's best practices.                    |
+| [`packages/v4`](./packages/v4/)                                     | The v4 prototype, private and not published.                                     |
+| [`packages/docs`](./packages/docs/)                                 | Sources of [js-toolkit.studiometa.dev](https://js-toolkit.studiometa.dev).       |
+| [`packages/v4/docs`](./packages/v4/docs/)                           | Sources of [js-toolkit-v4.studiometa.dev](https://js-toolkit-v4.studiometa.dev). |
+| [`packages/demo`](./packages/demo/)                                 | A playground application used during development.                                |
 
 ## Installation
 

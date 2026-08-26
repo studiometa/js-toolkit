@@ -1,0 +1,97 @@
+# @children
+
+```ts
+children<T extends Base>(name: string, callbacks?: WatchChildrenCallbacks<T>): ValueDecorator<ChildrenCollection<T>>
+children<T extends BaseConstructor>(ComponentClass: T, callbacks?: WatchChildrenCallbacks<InstanceType<T>>): ValueDecorator<ChildrenCollection<InstanceType<T>>>
+```
+
+Field sugar over [`$watchChildren()`](/api/instance-methods.html#watchchildren).
+
+## Usage
+
+```ts twoslash
+// @twoslash-cache: {"v":1,"hash":"92ae5cad020e7e5a3145d10bd1aeaef8564d3f0610c944cfc22c4799aabf6b34","data":"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"}
+import { Base, children, component, type ChildrenCollection } from '@studiometa/js-toolkit-v4';
+
+class SliderItem extends Base {
+  static config = { name: 'SliderItem' };
+}
+// ---cut---
+@component({ name: 'Slider', components: { SliderItem } })
+class Slider extends Base {
+  // Exact `config.name`.
+  @children('SliderItem')
+  items!: ChildrenCollection<Base>;
+
+  // Also every named subclass, through `instanceof`.
+  @children(SliderItem)
+  allItems!: ChildrenCollection<SliderItem>;
+
+  reset() {
+    for (const item of this.items) {
+      item.$el.removeAttribute('data-option-active');
+    }
+  }
+}
+```
+
+The collection is **live**, in document order whatever the mount order is.
+
+## Callbacks
+
+```ts twoslash
+// @twoslash-cache: {"v":1,"hash":"e37272a47591c8b86b9855aab9024bf1a9a661f1ca6e66d01d4190f1108f75bf","data":"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="}
+import { Base, children, component, type ChildrenCollection } from '@studiometa/js-toolkit-v4';
+
+class SliderItem extends Base {
+  static config = { name: 'SliderItem' };
+}
+// ---cut---
+@component({ name: 'Slider', components: { SliderItem } })
+class Slider extends Base {
+  @children(SliderItem, {
+    added(item) {
+      // `this` is the Slider instance.
+      this.reindex();
+    },
+    removed(item) {
+      this.reindex();
+    },
+  })
+  items!: ChildrenCollection<SliderItem>;
+
+  reindex() {}
+}
+```
+
+**The callbacks are bound to the instance**, which is the one thing this form gives over the function form.
+
+## It is instance-scoped
+
+The subscription stays active through unmount and mount cycles, for the whole life of the watching instance. It is never released and dies with the element.
+
+The initial sweep is deferred to a microtask, because a field initializer runs before the element is in place; the announcement listeners attach at once, so nothing is missed.
+
+## The function form
+
+```js twoslash
+// @twoslash-cache: {"v":1,"hash":"8c95a707b965502c1b91d598017d7fc0a4783668634b9c20dacc54c538c13239","data":"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"}
+import { Base } from '@studiometa/js-toolkit-v4';
+
+class SliderItem extends Base {
+  static config = { name: 'SliderItem' };
+}
+
+class Slider extends Base {
+  static config = { name: 'Slider', components: { SliderItem } };
+
+  items = this.$watchChildren(SliderItem, {
+    added: (item) => this.reindex(),
+    removed: (item) => this.reindex(),
+  });
+
+  reindex() {}
+}
+```
+
+Identical behaviour, no build step. Note the arrow functions: the function form does not bind the callbacks for you.

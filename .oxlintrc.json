@@ -114,7 +114,8 @@
         "**/*.bench.ts",
         "**/__benchmarks__/**",
         "packages/v4/test/**",
-        "packages/v4/scripts/**"
+        "packages/v4/scripts/**",
+        "packages/v4/docs/**"
       ],
       "rules": {
         "complexity": "off",
