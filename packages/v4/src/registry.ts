@@ -230,6 +230,7 @@ if (!registryState.isReplacementListenerAttached) {
  * `INSTANCES` map key it publishes itself under: a subclass which extends a
  * component with extra config and forgets to rename would otherwise register
  * under `undefined` instead of colliding with the name it inherited.
+ * @link https://js-toolkit-v4.studiometa.dev/api/registry/registerComponent.html
  */
 export function registerComponent(ComponentClass: BaseConstructor): void {
   const { name } = resolveConfig(ComponentClass);
@@ -255,6 +256,7 @@ export function registerComponent(ComponentClass: BaseConstructor): void {
   scanName(document.documentElement, name);
 }
 
+/** @link https://js-toolkit-v4.studiometa.dev/api/registry/registerComponents.html */
 export function registerComponents(...classes: BaseConstructor[]): void {
   for (const ComponentClass of classes) {
     registerComponent(ComponentClass);
@@ -263,6 +265,7 @@ export function registerComponents(...classes: BaseConstructor[]): void {
 
 /**
  * Register lazy component entries. Element `data-mount` overrides the entry strategy; unloaded components have no instance.
+ * @link https://js-toolkit-v4.studiometa.dev/api/registry/registerManifest.html
  */
 export function registerManifest(entries: ComponentManifest): void {
   const added: string[] = [];

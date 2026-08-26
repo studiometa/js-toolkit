@@ -103,6 +103,7 @@ export interface ExtendableDetail {
 /**
  * Announce a DOM change and apply it exactly once.
  * The mutation runs synchronously when no listener claims it.
+ * @link https://js-toolkit-v4.studiometa.dev/api/dom/domUpdate.html
  */
 export async function domUpdate(
   target: Node,
@@ -171,6 +172,7 @@ export async function domUpdate(
 /**
  * Announce a step and await all registered extensions.
  * Extension failures are reported and do not reject this function.
+ * @link https://js-toolkit-v4.studiometa.dev/api/dom/emitExtendable.html
  */
 export async function emitExtendable(
   target: Node,

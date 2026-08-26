@@ -4,6 +4,7 @@ import { createService, type MutableProps, type Service } from './service.js';
 
 /**
  * Default named viewport widths, ascending. Media-query `rem` uses the browser's initial font size, not the root element's computed size.
+ * @link https://js-toolkit-v4.studiometa.dev/api/dom/breakpoints.html
  */
 export const BREAKPOINTS: Readonly<Record<string, string>> = {
   xxs: '0rem',
@@ -67,7 +68,10 @@ function queryList(): Array<readonly [string, MediaQueryList]> {
   return breakpointState.queries;
 }
 
-/** Replace the ascending named breakpoint set and refresh active subscribers. */
+/**
+ * Replace the ascending named breakpoint set and refresh active subscribers.
+ * @link https://js-toolkit-v4.studiometa.dev/api/dom/breakpoints.html
+ */
 export function setBreakpoints(next: Record<string, string>): void {
   breakpointState.breakpoints = { ...next };
   breakpointState.queries = null;
@@ -81,7 +85,10 @@ export function setBreakpoints(next: Record<string, string>): void {
   breakpointState.refresh?.();
 }
 
-/** Return a copy of the active breakpoint set. */
+/**
+ * Return a copy of the active breakpoint set.
+ * @link https://js-toolkit-v4.studiometa.dev/api/dom/breakpoints.html
+ */
 export function getBreakpoints(): Record<string, string> {
   return { ...breakpointState.breakpoints };
 }
@@ -165,6 +172,7 @@ function createBreakpointService(): Service<BreakpointProps> {
 
 /**
  * Use the viewport breakpoint service. It listens to media-query crossings, including changes caused by the browser's initial font size.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/useBreakpoint.html
  */
 export function useBreakpoint(): Service<BreakpointProps> {
   breakpointState.service ??= createBreakpointService();

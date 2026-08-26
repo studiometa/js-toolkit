@@ -33,21 +33,30 @@ export type {
 
 type PresetOptions = Omit<StorageOptions, 'provider'>;
 
-/** A storage over `localStorage`. */
+/**
+ * A storage over `localStorage`.
+ * @link https://js-toolkit-v4.studiometa.dev/api/storage/presets.html
+ */
 export function createLocalStorage<T extends object = Record<string, unknown>>(
   options?: PresetOptions,
 ): StorageInstance<T> {
   return createStorage<T>({ ...options, provider: localStorageProvider });
 }
 
-/** A storage over `sessionStorage`. */
+/**
+ * A storage over `sessionStorage`.
+ * @link https://js-toolkit-v4.studiometa.dev/api/storage/presets.html
+ */
 export function createSessionStorage<T extends object = Record<string, unknown>>(
   options?: PresetOptions,
 ): StorageInstance<T> {
   return createStorage<T>({ ...options, provider: sessionStorageProvider });
 }
 
-/** A storage over the query string. */
+/**
+ * A storage over the query string.
+ * @link https://js-toolkit-v4.studiometa.dev/api/storage/presets.html
+ */
 export function createUrlSearchParamsStorage<T extends object = Record<string, unknown>>(
   options?: PresetOptions & UrlProviderOptions,
 ): StorageInstance<T> {
@@ -58,7 +67,10 @@ export function createUrlSearchParamsStorage<T extends object = Record<string, u
   });
 }
 
-/** A storage over search params held in the hash. */
+/**
+ * A storage over search params held in the hash.
+ * @link https://js-toolkit-v4.studiometa.dev/api/storage/presets.html
+ */
 export function createUrlSearchParamsInHashStorage<T extends object = Record<string, unknown>>(
   options?: PresetOptions & UrlProviderOptions,
 ): StorageInstance<T> {

@@ -71,7 +71,10 @@ const storage = Object.freeze({
   serializeFailed: 'storage.serialize-failed',
 } as const);
 
-/** Stable codes carried by toolkit diagnostics. */
+/**
+ * Stable codes carried by toolkit diagnostics.
+ * @link https://js-toolkit-v4.studiometa.dev/api/diagnostics/DIAGNOSTICS.html
+ */
 export const DIAGNOSTICS = Object.freeze({
   attribute,
   callback,

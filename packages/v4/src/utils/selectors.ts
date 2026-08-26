@@ -14,6 +14,7 @@ import { responsiveAttributeNames } from '../responsive-options.js';
  * not re-add an `$isMounted` filter here or at a call site to "fix" the
  * over-matching: it would also hide every instance a reversible `in-view` or
  * `media:` strategy has legitimately stood down.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/dom.html#selectorfor
  */
 export function selectorFor(name: string): string {
   return [COMPONENT_ATTRIBUTE, ...responsiveAttributeNames(COMPONENT_ATTRIBUTE)]

@@ -69,6 +69,7 @@ export interface AttributeNamespaceOptions {
  * @param bind      Called once per declaration; returns that binding's release.
  * @param options   An optional finite head vocabulary, and a component name.
  * @returns An idempotent cleanup releasing every binding and stopping the watch.
+ * @link https://js-toolkit-v4.studiometa.dev/api/dom/watchAttributeNamespace.html
  */
 export function watchAttributeNamespace(
   el: Element,

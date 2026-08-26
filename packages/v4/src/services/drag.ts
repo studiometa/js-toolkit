@@ -14,7 +14,10 @@ import { createService, perTarget, type MutableProps, type Service } from './ser
 /** Anything that can be grabbed: an HTML element, or an SVG one. */
 export type DragTarget = HTMLElement | SVGElement;
 
-/** Drag lifecycle modes: `idle → start → drag → drop → inertia → stop → idle`. */
+/**
+ * Drag lifecycle modes: `idle → start → drag → drop → inertia → stop → idle`.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/useDrag.html
+ */
 export const DRAG_MODES = {
   IDLE: 'idle',
   START: 'start',
@@ -387,7 +390,10 @@ const dragServices = /* @__PURE__ */ getSharedRuntimeSlot('service:drag', 1, () 
   perTarget(createDragService),
 );
 
-/** Use one shared drag service per target and option set. */
+/**
+ * Use one shared drag service per target and option set.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/useDrag.html
+ */
 export function useDrag(target: DragTarget, options: DragOptions = {}): Service<DragProps> {
   return dragServices(target, options);
 }
@@ -399,7 +405,10 @@ export interface DragHook {
 
 export type DragMixinOptions = DragOptions & ServiceMixinOptions<DragTarget>;
 
-/** Subscribe `dragged()` to the drag service for each mount cycle. The root element is the default target. */
+/**
+ * Subscribe `dragged()` to the drag service for each mount cycle. The root element is the default target.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/mixins.html
+ */
 export const withDrag = /* @__PURE__ */ createServiceMixin<
   DragHook & ServiceHandles<'dragged'>,
   DragTarget,

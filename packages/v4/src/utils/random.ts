@@ -1,6 +1,9 @@
 /** Random values, in the ranges a component describes. */
 
-/** A random number between the two bounds, the second defaulting to `0`. */
+/**
+ * A random number between the two bounds, the second defaulting to `0`.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/objects.html#random
+ */
 export function random(a: number, b = 0): number {
   return Math.random() * (b - a) + a;
 }
@@ -11,6 +14,7 @@ export function random(a: number, b = 0): number {
  *
  * Every integer in the range is equally likely. Rounding a random float
  * instead — which is what v3 did — gives the two bounds half a chance each.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/objects.html#randomint
  */
 export function randomInt(a: number, b = 0): number {
   const min = Math.ceil(Math.min(a, b));
@@ -18,7 +22,10 @@ export function randomInt(a: number, b = 0): number {
   return min + Math.floor(Math.random() * (max - min + 1));
 }
 
-/** A random item of an array, or a random character of a string. */
+/**
+ * A random item of an array, or a random character of a string.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/objects.html#randomitem
+ */
 export function randomItem<T>(items: readonly T[]): T | undefined;
 export function randomItem(items: string): string | undefined;
 export function randomItem<T>(items: readonly T[] | string): T | string | undefined {

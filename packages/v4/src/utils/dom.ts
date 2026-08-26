@@ -29,6 +29,7 @@ export interface CreateElementAttributes {
  * createElement('a', 'link'); // <a>link</a>
  * createElement('a', { href: '#' }, [createElement('span')]); // <a href="#"><span></span></a>
  * ```
+ * @link https://js-toolkit-v4.studiometa.dev/utils/dom.html#createelement
  */
 export function createElement<T extends keyof AnyHTMLElementTagNameMap = 'div'>(
   tag?: T,
@@ -88,6 +89,7 @@ export interface OffsetSizes {
  * nothing were transformed. Coordinates are the viewport's, as that method's.
  *
  * A pure read: the caller owns the phase it happens in.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/css.html#getoffsetsizes
  */
 export function getOffsetSizes(element: HTMLElement): OffsetSizes {
   let x = element.offsetLeft;

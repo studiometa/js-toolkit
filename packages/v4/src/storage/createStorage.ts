@@ -11,6 +11,7 @@ import type { StorageInstance, StorageOptions } from './types.js';
  *
  * Values are namespaced by `prefix`, serialized on the way in and out, and
  * observable per key.
+ * @link https://js-toolkit-v4.studiometa.dev/api/storage/createStorage.html
  */
 export function createStorage<T extends object = Record<string, unknown>>(
   options: StorageOptions = {},

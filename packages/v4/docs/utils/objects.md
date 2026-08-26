@@ -7,7 +7,9 @@ import { deepmerge, random, randomInt, randomItem } from '@studiometa/js-toolkit
 
 [[toc]]
 
-## `deepmerge`
+## Merging
+
+### deepmerge
 
 ```ts
 deepmerge(...layers: Record<string, unknown>[]): Record<string, unknown>
@@ -29,40 +31,43 @@ That last rule is the one worth knowing: an array is a value, not a structure to
 A utility is judged by consumer need, not by whether core calls it. Layering a default config under an author's config is the case every component author meets, and getting the array rule wrong is exactly how a hand-rolled merge misbehaves.
 :::
 
-## `random` and `randomInt`
-
-```ts
-random(a: number, b?: number): number
-randomInt(a: number, b?: number): number
-```
+## Random
 
 ```js twoslash
-// @twoslash-cache: {"v":1,"hash":"e6f4ef7657f64c4b7d3e04ee3f33001fe2719938fda597f27d5684b366745491","data":"N4Igdg9gJgpgziAXAbVAFwJ4AcZJACwgDcYAnEAGhDRgA808AKAQwBsBLZuASgAIAzAK5gAxmnYQwvUszBQIAWxaJeYQQoBGZCrw0B+FWs1luh9VtIAdMOwVYIpNNNnyFlEPJEJEIAILO5RVVzMl0YNAB3GBgpNHwYXkiIXQhhKDgdOIS4GBFJKF5YfmZBVnEwAHNE5IADAAYagDp3ODRmRyQATipWGIq4pAA2KjbSCvC8GUC3HvYwXEQ6qhF8duYxMi6AXwp0bAWCYk2RugYfFg4uPiFRcUkA1wBJMDRlYONSHX0zD9N3i2stnsjgeimeDConm8flBCl4cxo41IYUi0Vi8USEWSGlScgyKTi8NErEEsAKLkSGJyeTk1iKJTKcyqaFqDUa1msAFESKQMETEaE5pSElNxvC4LwYABHQRsVh8jgAaxg8savAASrioEzeMxYQJWBBmGhAWBWjBmAVACgEvAi+HYK3FttWTiIAGZCuxrbwKuwSBKspjsVqJatWPxdbwVrIRAkLStmlRWu0zgBGADsPT6A0Q3Wo7XGZxAUyeL3cHHmSCWIGjMg25EQGZ2exweEIPPcNHoTDYnB4sLeRgsXwM/xMPwBNjsDicJcU7iheH8c7hQ9CWlRMWFQZSaXxgep+UKMGKpXKzNZTRaozO6ervUqOeG+bGEx8K/LcwWACZlqs6zQDZ1M21D7G2RzkCc3bnL2VwDswE7aLoo5rqQfyoYC04gh+kIQF4S76qhKJRFugZJLueKZFSuRHvSZ46iyvD1FeSY3l0v4gA+/T4EMIwFm+xYuPOsyVogbp/ms9ZViBmCtj47bHNQpw9pc/YruCg4hJ8yGIWhumYcCs5CQo4ILnh0LLsZ/IwEixFotu5E4nuXwQIScwiCSZK6nI26HrScgngy57VExbIcmA3JkHyCI2YK6IirIYrsBK0qyqw8q8EqKoYGqmppDqeorgaRomjYZo0JavA2naDr4E6drGrw7qet6vr+g5WIUekvBhhGerRqIcbrPgiYgMmHSNhmWaPjxuZ8a+RbqWWIkLAALBJAGbIsMlgfJEGdspMGqXwS2vAhY7ad8F3oVpBkzrCpm4fhPiWdM1m2RuJHxTuTmUQSdXuZ5MDkj5B40f5dGMpUIXMeyYBcjy0UvLFyJCoGooJMlkoynKCrsMqqoalqBX6vwhrGqa5qVdV9qOljDWuh62qtX68AdcGe49WwfVRqsg2SsNo3jWmACs62cdms15qMhaTMZj2cV+SAixt6yAdJAC6yzQAcQL3cAsI6KdvBbAIpBBAA5AAAq0pISAo4TMAA9AAVnAAC0LIQKwirsGg7tEKtTuCOIrBwBbADc4UrowqZ1NwEe8E7Tu8HUvCAEmEvBx9YMcq1n8eJ8nvAixn+c5/LLyxwXScp7I71IWnmfZ2Ap2MHnccJzX3n19pJdN3U7gO20SCgKcMRwBIYB4G7IBbFsQA="}
-import { random, randomInt } from '@studiometa/js-toolkit-v4/utils';
+// @twoslash-cache: {"v":1,"hash":"97d2e42b178b0ca4d4da7b180a6edd87db627e098889dfee425f99da39ce769b","data":"N4Igdg9gJgpgziAXAbVAFwJ4AcZJACwgDcYAnEAGhDRgA808AKAQwBsBLZuASgAIAzAK5gAxmnYQwvUszBQIAWxaJeYQQoBGZCrw0B+FWs1luh9VtIAdMOwVYIpNNNnyFlEPJEJEIAILO5RVVzMl0YNAB3GBgpNHwYXkiIXQhhKDgdOIS4GBFJKF5YfmZBVnEwAHNE5IADAAYagDp3ODRmRyQATipWGIq4pAA2KjbSCvC8GUC3HvYwXEQ6qhF8duYxMi6AXwp0bAWCYk2RugYfFg4uPiFRcUkA1wBJMDRlYONSHX0zD9N3i2stnsjgeimeDConm8flBCl4cxo41IYUi0Vi8USEWSGlScgyKTi8NErEEsAKLkSGJyeTk1iKJTKcyqaFqDUa1msAFESKQMETEaE5pSElNxvC4LwYABHQRsVh8jgAaxg8savAASrioEzeMxYQJWBBmGhAWBWjBmAVACgEvAi+HYK3FttWTiIAGZCuxrbwKuwSBKspjsVqJatWPxdbwVrIRAkLStmlRWu0zgBGADsPT6A0Q3Wo7XGZxAUyeL3cHHmSCWIGjMg25EQGZ2exweEIPPcNHoTDYnB4AmEYgkUhLYJoCgAPAAVAB8jHY47gKlIFvkYHlvCnyAAun8p7wAD68NIwfhzGAFRgAalTvCOpENlu4gLsDico4Uj3H7iheH8H/hcc7wjWRdVIGQMB0BxIwA2t1hoZEIBA3hWlIJlExAZMOkQAAmAAOLNKhzVNq1GQtJhcMcYBmEAKwWas4PrJB8Obah9jbe9O1OHtLn7D83iMCwvgMf4TB+AEbFfEEPx/CAvD/fVBNCLRURiYUgxSNJ8UDal8kKU8GXKZlWSaFpRjOPCcMI/p8CGEYCwmHwZNmStcOWVY6wQqtWMwVsfHbY5qG485eyuWEBJCT5dBEpTSD+WKX2Bd9KJo38fH/FLRORFSojUwMkk0vFMipXI9PpUojOqXh6lMpNzKQEiABZrJzYZ8zGRzixS8tzyQN13LWJjFh89j/M4k5uxC3i+A/cEIo+YTxLErLErfWFwVk+T0v1BEYCRFFcvRBICpxLSvggQk5hEEkyV1OR1N02k5AMiqdRZaq2Q5MBuTIPldv2oVA1FBJ2AlaVZVYDclRVDA1U1NIdT1AD+EfE0bDNGhLV4G07QdfAnTtY1eHdT1vV9f11JOkNeDDZDo1EON1nwDCsLTHC816IjbNzeyOqLWayxchZmprDz4M2YbdjYvzDg7CaiwuPsZpSr9qInVCmTnBdqKXaRV0kDcNcqHc/iNqojxPM95kvG87x5R8oGfSSkvW79ITk6EMumQDqOAu6wIgqDkSRzLGIQv29TNln6sbQY2s5myGtIhz+ZVt3aN6xAAFYBs8iW6i2bdlmgA4gTW4BYR0AW0CrtPfa2ARSCCAByAABVpSQkBRwmYAB6AArOAAFoWQgVhFQXIeiEa3vBHEVg4GbgBuL7+JI7gl94Xve94OpeEAJMJeBI6x+Jzo+6g3red6zg/z5PlWXkYdfN+3/3/u0Xfb+PsBZvHRhkGbswZuOhm4aGAbwZuIhm67iXu4bubQkCgFODEOAw48CDxAFsLYQA==="}
+import { random, randomInt, randomItem } from '@studiometa/js-toolkit-v4/utils';
 
 random(10); // 0 → 10
 random(5, 10); // 5 → 10
 randomInt(10); // an integer, 0 → 10
-randomInt(5, 10); // an integer, 5 → 10
+randomItem(['a', 'b', 'c']);
 ```
 
-**One argument is a maximum; two are a range.** The bounds are inclusive for `randomInt`.
+**One argument is a maximum; two are a range.**
 
-## `randomItem`
+### random
+
+```ts
+random(a: number, b?: number): number
+```
+
+A float in the range.
+
+### randomInt
+
+```ts
+randomInt(a: number, b?: number): number
+```
+
+An integer in the range, bounds inclusive.
+
+### randomItem
 
 ```ts
 randomItem<T>(items: readonly T[]): T | undefined
 randomItem(items: string): string | undefined
 ```
 
-```js twoslash
-// @twoslash-cache: {"v":1,"hash":"bccf2e1205cf47d57837fcb0faa3c6c3f7bb740d982ea073fad8b48c6c76e642","data":"N4Igdg9gJgpgziAXAbVAFwJ4AcZJACwgDcYAnEAGhDRgA808AKAQwBsBLZuASgAIAzAK5gAxmnYQwvUszBQIAWwCSNBQB4AKgD5G7VXETSYzeWFYZeG5AF1uhjbwA+vYbH7swMKL0YBqAIy8xGSsECbcADpg7ApYEKRo0rLyyqqUIPIiCIggAIJJcoq8ejAKQfy8spWkMhgUQaSVBSm8IvjMMmJk5U1waKQeAOYAdOl9HQyIAJxUrDBgg2j4SP4ADFRoHYMwkyAyhaml6RyeSOsgbR3MXeTTAL4U6Ni4OYQk5Bt0uywcXHz7KRUpTUfQGCx0JQUBiMJkk5l4oKGNjsCP6QycLjkMHcnm8fkCwVIoXCURicQSzUUQIU6Uy2TylLKkJ6VQ6tXq8SaAKKl06NEaEAqzFRYJGY02CSQADYAMyzeaLZaINYbLY7PDcw402YeF4AJiovOu/LODyeODwbzI6Ro9CYbE4PEZ1N0+kMiIWKI9gwxrmxurxASC72JUEi0Vi8USmuptIgWTw+U1xVULKkbOYdQaXOSPPafO6gt6aIWoyo40lyr1cpAcwWSxW5wl212MbSOtOiBrRpupushugLxAZKjvGAztTdwEpCKAHIAAJ9QRQCQKHbMAD0ACs4ABaNAQCCsADWel3RAALBvBOJWHBZwBuKJRNulRjIWfMWf1WcAI2/vCziIs62A+vAbhugFfhif6zjBwG+liOJeC+uZaown6/sB3BgRBUFwc4sHwQRmJuAG6RrpsSCgF88xwBIYB4DuIB3HcQA=="}
-import { randomItem } from '@studiometa/js-toolkit-v4/utils';
-
-randomItem(['a', 'b', 'c']); // 'a' | 'b' | 'c' | undefined
-randomItem('abc'); // 'a' | 'b' | 'c' | undefined
-```
+One item from an array, or one character from a string.
 
 The return includes `undefined` because an empty input has no item to give — and a signature that pretended otherwise would put the bug three lines later.
-
-The string overload picks a character, which is the same question asked of a different sequence.

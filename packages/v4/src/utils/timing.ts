@@ -3,6 +3,7 @@
 /**
  * Delay a function until it stops being called for the given milliseconds.
  * Only the last call's arguments are used.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/timing.html#debounce
  */
 export function debounce<Args extends unknown[]>(
   fn: (...args: Args) => void,
@@ -19,6 +20,7 @@ export function debounce<Args extends unknown[]>(
 /**
  * Run a function at most once per given milliseconds, on the leading edge.
  * A call inside the window is dropped, not deferred.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/timing.html#throttle
  */
 export function throttle<Args extends unknown[]>(
   fn: (...args: Args) => void,
@@ -38,7 +40,10 @@ export function throttle<Args extends unknown[]>(
   };
 }
 
-/** Resolve after the given milliseconds. */
+/**
+ * Resolve after the given milliseconds.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/timing.html#wait
+ */
 export function wait(delay = 0): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(resolve, delay);

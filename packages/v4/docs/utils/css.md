@@ -7,13 +7,13 @@ import { matrix, transform } from '@studiometa/js-toolkit-v4/utils';
 
 [[toc]]
 
-## `transform`
+## Transforms
+
+### transform
 
 ```ts
 transform(props: TransformProps): string
 ```
-
-Builds a `transform` value from named parts, so a component composes a transform instead of assembling a string:
 
 ```js twoslash
 // @twoslash-cache: {"v":1,"hash":"9a8e004351703f9dffdc3f904dd9d23844d07bb9b49a501a38f6f2dbd5cb7a95","data":"N4Igdg9gJgpgziAXAbVAFwJ4AcZJACwgDcYAnEAGhDRgA808AKAQwBsBLZuASgAIAzAK5gAxmnYQwvNKWZg4/CKQC2jLKQhY4iXgBVZ8xSoAKGrdx1wZ7MAHMAOmHbKsStNIMKlyyiCgQRBEQQADFvZndmXgBhAGVYjzkvFQA6R0ddfBhpfFIYbOZaeF4Ifl4omSTWCIkpZjySsGyAA0r5apoAZihminKwKBzsuEJSNHw5QdLHKI00Gsk+qLgRNmylct44AGsYAHdePZs4EpJSXnY0E5xSAFpC9muzMnF4FN952yDkZBA6ZhcrFwVGaoIAVnBHG1kqpgLxaDoAIwABmRfRWax0yJSAFZeABfbgAbkcAHpSYl2hEYN1GCjkVhaH0GUzeCy+BigYxsTjuI5Qc0QABdIVUKz1BiIACcVCBdnGSBl1HqthgkuoniMPllNlwiDRIBEE1kYjIivxFHQ2D1BGIZqoNHoTDYnB4lJhajM2j0mu8pk0PEs1jsjmcrjG7q1vn8gTwYRUEU2cQS0K1aTAGSyOTyBSKJ1Km2hHVq5QakhaRep3V6/UG42Go3GkxK/BmvDmCzASy2qyBJXOy12ByO8lOZAuV14N3utEeU+eY3Ybw+zC+SB+f1oAKwQN8AohUN9KkYcIRvHp6N7MCxuIJxLJFMrXSgdNRjOZ77ZjI5V+5uL5YACsKoogOKYxIAAbAATLKMDyvgioOiqap4Km3i+BwTRIDBhrGswprkPqFpWjgeCEGcHx0OqnqaC8GB8PoSRav6WgpLQAD8OhgIIygAEbjgAPrwwiwPwupQL4YGSgA7AALLB8FIIiSGkKq6q0BhurYVQRr1PhNCEYiUHEdQ1pkXa5AOlRTDqLRYz0T6TF+l6KQYJxvDcXxgnCQMMBiU0ElivM4GIAAHMpIByrYCqIBFwVqXgGCaVhiA4bpJoGUpUomZgpHBOR9rUNZwQ0TcmAMUeygsXAKScjA7mefx5xCSJfniZJwWSqFoUKdFCGIDiKkJcEdXJXqaV4QR2EQTlZn5RZlFOiVtllQ5jGGM5AYpB2NANTxTW8C1vn+TAgWgZ1Smor1MUQUNKHBDtwKRVpqU6ZNmWIJ0oX4iBIjQDaYZuLwcJoSoBICBoyi8AA5AAAlYghQBIyhqswpIQrcaAQBArDbJctxELJpKCOIrBwNDJIZmAoOwvCSJorwGA6FBDN1UiuJ9I9OiyXihJEr4KPzEgoBUXBcC1HgEIgPi+JAA"}
@@ -22,11 +22,11 @@ import { transform } from '@studiometa/js-toolkit-v4/utils';
 transform({ x: 10, y: 20, scale: 1.5, rotate: 45 });
 ```
 
-`TransformProps` takes `x`, `y`, `z`, `rotate`, `rotateX`, `rotateY`, `rotateZ`, `scale`, `scaleX`, `scaleY`, `scaleZ`, `skew` and the rest of the family. `TRANSFORM_PROPS` is the ordered list of the keys it reads.
+Builds a `transform` value from named parts, so a component composes a transform instead of assembling a string. `TransformProps` takes `x`, `y`, `z`, `rotate`, `rotateX`, `rotateY`, `rotateZ`, `scale`, `scaleX`, `scaleY`, `scaleZ`, `skew` and the rest of the family.
 
 **The order is fixed by `TRANSFORM_PROPS`, not by the object.** Transform functions do not commute, so two components building "the same" transform from differently-ordered literals must still get the same matrix.
 
-## `matrix`
+### matrix
 
 ```ts
 matrix(props?: MatrixProps): string
@@ -41,7 +41,17 @@ matrix({ scaleX: 2, translateX: 10 });
 
 A `matrix()` string. Reach for it when a value has to be interpolated as a matrix rather than as separate functions.
 
-## `getOffsetSizes`
+### TRANSFORM_PROPS
+
+```ts
+const TRANSFORM_PROPS: readonly (keyof TransformProps)[];
+```
+
+The ordered list of keys `transform()` reads.
+
+## Measuring
+
+### getOffsetSizes
 
 ```ts
 getOffsetSizes(element: HTMLElement): { x, y, width, height, top, right, bottom, left }
@@ -62,13 +72,17 @@ That is exactly what a drag or a tilt needs: the layout box is the frame of refe
 Call it from the `read` phase — [`$read()`](/api/instance-methods.html#read-and-write) — so it batches with every other measurement of the frame.
 :::
 
-## `setClassesOrStyles`
+## Applying
+
+### setClassesOrStyles
 
 ```ts
-setClassesOrStyles(el: HTMLElement, value: string | string[] | Partial<CSSStyleDeclaration> | undefined, method?: 'add' | 'remove'): void
+setClassesOrStyles(
+  el: HTMLElement,
+  value: string | string[] | Partial<CSSStyleDeclaration> | undefined,
+  method?: 'add' | 'remove',
+): void
 ```
-
-Applies a value that may be **either** classes or inline styles, which is what lets [`transition()`](./transitions.html) take one option in both forms:
 
 ```js twoslash
 // @twoslash-cache: {"v":1,"hash":"922eff9993f504dc1ead2fb24a0c4110ba1104c8ee56fa19ef3fe0d7208624ab","data":"N4Igdg9gJgpgziAXAbVAFwJ4AcZJACwgDcYAnEAGhDRgA808AKAQwBsBLZuASgAIAzAK5gAxmnYQwvODDQBhVlxlwA8qQDKmVvEYxWiXgAkAKgFkAMgFFtAWxhg0FXkTaCYBhUvhrNGbXF4AH15hWH52MBgoJzs0QigAfgMAHRBmKChUoN5U0hgbYhhU7gMiCHZMsHYbLAhSNGlZTzhlHy14ShA4NGZ6pABOKm0wAHM4pABGAA4qHtIR2TwZeUUW7w12hCGI3EQABioRfF7mMTIBgF8KdGxdgkLyWboGRBARSW7ePQMTC2t8+wMKjdXovADsYKG9jG+CQACZZr0Fi8QHpOhxIvDDsdSKcaOREAA2K43HB4QgkR7UZ54FykXhQCAiQR2BwGAAiTJZgM6jJECFeACpBQADADuEUZYoAdHzuQ4RcLeHk0IJSGAAsxlTB+GR7CIYLw0BAjfhDXLWQ13g5mDsoLwIqbDRKwFLpckwB7kKZ2QA5XgAJR1etEMAAuox8Gg0Fg4IgAPTx2AkVgQHCkaUFABe7FYimldRGSaZcHjAHUYAAjeMAQQACgBJcuSiBi4vMy3cTogvqIKYIkDDGFIGbUJGLV4WnnbTGIAdHE5nAkTCYk6i3ckPTo0ehMLCkNNkTB8TkdwHSyvQDA/MxWWzTkB8gUgYxm3jCkWn+VoC9XxWC3h90PeoMG1fd4EBAI4kNAAeS8oAwAA+Xg6l4GD+FxOxlmQyBYBQ/gnV4ZlSDyBwGS5S0nFQsBBDzB0CMgaRBCOL57zIuh2G6OB3U9MBvT9QNg1Ig0IyjGM40TZM9GAzMIBzPNmALeZ21LCtq3rJsv0teN4IwLtgTmF5+gmKFRnGRAABZEXmCcQF09EdixN4cTxc45z2NdMDJV4KXOJ5d1eFgOC4PhlmaVoNj8HRviMW9/ko5xXHcXhwvWXx/GyUIdTtGJZHiJIcjSDIsmCXJ8kKYpSnKSpqlqepGhWLxVEi/xu0MgZRyHczpms5EliaVYIvSjoZ12KznMXfEkA865128+5KW3GlXmtT4Yt+O8AQcNrQUmCZIUHaFzIHOY+teNFRqQcaF1xJdJn6TyNx8rd/JRILOB4BrUua4a4F0fRYr+NjHES1g3A8Qa0s2TLXWyyJol4WJ8pSIrMhAbIyoKEhKucaqPVquoGjCyGfs2HbewmCzCVM4dEB6scbJRYmmraKKtkHRzEAAVmxSa3Jm0k7l8qkdxRVaGnWuLgfJl4JkJHnDrM2E5162yLo52cFZu1zlwe2avKFl7qQCkB3pCr6SdZ/x/pvIGtpBlwweS76rfgGGwhyxG8ugArUnSNGMZAPIsaKEASlxip8ZqQmLZZlqRq6dr3IOrrlfp07bOZtZSbZhzZ2pibbqm/ZHvm4WlpN8XWNtzbLRl+E4QL1OnIzlF1YxXYC+1u66b1wXN0W169wPdNjxQrBTnYTACu6UgIhGd24aiXkSzwV9DQ/NNJ8wf8UvUdRAJHo9QOWKC3y3kQp9AiACOYKQ9Ht6VeBUCfL8wB0z/NGARjyQ1jV4MU+B2AsWtDQMilYYBANdLwO+rF7Yf14EAjI9gnB33tJxQiaZahwCnoaG+RpcQagnsJDAPEvQ+n9EGXUwlwyRmjLGBMSYYAphktmXM+ZCwqXLFWeMch97xioSGA08Y6xH3qOweA8YL5X30onXac4ADMA5m6IAOq3PA0jMB507rzIubk4Rc1LobQexs3psA+qFAacdfo20BrXQEThHbgxSpbeOARghZXCPDXKcQfYo39iVQqwcKphyqpHKo0d6pZyGmTAy8jG5NyOmnUc6jXjRKhrnS6qjdE62mkYgeflTF4CrpLO2dc4m9jhFMBWKiTrjjbqwbRSADrd2LhMB6YZDjQDuATeqwBY7Z1dgEC4AgDw2F4AAcgAALdEEFACQsRmDxgAFZwAALTGggKwAA1lPNZRALLxkEOIVgcAJkAG4PQehKawXgABeciZ4HC/gQpc3i6Sc7Wz0E4CZnE1l4nYCQCZ3Bzm8ETDAoig0PQfKGf9JwyBfnrIBUCn5fzDxgAmWGEFYL4yNEpGwaFVjBluLhbwfpmjryTL2BM3gFxsXgoiB3aQmxCWNWJTY75ky/nIpgBMn5wSgX0txaEE0U9OiLKQKAZ49gcGSDwKskAFwLhAA==="}
@@ -81,6 +95,8 @@ setClassesOrStyles(el, ['is-active', 'is-open']); // several
 setClassesOrStyles(el, { opacity: '0' }); // inline styles
 setClassesOrStyles(el, 'is-active', 'remove'); // undo it
 ```
+
+Applies a value that may be **either** classes or inline styles, which is what lets [`transition()`](./transitions.html) take one option in both forms.
 
 An `undefined` value does nothing, so a caller with an optional state does not have to branch.
 

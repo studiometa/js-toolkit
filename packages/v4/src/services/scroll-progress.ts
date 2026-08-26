@@ -157,6 +157,7 @@ const scrollProgressServices = /* @__PURE__ */ getSharedRuntimeSlot(
  * The service is lazy and shared by target plus resolved offset. It measures
  * geometry in the scheduler's read phase and releases its observers and shared
  * source subscriptions with its last subscriber.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/useScrollProgress.html
  */
 export function useScrollProgress(
   target: Element,
@@ -167,6 +168,7 @@ export function useScrollProgress(
 
 /**
  * Subscribe `scrolledInView()` to raw viewport progress for each mount cycle. Returned mutations run through the instance write lane.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/mixins.html
  */
 export const withScrollProgress = /* @__PURE__ */ createServiceMixin<
   ScrollProgressHook & ServiceHandles<'scrolledInView'>,

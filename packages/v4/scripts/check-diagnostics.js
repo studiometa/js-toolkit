@@ -9,12 +9,28 @@ const sourceRoot = resolve(packageRoot, 'src');
 const files = glob.sync(['**/*.ts', '!**/*.spec.ts', '!**/*.bench.ts', '!diagnostics.ts'], {
   cwd: sourceRoot,
 });
+/**
+ * Drop comments before the checks below.
+ *
+ * All three guards are about *emitted code*: a console call, a `reportError()`
+ * call, a reference that pulls in the whole frozen object. A comment is none of
+ * those — it is gone by the time the bundle exists. Testing the raw source made
+ * prose trip the guard, and the doc-page links are the case that surfaced it:
+ * `@link .../DIAGNOSTICS.html` matched the `DIAGNOSTICS.` reference test.
+ *
+ * @param   {string} source The file contents.
+ * @returns {string} The contents with block comments and whole-line `//` comments removed.
+ */
+function withoutComments(source) {
+  return source.replaceAll(/\/\*[\s\S]*?\*\//g, '').replaceAll(/^[ \t]*\/\/.*$/gm, '');
+}
+
 const directOutput = [];
 const directErrorReports = [];
 const fullObjectReferences = [];
 
 for (const file of files) {
-  const source = await readFile(resolve(sourceRoot, file), 'utf8');
+  const source = withoutComments(await readFile(resolve(sourceRoot, file), 'utf8'));
   if (/console\.(?:debug|info|log|warn|error)\s*\(/.test(source)) {
     directOutput.push(file);
   }

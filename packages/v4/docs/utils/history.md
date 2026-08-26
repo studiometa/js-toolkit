@@ -9,20 +9,9 @@ import {
 } from '@studiometa/js-toolkit-v4/utils';
 ```
 
-## `historyPush` and `historyReplace`
+[[toc]]
 
-```ts
-historyPush(options: HistoryOptions, data?: unknown, title?: string): void
-historyReplace(options: HistoryOptions, data?: unknown, title?: string): void
-```
-
-```ts
-interface HistoryOptions {
-  path?: string;
-  search?: URLSearchParams | Record<string, SearchParamInput>;
-  hash?: string;
-}
-```
+## Writing the URL
 
 ```js twoslash
 // @twoslash-cache: {"v":1,"hash":"1c4232b87df279fc3201f1da1afb7ef4e0fa5b9c755d8f52a170390ec908e116","data":"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"}
@@ -33,21 +22,43 @@ historyReplace({ search: { page: 3 } });
 historyPush({ hash: 'section-2' });
 ```
 
+```ts
+interface HistoryOptions {
+  path?: string;
+  search?: URLSearchParams | Record<string, SearchParamInput>;
+  hash?: string;
+}
+```
+
 **Each part is optional, and an omitted part is kept.** `historyReplace({ search })` keeps the path and the hash; `historyPush({ hash })` keeps the path and the query string.
 
 That is the whole reason these exist over `history.pushState()`: rebuilding a URL from `location` by hand is where a filter update loses the hash, or a hash update drops the query string.
 
-| Function           | Effect                   |
-| ------------------ | ------------------------ |
-| `historyPush()`    | adds a history entry     |
-| `historyReplace()` | replaces the current one |
-
-`push` is what makes a state navigable with the back button. `replace` is what keeps a scroll position or a tab index out of the history.
-
-## `objectToURLSearchParams`
+### historyPush
 
 ```ts
-objectToURLSearchParams(object: Record<string, SearchParamInput>, defaultSearch?: string): URLSearchParams
+historyPush(options: HistoryOptions, data?: unknown, title?: string): void
+```
+
+Adds a history entry. This is what makes a state navigable with the back button.
+
+### historyReplace
+
+```ts
+historyReplace(options: HistoryOptions, data?: unknown, title?: string): void
+```
+
+Replaces the current entry. This is what keeps a scroll position or a tab index out of the history.
+
+## Building the query string
+
+### objectToURLSearchParams
+
+```ts
+objectToURLSearchParams(
+  object: Record<string, SearchParamInput>,
+  defaultSearch?: string,
+): URLSearchParams
 ```
 
 ```js twoslash

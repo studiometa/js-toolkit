@@ -11,7 +11,10 @@ export interface ScrollPosition {
 /** What a scroll can be aimed at. */
 export type ScrollToTarget = string | Element | number | Partial<ScrollPosition>;
 
-/** The axes a scroll is allowed to move. */
+/**
+ * The axes a scroll is allowed to move.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/scroll.html#scroll-axes
+ */
 export const SCROLL_AXES = /* @__PURE__ */ Object.freeze({
   x: 'x',
   y: 'y',
@@ -20,7 +23,10 @@ export const SCROLL_AXES = /* @__PURE__ */ Object.freeze({
 
 export type ScrollAxis = (typeof SCROLL_AXES)[keyof typeof SCROLL_AXES];
 
-/** Where an element comes to rest inside the scroller. */
+/**
+ * Where an element comes to rest inside the scroller.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/scroll.html#scroll-alignments
+ */
 export const SCROLL_ALIGNMENTS = /* @__PURE__ */ Object.freeze({
   start: 'start',
   center: 'center',
@@ -187,6 +193,7 @@ function requestedPosition(
  * ```js
  * const { left } = scrollPosition(slide, { rootElement: track, axis: 'x', align: 'center' });
  * ```
+ * @link https://js-toolkit-v4.studiometa.dev/utils/scroll.html#scrollposition
  */
 export function scrollPosition(
   target: ScrollToTarget,
@@ -222,6 +229,7 @@ export function scrollPosition(
  * scrollTo({ left: 0 }, { rootElement: carousel });
  * scrollTo(slide, { rootElement: track, axis: 'x', align: 'center' });
  * ```
+ * @link https://js-toolkit-v4.studiometa.dev/utils/scroll.html#scrollto
  */
 export function scrollTo(target: ScrollToTarget, options: ScrollToOptions = {}): ScrollPosition {
   const { rootElement = window, behavior } = options;

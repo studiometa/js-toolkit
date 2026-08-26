@@ -101,7 +101,10 @@ const inViewState = /* @__PURE__ */ getSharedRuntimeSlot<InViewRuntimeState>(
   },
 );
 
-/** Observe intersection through one lazy service per target and observer options. */
+/**
+ * Observe intersection through one lazy service per target and observer options.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/useInView.html
+ */
 export function useInView(
   target: Element,
   init: IntersectionObserverInit = {},
@@ -118,6 +121,7 @@ export type InViewMixinOptions = IntersectionObserverInit & ServiceMixinOptions<
 
 /**
  * Subscribe `intersected()` for each mount cycle. The root element is the default target, and immediate delivery waits for a real observer entry.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/mixins.html
  */
 export const withInView = /* @__PURE__ */ createServiceMixin<
   InViewHook & ServiceHandles<'intersected'>,

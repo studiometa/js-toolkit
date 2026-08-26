@@ -45,6 +45,7 @@ function collect<T extends Base>(
  * it is a `querySelectorAll`. A **detached** element is therefore unreachable
  * by this form even though it still carries its instance — pass the element
  * to the overload below, or pass its detached root as `root`.
+ * @link https://js-toolkit-v4.studiometa.dev/api/registry/getInstances.html
  */
 export function getInstances<T extends Base = Base>(name: string, root?: ParentNode): T[];
 /**
@@ -75,6 +76,7 @@ export function getInstances<T extends Base = Base>(
  * counted or inspected.
  *
  * Scoping and the detached-element blind spot are {@link getInstances}'.
+ * @link https://js-toolkit-v4.studiometa.dev/api/registry/getMountedInstances.html
  */
 export function getMountedInstances<T extends Base = Base>(name: string, root?: ParentNode): T[];
 /** The live instances on one element, in mount order. Works when detached. */
@@ -100,6 +102,7 @@ export function getMountedInstances<T extends Base = Base>(
  * declaration withdrawn by a breakpoint. Neither has an instance at all.
  *
  * Scoping and the detached-element blind spot are {@link getInstances}'.
+ * @link https://js-toolkit-v4.studiometa.dev/api/registry/getUnmountedInstances.html
  */
 export function getUnmountedInstances<T extends Base = Base>(name: string, root?: ParentNode): T[];
 /** The built-but-unmounted instances on one element, in mount order. */
@@ -135,6 +138,7 @@ export function getUnmountedInstances<T extends Base = Base>(
  * There is deliberately no `getMountedInstance`. The result is one object, so
  * a caller who needs the live one reads `.$isMounted` on it — a second export
  * would only hide that check behind a `undefined` that means two things.
+ * @link https://js-toolkit-v4.studiometa.dev/api/registry/getInstance.html
  */
 export function getInstance<T extends Base = Base>(
   el: Element | null,

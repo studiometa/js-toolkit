@@ -4,6 +4,7 @@ import type { Service, Unsubscribe } from './service.js';
  * Wait for current or future service props that satisfy a predicate.
  *
  * The subscription is released before resolution. Object props are copied because services can reuse them.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/until.html
  */
 export function until<T>(service: Service<T>, predicate: (props: T) => boolean): Promise<T> {
   return new Promise<T>((resolve) => {

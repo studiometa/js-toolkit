@@ -163,6 +163,7 @@ export function replaceDOMOptionAttributes(
  * @param el The element to observe.
  * @param callback Called once per coalesced attribute change.
  * @returns An idempotent cleanup function.
+ * @link https://js-toolkit-v4.studiometa.dev/api/dom/watchAttributes.html
  */
 export function watchAttributes(el: Element, callback: AttributeWatcher): () => void {
   const entry: AttributeWatcherEntry = {
@@ -360,6 +361,7 @@ export function trackDOMLifecycleWork(work: Promise<unknown> | undefined): void 
  *
  * This does not wait for visibility, interaction, idle, or media
  * conditions, and it does not await promises returned by `mounted()`.
+ * @link https://js-toolkit-v4.studiometa.dev/api/dom/whenDOMSettled.html
  */
 export async function whenDOMSettled(): Promise<void> {
   const currentObserver = observe();

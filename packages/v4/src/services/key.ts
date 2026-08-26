@@ -129,7 +129,10 @@ const keyServices = /* @__PURE__ */ getSharedRuntimeSlot('service:key', 1, () =>
   perTarget(createKeyService),
 );
 
-/** Use one key service per target. Defaults to the document. */
+/**
+ * Use one key service per target. Defaults to the document.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/useKey.html
+ */
 export function useKey(target: KeyTarget = document): Service<KeyProps> {
   return keyServices(target);
 }
@@ -146,6 +149,7 @@ export type KeyMixinOptions = ServiceMixinOptions<KeyTarget>;
  * as in v3 and as `withScroll` and `withResize` do for their own page-wide
  * source. Scope it to a region with a target:
  * `withKey(Base, { target: (instance) => instance.$refs.wrapper })`.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/mixins.html
  */
 export const withKey = /* @__PURE__ */ createServiceMixin<
   KeyHook & ServiceHandles<'keyed'>,

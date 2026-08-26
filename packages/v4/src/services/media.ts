@@ -40,7 +40,10 @@ function createMediaQueryService(query: string): Service<MediaQueryProps> {
   });
 }
 
-/** Use one shared service per normalized media query. */
+/**
+ * Use one shared service per normalized media query.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/useMediaQuery.html
+ */
 export function useMediaQuery(query: string): Service<MediaQueryProps> {
   const key = query.trim();
   let service = services.get(key);
@@ -51,7 +54,10 @@ export function useMediaQuery(query: string): Service<MediaQueryProps> {
   return service;
 }
 
-/** Use the `(prefers-reduced-motion: reduce)` media-query service. */
+/**
+ * Use the `(prefers-reduced-motion: reduce)` media-query service.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/usePrefersReducedMotion.html
+ */
 export function usePrefersReducedMotion(): Service<MediaQueryProps> {
   return useMediaQuery(REDUCED_MOTION);
 }

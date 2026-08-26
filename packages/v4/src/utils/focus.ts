@@ -25,6 +25,7 @@ const state = /* @__PURE__ */ getSharedRuntimeSlot('focus', 1, () => ({
 
 /**
  * Remember what had the focus, to restore it later.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/focus.html#saveactiveelement
  */
 export function saveActiveElement(): void {
   state.focusedBefore = document.activeElement;
@@ -32,6 +33,7 @@ export function saveActiveElement(): void {
 
 /**
  * Keep tab navigation inside an element.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/focus.html#trapfocus
  */
 export function trapFocus(el: HTMLElement, event: KeyboardEvent): void {
   if (event.key !== 'Tab') {
@@ -65,6 +67,7 @@ export function trapFocus(el: HTMLElement, event: KeyboardEvent): void {
 
 /**
  * Give the focus back to whatever had it before the trap.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/focus.html#untrapfocus
  */
 export function untrapFocus(): void {
   if (state.focusedBefore instanceof HTMLElement) {

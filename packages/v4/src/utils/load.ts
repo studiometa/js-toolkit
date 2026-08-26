@@ -67,6 +67,7 @@ function relIsSupported(rel: string): boolean {
  *
  * Nothing is deduplicated here: the HTTP cache already does it, and a detached
  * element costs nothing to build.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/load.html#loadimage
  */
 export async function loadImage(src: string): Promise<HTMLImageElement> {
   const image = new Image();
@@ -100,6 +101,7 @@ export async function loadImage(src: string): Promise<HTMLImageElement> {
  * deduplicated by resolved URL, so asking twice for one embed returns the very
  * same promise and executes the third-party code once. A failed load is
  * forgotten, so it can be retried.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/load.html#loadscript
  */
 export function loadScript(
   src: string,
@@ -147,6 +149,7 @@ export function loadScript(
  * entirely — and a hint is best-effort, so an ignored one is a resolved
  * promise over an inert element rather than a promise waiting forever for an
  * event that will never fire. The element is appended either way.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/load.html#loadlink
  */
 export function loadLink(
   href: string,

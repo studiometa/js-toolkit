@@ -70,7 +70,10 @@ const rafState = /* @__PURE__ */ getSharedRuntimeSlot<{
   service: RafService | undefined;
 }>('service:raf', 1, () => ({ service: undefined }));
 
-/** Use the scheduler-backed frame service. Returned functions run in the write phase. */
+/**
+ * Use the scheduler-backed frame service. Returned functions run in the write phase.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/useRaf.html
+ */
 export function useRaf(): RafService {
   rafState.service ??= createRafService();
   return rafState.service;
@@ -83,7 +86,10 @@ export interface RafHook {
 
 export type RafMixinOptions = ServiceMixinOptions<void>;
 
-/** Subscribe `ticked()` to the frame service for each mount cycle. */
+/**
+ * Subscribe `ticked()` to the frame service for each mount cycle.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/mixins.html
+ */
 export const withRaf = /* @__PURE__ */ createServiceMixin<RafHook & ServiceHandles<'ticked'>, void>(
   {
     hook: 'ticked',

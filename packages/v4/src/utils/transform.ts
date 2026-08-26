@@ -20,7 +20,10 @@ export interface TransformProps {
   skewY?: number;
 }
 
-/** The properties {@link transform} formats, for callers splitting a style patch. */
+/**
+ * The properties {@link transform} formats, for callers splitting a style patch.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/css.html#transform-props
+ */
 export const TRANSFORM_PROPS = /* @__PURE__ */ Object.freeze([
   'x',
   'y',
@@ -49,6 +52,7 @@ export const TRANSFORM_PROPS = /* @__PURE__ */ Object.freeze([
  * transform({ x: 100, scale: 0.5 });
  * // translate3d(100px, 0px, 0px) scale(0.5)
  * ```
+ * @link https://js-toolkit-v4.studiometa.dev/utils/css.html#transform
  */
 export function transform(props: TransformProps): string {
   const parts: string[] = [];
@@ -106,6 +110,7 @@ export interface MatrixProps {
  * matrix({ scaleX: 0.5, scaleY: 0.5 });
  * // matrix(0.5, 0, 0, 0.5, 0, 0)
  * ```
+ * @link https://js-toolkit-v4.studiometa.dev/utils/css.html#matrix
  */
 export function matrix(props: MatrixProps = {}): string {
   const { scaleX = 1, skewY = 0, skewX = 0, scaleY = 1, translateX = 0, translateY = 0 } = props;

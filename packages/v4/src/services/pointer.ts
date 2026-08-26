@@ -223,7 +223,10 @@ const pointerState = /* @__PURE__ */ getSharedRuntimeSlot<PointerRuntimeState>(
   }),
 );
 
-/** Use the viewport-relative pointer service. */
+/**
+ * Use the viewport-relative pointer service.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/usePointer.html
+ */
 export function usePointer(): Service<PointerProps>;
 /** Use one lazy service per target, adding the pointer's position inside its box. */
 export function usePointer(target: Element): Service<ElementPointerProps>;
@@ -244,6 +247,7 @@ export type PointerMixinOptions = ServiceMixinOptions<Element>;
 
 /**
  * Subscribe `moved()` to the pointer for each mount cycle. The root element is the default target, so a component reads the pointer both in the viewport and inside its own box.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/mixins.html
  */
 export const withPointer = /* @__PURE__ */ createServiceMixin<
   PointerHook & ServiceHandles<'moved'>,

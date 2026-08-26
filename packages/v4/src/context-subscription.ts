@@ -189,6 +189,7 @@ function unsubscribeSubscription(subscription: ContextSubscription): void {
  * value only updates provider ownership and does not restart the callback.
  *
  * @returns One unsubscribe function.
+ * @link https://js-toolkit-v4.studiometa.dev/api/context/subscribeContext.html
  */
 export function subscribeContext<T>(
   el: Element,

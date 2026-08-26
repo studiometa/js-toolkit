@@ -204,7 +204,10 @@ const scrollServices = /* @__PURE__ */ getSharedRuntimeSlot('service:scroll', 1,
   perTarget(createScrollService),
 );
 
-/** Use one scroll service per target. Defaults to the window. */
+/**
+ * Use one scroll service per target. Defaults to the window.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/useScroll.html
+ */
 export function useScroll(target: ScrollTarget = window): Service<ScrollProps> {
   // The document scrolling element uses the window service.
   if (target === document.scrollingElement || target === document.documentElement) {
@@ -215,6 +218,7 @@ export function useScroll(target: ScrollTarget = window): Service<ScrollProps> {
 
 /**
  * Use the scroll service for the window.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/useWindowScroll.html
  */
 export function useWindowScroll(): Service<ScrollProps> {
   return scrollServices(window);
@@ -227,7 +231,10 @@ export interface ScrollHook {
 
 export type ScrollMixinOptions = ServiceMixinOptions<ScrollTarget>;
 
-/** Subscribe `scrolled()` for each mount cycle. The window is the default target. */
+/**
+ * Subscribe `scrolled()` for each mount cycle. The window is the default target.
+ * @link https://js-toolkit-v4.studiometa.dev/api/services/mixins.html
+ */
 export const withScroll = /* @__PURE__ */ createServiceMixin<
   ScrollHook & ServiceHandles<'scrolled'>,
   ScrollTarget

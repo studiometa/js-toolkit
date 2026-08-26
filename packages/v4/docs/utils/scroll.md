@@ -7,12 +7,7 @@ import { lockScroll, scrollPosition, scrollTo } from '@studiometa/js-toolkit-v4/
 
 [[toc]]
 
-## `scrollPosition` and `scrollTo`
-
-```ts
-scrollPosition(target: ScrollToTarget, options?: ScrollPositionOptions): ScrollPosition
-scrollTo(target: ScrollToTarget, options?: ScrollToOptions): ScrollPosition
-```
+## Scrolling to a target
 
 **The two halves are separate because callers need them separately.** `scrollPosition()` measures and returns; `scrollTo()` calls it and moves.
 
@@ -34,6 +29,24 @@ scrollTo(0);
 scrollTo({ top: 200 });
 ```
 
+### scrollPosition
+
+```ts
+scrollPosition(target: ScrollToTarget, options?: ScrollPositionOptions): ScrollPosition
+```
+
+Measures and returns `{ top, left }` without moving anything.
+
+### scrollTo
+
+```ts
+scrollTo(target: ScrollToTarget, options?: ScrollToOptions): ScrollPosition
+```
+
+Calls `scrollPosition()` and moves there, returning the same result.
+
+`behavior` defaults to `'smooth'`, or to `'instant'` when the reader has asked for less motion — so honouring the preference is the default rather than a call site's responsibility.
+
 ### The target
 
 ```ts
@@ -53,11 +66,9 @@ interface ScrollPositionOptions {
 }
 
 interface ScrollToOptions extends ScrollPositionOptions {
-  behavior?: ScrollBehavior; // 'smooth', or 'instant' when the reader asked for less motion
+  behavior?: ScrollBehavior;
 }
 ```
-
-`SCROLL_AXES` and `SCROLL_ALIGNMENTS` are the frozen sets behind `axis` and `align`.
 
 **`align` is `'start' | 'center' | 'end'`, or one per axis**, and it applies to an **element** target only.
 
@@ -65,17 +76,27 @@ interface ScrollToOptions extends ScrollPositionOptions {
 `x` and `y`, not the platform's `inline` and `block`. Nothing here maps a writing mode, and borrowing that vocabulary without the mapping would promise what `compute-scroll-into-view` promises and does not deliver.
 :::
 
-### What the arithmetic gets right
+What the arithmetic gets right: **the viewport is the client box**, so a scrollbar gutter is out of it with no special case, and **the destination is clamped to the scroll range** — centring the first slide asks for a negative offset and gets `0`.
 
-- **The viewport is the client box**, so a scrollbar gutter is out of the arithmetic with no special case.
-- **The destination is clamped to the scroll range**: centring the first slide asks for a negative offset and gets `0`.
-- `behavior` defaults to `'smooth'`, or to `'instant'` when the reader has asked for less motion — so honouring the preference is the default rather than a call site's responsibility.
+### SCROLL_AXES
+
+```ts
+const SCROLL_AXES: Readonly<{ x: 'x'; y: 'y'; both: 'both' }>;
+```
+
+### SCROLL_ALIGNMENTS
+
+```ts
+const SCROLL_ALIGNMENTS: Readonly<{ start: 'start'; center: 'center'; end: 'end' }>;
+```
 
 ### A dependency was measured and refused
 
 `compute-scroll-into-view` is 1.4 kB and walks **every** scrolling ancestor — which is what v4's single `rootElement` contract declines, and what a boundary option already cancels. Its own source leaves writing modes unimplemented and reads no `scroll-padding`, so the real delta over core was about twenty lines.
 
-## `lockScroll`
+## Locking the page
+
+### lockScroll
 
 ```ts
 lockScroll(target?: HTMLElement): () => void
@@ -98,19 +119,9 @@ release();
 
 **The release is idempotent**, so a surface calls it on close and again on unmount without counting twice — and a component unmounted while open owes the page its scroll, which is what the second call is for.
 
-```js
-mounted() {
-  return this.release ?? undefined;
-}
-```
-
 **The count is shared across evaluated copies of the package**, through the same runtime slot the focus helpers use, for the same reason: there is one scroll per document.
 
-### It is `overflow: hidden` and nothing else
-
-No `paddingRight` compensation. `scrollbar-gutter: stable` is the page's own answer and it does not mis-handle fixed children.
-
-iOS Safari remains unreliable — which is the argument for having **one** function rather than a copy per component.
+It is **`overflow: hidden` and nothing else**. No `paddingRight` compensation: `scrollbar-gutter: stable` is the page's own answer and it does not mis-handle fixed children. iOS Safari remains unreliable, which is the argument for having one function rather than a copy per component.
 
 ::: tip A native `<dialog>` needs it too
 `showModal()` gives the top layer, the backdrop, a focus trap and `Escape`. It does **not** stop the page behind it scrolling.

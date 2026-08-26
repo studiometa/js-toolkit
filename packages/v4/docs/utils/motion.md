@@ -13,7 +13,9 @@ That is what makes a factor mean the same thing at 60 Hz and at 120 Hz, and it i
 
 [[toc]]
 
-## `damp`
+## Damping
+
+### damp
 
 ```ts
 damp(targetValue: number, currentValue: number, factor: number, elapsed: number, precision?: number): number
@@ -34,8 +36,6 @@ useRaf().subscribe(({ delta }) => {
 
 `factor` is **the fraction of the gap that closes per reference frame**, so it is stable for every value a caller can pass. `precision` defaults to `0.01`: below it, the value snaps to the target.
 
-`DEFAULT_DAMP_FACTOR` is `0.85`. `clampDampFactor(factor)` keeps a factor in the usable range.
-
 ::: warning v3's `damp()` had no `elapsed`
 
 ```js
@@ -46,7 +46,25 @@ damp(target, current, 0.1, delta); // [!code ++]
 A factor without a time is a factor that means something different on every display.
 :::
 
-## `spring`
+### clampDampFactor
+
+```ts
+clampDampFactor(factor: number): number
+```
+
+Keeps a factor in the usable range.
+
+### decayOver
+
+```ts
+decayOver(retained: number, elapsed: number): number
+```
+
+The decay of an elapsed time.
+
+## Springs
+
+### spring
 
 ```ts
 spring(
@@ -77,7 +95,9 @@ It returns the pair, because a spring's state **is** the value and its velocity 
 
 `precision` defaults to `1e-4`.
 
-## `smoothTo`
+## Smoothing
+
+### smoothTo
 
 ```ts
 smoothTo(start?: number, options?: SmoothToOptions): SmoothTo
@@ -106,7 +126,7 @@ const unsubscribe = x.subscribe((value) => {
 x.destroy(); // release the frame subscription and every subscriber
 ```
 
-### Several channels on one subscription
+#### Several channels on one subscription
 
 ```js twoslash
 // @twoslash-cache: {"v":1,"hash":"acf7aebb5693a43be004080a99d695f571563b20706f70533b70a5c1fda971ac","data":"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"}
@@ -127,7 +147,7 @@ As a service hands the same props. Treat it as read-only, and copy it with `{ ..
 
 The mode — `spring`, `stiffness`, `mass` — belongs to the **instance**, not the channel.
 
-### `damping` accepts a function
+#### `damping` accepts a function
 
 ```js
 smoothTo({ x: 0, y: 0 }, { damping: (key) => (key === 'x' ? 0.9 : 0.7) });
@@ -141,30 +161,68 @@ It is read on **every frame and for every channel**, which matters for three rea
 
 A number stays a number.
 
-### `precision`
+#### `precision`
 
 Defaults to the default of the function each mode wraps — `0.01` damping, `1e-4` springing — so converting a raw `damp()` call to the helper does not move where it snaps.
 
 ## Inertia
 
-The family a coast is built from, and what [`useDrag()`](/api/services/useDrag.html) uses:
+The family a coast is built from, and what [`useDrag()`](/api/services/useDrag.html) uses.
 
-| Function                                         | Does                                               |
-| ------------------------------------------------ | -------------------------------------------------- |
-| `decayOver(retained, elapsed)`                   | the decay of an elapsed time                       |
-| `inertiaDecay(dampFactor, elapsed)`              | the same with the tighter clamp a coast needs      |
-| `inertiaTimeConstant(dampFactor)`                | `τ = INERTIA_FRAME / ln(1 / damp)`                 |
-| `inertiaStep(velocity, dampFactor, elapsed)`     | the distance travelled across the step             |
-| `inertiaFinalValue(value, velocity, dampFactor)` | where it will come to rest: `value + velocity · τ` |
+**`inertiaStep()` integrates the decay across the step**, so any sequence of frames sums to `velocity · τ` exactly — a coast lands in the same place whatever the frame rate did on the way. `inertiaFinalValue()` is what lets a carousel know which slide a fling is heading for **before** the coast starts.
 
-**`inertiaStep()` integrates the decay across the step**, so any sequence of frames sums to `velocity · τ` exactly — a coast lands in the same place whatever the frame rate did on the way.
+### inertiaDecay
 
-`inertiaFinalValue()` is what lets a carousel know which slide a fling is heading for **before** the coast starts.
+```ts
+inertiaDecay(dampFactor: number, elapsed: number): number
+```
+
+`decayOver` with the tighter clamp a coast needs.
+
+### inertiaTimeConstant
+
+```ts
+inertiaTimeConstant(dampFactor: number): number
+```
+
+`τ = INERTIA_FRAME / ln(1 / damp)`.
+
+### inertiaStep
+
+```ts
+inertiaStep(velocity: number, dampFactor: number, elapsed: number): number
+```
+
+The distance travelled across the step.
+
+### inertiaFinalValue
+
+```ts
+inertiaFinalValue(value: number, velocity: number, dampFactor: number): number
+```
+
+Where it will come to rest: `value + velocity · τ`.
 
 ## Constants
 
-| Constant              | Value                                          |
-| --------------------- | ---------------------------------------------- |
-| `INERTIA_FRAME`       | `16.67` — the reference frame, in milliseconds |
-| `DEFAULT_DAMP_FACTOR` | `0.85`                                         |
-| `MAX_SPRING_RATIO`    | the clamp on `stiffness / mass`                |
+### INERTIA_FRAME
+
+```ts
+const INERTIA_FRAME: number;
+```
+
+`16.67` — the reference frame, in milliseconds.
+
+### DEFAULT_DAMP_FACTOR
+
+```ts
+const DEFAULT_DAMP_FACTOR = 0.85;
+```
+
+### MAX_SPRING_RATIO
+
+```ts
+const MAX_SPRING_RATIO: number;
+```
+
+The clamp on `stiffness / mass`.
