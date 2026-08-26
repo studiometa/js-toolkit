@@ -1,1 +1,1 @@
-export { useScroll, useScroll as default } from '../services/ScrollService.js';
+export { useScroll, useScroll as default } from '../services/scroll.js';

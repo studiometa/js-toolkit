@@ -1,147 +1,67 @@
-import { describe, it, expect } from 'vitest';
-import * as utils from '@studiometa/js-toolkit/utils';
+import { describe, expect, it } from 'vitest';
+import * as barrel from './index.js';
+import * as deepmergeModule from './deepmerge.js';
+import * as dom from './dom.js';
+import * as easings from './easings.js';
+import * as focus from './focus.js';
+import * as historyModule from './history.js';
+import * as is from './is.js';
+import * as load from './load.js';
+import * as maths from './maths.js';
+import * as memoModule from './memo.js';
+import * as noopModule from './noop.js';
+import * as randomModule from './random.js';
+import * as scrollLockModule from './scroll-lock.js';
+import * as scrollToModule from './scrollTo.js';
+import * as selectors from './selectors.js';
+import * as smoothToModule from './smoothTo.js';
+import * as strings from './strings.js';
+import * as timing from './timing.js';
+import * as transformModule from './transform.js';
+import * as transitionModule from './transition.js';
+import type { Memo, SmoothTo, SmoothToOptions, SpringOptions } from './index.js';
 
-describe('@studiometa/js-toolkit/utils exports', () => {
-  it('should export all scripts', () => {
-    expect(Object.keys(utils).toSorted()).toMatchInlineSnapshot(`
-      [
-        "Queue",
-        "SmartQueue",
-        "addClass",
-        "addStyle",
-        "animate",
-        "boundingRectToCircle",
-        "cache",
-        "camelCase",
-        "clamp",
-        "clamp01",
-        "collideCircleCircle",
-        "collideCircleRect",
-        "collidePointCircle",
-        "collidePointRect",
-        "collideRectRect",
-        "createEaseInOut",
-        "createEaseOut",
-        "createElement",
-        "createLocalStorage",
-        "createLocalStorageProvider",
-        "createMemoryStorageProvider",
-        "createNoopProvider",
-        "createRange",
-        "createSessionStorage",
-        "createSessionStorageProvider",
-        "createStorage",
-        "createUrlSearchParamsInHashProvider",
-        "createUrlSearchParamsInHashStorage",
-        "createUrlSearchParamsProvider",
-        "createUrlSearchParamsStorage",
-        "damp",
-        "dashCase",
-        "debounce",
-        "domScheduler",
-        "ease",
-        "easeInCirc",
-        "easeInCubic",
-        "easeInExpo",
-        "easeInOutCirc",
-        "easeInOutCubic",
-        "easeInOutExpo",
-        "easeInOutQuad",
-        "easeInOutQuart",
-        "easeInOutQuint",
-        "easeInOutSine",
-        "easeInQuad",
-        "easeInQuart",
-        "easeInQuint",
-        "easeInSine",
-        "easeLinear",
-        "easeOutCirc",
-        "easeOutCubic",
-        "easeOutExpo",
-        "easeOutQuad",
-        "easeOutQuart",
-        "easeOutQuint",
-        "easeOutSine",
-        "endsWith",
-        "fold",
-        "getAncestorWhere",
-        "getAncestorWhereUntil",
-        "getComponentResolver",
-        "getOffsetSizes",
-        "hasWindow",
-        "historyPush",
-        "historyReplace",
-        "inertiaFinalValue",
-        "isArray",
-        "isBoolean",
-        "isDefined",
-        "isDev",
-        "isEmpty",
-        "isEmptyString",
-        "isFunction",
-        "isNull",
-        "isNumber",
-        "isObject",
-        "isString",
-        "keyCodes",
-        "lerp",
-        "loadElement",
-        "loadIframe",
-        "loadImage",
-        "loadLink",
-        "loadScript",
-        "localStorageProvider",
-        "lowerCase",
-        "map",
-        "matrix",
-        "mean",
-        "memo",
-        "memoize",
-        "memoryStorageProvider",
-        "nextFrame",
-        "nextMicrotask",
-        "nextTick",
-        "noop",
-        "noopValue",
-        "objectToURLSearchParams",
-        "pascalCase",
-        "random",
-        "randomInt",
-        "randomItem",
-        "removeClass",
-        "removeStyle",
-        "round",
-        "saveActiveElement",
-        "scrollTo",
-        "sessionStorageProvider",
-        "smoothTo",
-        "snakeCase",
-        "spring",
-        "startsWith",
-        "throttle",
-        "toggleClass",
-        "transform",
-        "transition",
-        "trapFocus",
-        "tween",
-        "untrapFocus",
-        "upperCase",
-        "urlSearchParamsInHashProvider",
-        "urlSearchParamsProvider",
-        "useScheduler",
-        "wait",
-        "withLeadingCharacters",
-        "withLeadingSlash",
-        "withTrailingCharacters",
-        "withTrailingSlash",
-        "withoutLeadingCharacters",
-        "withoutLeadingCharactersRecursive",
-        "withoutLeadingSlash",
-        "withoutTrailingCharacters",
-        "withoutTrailingCharactersRecursive",
-        "withoutTrailingSlash",
-        "wrap",
-      ]
-    `);
+describe('the utils barrel', () => {
+  it('names every runtime export of every module it fronts', () => {
+    const expected = [
+      ...Object.keys(deepmergeModule),
+      ...Object.keys(dom),
+      ...Object.keys(easings),
+      ...Object.keys(focus),
+      ...Object.keys(historyModule),
+      ...Object.keys(is),
+      ...Object.keys(load),
+      ...Object.keys(maths),
+      ...Object.keys(memoModule),
+      ...Object.keys(noopModule),
+      ...Object.keys(randomModule),
+      ...Object.keys(scrollLockModule),
+      ...Object.keys(scrollToModule),
+      ...Object.keys(selectors),
+      ...Object.keys(smoothToModule),
+      ...Object.keys(strings),
+      ...Object.keys(timing),
+      ...Object.keys(transformModule),
+      ...Object.keys(transitionModule),
+    ].sort();
+
+    expect(Object.keys(barrel).sort()).toEqual(expected);
+  });
+
+  it('forwards the types too, which the runtime check cannot see', () => {
+    const spring: SpringOptions = { stiffness: 0.2, damping: 0.6, mass: 1 };
+    const options: SmoothToOptions = { ...spring, spring: true, precision: 0.01 };
+    const value: SmoothTo = barrel.smoothTo(0, options);
+    const upper: Memo<[key: string], string> = barrel.memo((key: string) => key.toUpperCase());
+
+    expect(upper('a')).toBe('A');
+    expect(value()).toBe(0);
+    value.destroy();
+  });
+
+  it('exports nothing the framework barrel also exports', () => {
+    expect(Object.keys(barrel)).not.toContain('Base');
+    expect(Object.keys(barrel)).not.toContain('registerComponent');
+    expect(Object.keys(barrel)).not.toContain('defaultScheduler');
   });
 });

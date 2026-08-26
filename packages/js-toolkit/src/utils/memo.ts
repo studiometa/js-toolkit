@@ -1,17 +1,50 @@
-/**
- * Memoize the result of a function with a single argument indefinitely.
- * This is a simpler implementation of the `memoize` function.
- * @link https://js-toolkit.studiometa.dev/utils/memo.html
- */
-export function memo<T extends (...args: unknown[]) => unknown>(fn: T): T {
-  const cache = new Map<string, ReturnType<T>>();
+/** A memoised function with explicit cache invalidation. */
+export interface Memo<Args extends unknown[], Value> {
+  (...args: Args): Value;
+  /** Clear all cached results. */
+  clear(): void;
+}
 
-  // @ts-ignore
-  return function cached(...args) {
-    const key = args.join('');
-    if (!cache.has(key)) {
-      cache.set(key, fn(...args) as ReturnType<T>);
+/** Whether a value can be a `WeakMap` key. */
+function isWeakKey(value: unknown): value is WeakKey {
+  return (typeof value === 'object' && value !== null) || typeof value === 'function';
+}
+
+/**
+ * Cache a function's result per argument, until told to forget.
+ *
+ * @param fn The function to memoise. It takes one argument, or none.
+ * @link https://js-toolkit-v4.studiometa.dev/utils/timing.html#memo
+ */
+export function memo<Args extends [] | [key: unknown], Value>(
+  fn: (...args: Args) => Value,
+): Memo<Args, Value> {
+  // Allocate only the store required by the key type.
+  let primitives: Map<unknown, Value> | undefined;
+  let objects: WeakMap<WeakKey, Value> | undefined;
+
+  const cached = (...args: Args): Value => {
+    const key = args[0];
+    // `has()` distinguishes a cached `undefined` result from a miss.
+    if (isWeakKey(key)) {
+      objects ??= new WeakMap();
+      if (!objects.has(key)) {
+        objects.set(key, fn(...args));
+      }
+      return objects.get(key) as Value;
     }
-    return cache.get(key);
+    primitives ??= new Map();
+    if (!primitives.has(key)) {
+      primitives.set(key, fn(...args));
+    }
+    return primitives.get(key) as Value;
   };
+
+  cached.clear = (): void => {
+    primitives?.clear();
+    // `WeakMap` has no `clear()`.
+    objects = undefined;
+  };
+
+  return cached;
 }

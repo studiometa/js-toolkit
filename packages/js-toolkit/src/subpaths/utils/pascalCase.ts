@@ -1,1 +1,1 @@
-export { pascalCase, pascalCase as default } from '../../utils/string/changeCase.js';
+export { pascalCase, pascalCase as default } from '../../utils/strings.js';

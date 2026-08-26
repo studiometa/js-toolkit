@@ -33,10 +33,10 @@ A browser suite, which needs a browser downloaded first:
 - uses: actions/checkout@v4
 - uses: ./.github/actions/bench-diff
   with:
-    id: v4-mount
-    title: v4 mount benchmarks
+    id: mount
+    title: mount benchmarks
     unit: component
-    working-directory: packages/v4
+    working-directory: packages/js-toolkit
     prepare: npx playwright install --with-deps chromium
     bench: npm exec vitest bench -- --config vitest.bench.config.js --run --outputJson "$BENCH_JSON"
     rounds: '3'
@@ -49,9 +49,9 @@ A Node suite, which needs nothing extra — the only difference is the command:
 ```yaml
 - uses: ./.github/actions/bench-diff
   with:
-    id: v3
-    title: v3 benchmarks
-    working-directory: packages/js-toolkit
+    id: utils
+    title: utils benchmarks
+    working-directory: packages/some-node-package
     bench: npm exec vitest bench -- --config vitest.bench.config.ts --run --outputJson "$BENCH_JSON"
 ```
 

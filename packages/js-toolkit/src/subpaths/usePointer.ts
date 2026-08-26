@@ -1,1 +1,1 @@
-export { usePointer, usePointer as default } from '../services/PointerService.js';
+export { usePointer, usePointer as default } from '../services/pointer.js';

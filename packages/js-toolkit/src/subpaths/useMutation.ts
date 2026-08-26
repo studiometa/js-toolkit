@@ -1,1 +1,1 @@
-export { useMutation, useMutation as default } from '../services/MutationService.js';
+export { useMutation, useMutation as default } from '../services/mutation.js';

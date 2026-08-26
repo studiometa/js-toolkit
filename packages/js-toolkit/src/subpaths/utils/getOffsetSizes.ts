@@ -1,1 +1,1 @@
-export { getOffsetSizes, getOffsetSizes as default } from '../../utils/css/getOffsetSizes.js';
+export { getOffsetSizes, getOffsetSizes as default } from '../../utils/dom.js';

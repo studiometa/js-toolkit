@@ -1,1 +1,1 @@
-export { wait, wait as default } from '../../utils/wait.js';
+export { wait, wait as default } from '../../utils/timing.js';

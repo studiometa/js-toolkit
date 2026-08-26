@@ -1,1 +1,1 @@
-export { withDrag, withDrag as default } from '../decorators/withDrag.js';
+export { withDrag, withDrag as default } from '../services/drag.js';

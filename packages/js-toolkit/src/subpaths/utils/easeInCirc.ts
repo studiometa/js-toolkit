@@ -1,1 +1,1 @@
-export { easeInCirc, easeInCirc as default } from '../../utils/math/ease.js';
+export { easeInCirc, easeInCirc as default } from '../../utils/easings.js';

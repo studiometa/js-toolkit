@@ -5,7 +5,7 @@ import { findComponentConfig, getProperty, hasDecorator, isComponentClass, walk 
  * Decorators and type arguments cannot go through the RuleTester — its parser
  * is espree, which reads neither. The helpers reading them are unit tested
  * against hand-built nodes instead, and the rules using them are exercised
- * end to end by `oxlint` over `packages/v4`, which parses both.
+ * end to end by `oxlint` over `packages/js-toolkit`, which parses both.
  */
 
 const decorator = (name: string, called = false) => ({

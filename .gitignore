@@ -26,18 +26,16 @@ yarn-error.log*
 
 # Build files
 packages/*/dist/
-packages/demo/dist/
-/packages/v4/test/.runtime/
+/packages/js-toolkit/demo/dist/
+/packages/js-toolkit/test/.runtime/
 
 # Module graph reports written by `npm run measure -- --json <file>`
 .measure-*.json
 
-# Benchmark output written by `npm run bench:v4`
+# Benchmark output written by `npm run bench`
 .bench-report.json
-/packages/docs/.vitepress/cache
-/packages/docs/.vitepress/dist
-/packages/v4/docs/.vitepress/cache
-/packages/v4/docs/.vitepress/dist
+/packages/js-toolkit/docs/.vitepress/cache
+/packages/js-toolkit/docs/.vitepress/dist
 coverage/
 /full.d.ts
 /index.d.ts

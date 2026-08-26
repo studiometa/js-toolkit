@@ -1,1 +1,1 @@
-export { registerComponents, registerComponents as default } from '../helpers/registerComponents.js';
+export { registerComponents, registerComponents as default } from '../registry.js';

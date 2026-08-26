@@ -1,1 +1,1 @@
-export { snakeCase, snakeCase as default } from '../../utils/string/changeCase.js';
+export { snakeCase, snakeCase as default } from '../../utils/strings.js';

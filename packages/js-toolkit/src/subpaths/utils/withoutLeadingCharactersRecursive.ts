@@ -1,1 +1,1 @@
-export { withoutLeadingCharactersRecursive, withoutLeadingCharactersRecursive as default } from '../../utils/string/withoutLeadingCharactersRecursive.js';
+export { withoutLeadingCharactersRecursive, withoutLeadingCharactersRecursive as default } from '../../utils/strings.js';

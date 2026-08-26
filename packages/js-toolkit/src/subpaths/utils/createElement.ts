@@ -1,1 +1,1 @@
-export { createElement, createElement as default } from '../../utils/dom/createElement.js';
+export { createElement, createElement as default } from '../../utils/dom.js';

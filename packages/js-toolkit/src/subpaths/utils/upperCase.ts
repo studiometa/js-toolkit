@@ -1,1 +1,1 @@
-export { upperCase, upperCase as default } from '../../utils/string/changeCase.js';
+export { upperCase, upperCase as default } from '../../utils/strings.js';

@@ -1,1 +1,1 @@
-export { easeOutCirc, easeOutCirc as default } from '../../utils/math/ease.js';
+export { easeOutCirc, easeOutCirc as default } from '../../utils/easings.js';
