@@ -85,7 +85,7 @@ export {
 } from './scrollTo.js';
 export { lockScroll } from './scroll-lock.js';
 export { selectorFor } from './selectors.js';
-export { smoothTo, type SmoothTo, type SmoothToOptions } from './smoothTo.js';
+export { smoothTo, type SmoothTo, type SmoothToOptions, type SmoothToRecord } from './smoothTo.js';
 export {
   camelCase,
   capitalize,
