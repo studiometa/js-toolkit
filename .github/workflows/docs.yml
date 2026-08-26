@@ -49,15 +49,27 @@ jobs:
 
       - run: npm ci
 
-      # The v4 exports map has no `typescript` condition, so twoslash resolves the
-      # package types out of `dist`. The committed `@twoslash-cache` comments make
-      # that unnecessary on a cache hit — this is what keeps a cache *miss* from
-      # failing the build instead of silently type-checking against nothing.
+      # Twoslash resolves the package types out of `dist`, since the v4 exports
+      # map has no `typescript` condition. The docs build below ignores the
+      # committed caches, so this is what it reads.
       - name: Build the v4 package
         run: npm run build:v4
 
+      # Regenerate every twoslash hover instead of trusting the committed caches.
+      #
+      # A cache is keyed on `sha256(shikiOptions:lang:code)` — the sample, not the
+      # types behind it. So a changed docblock or signature in `src/` invalidates
+      # nothing, and the hovers stay frozen at whatever the types were when the
+      # cache was first written. That is invisible: the build passes and the page
+      # renders, only the tooltip is out of date.
+      #
+      # The committed caches stay useful — they keep a local `docs:v4:dev` fast.
+      # What is published is regenerated, so it cannot drift from the source.
+      # Costs about 50s: a 32s build becomes 83s for ~200 samples.
       - name: Build v4 docs
         run: npm run docs:v4:build
+        env:
+          TWOSLASH_INLINE_CACHE_IGNORE: '1'
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
