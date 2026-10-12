@@ -3,19 +3,28 @@ name: publish-and-release
 # Run from `main` to release 4.x: the `release` job bumps the version, folds
 # the `.changelog/` fragments into CHANGELOG.md, commits, tags and pushes, then
 # `publish-and-release` publishes that tag. A tag pushed with GITHUB_TOKEN
-# does not start other workflows, so both jobs live in this run.
+# does not start other workflows, so both jobs live in this run:
+#
+#   gh workflow run publish.yml --ref main -f version=4.0.0-alpha.2
 #
 # The `3.x` branch keeps its own copy of this file, which still publishes on a
 # tag push: a `3.x` tag created on that branch publishes v3 from it.
 #
-# A prerelease goes to the `next` dist-tag, which is what keeps `latest` on
-# 3.x while 4.x is an alpha.
+# A version with a prerelease part (4.0.0-alpha.2) goes to the `next` dist-tag,
+# which is what keeps `latest` on 3.x while 4.x is an alpha, and is marked as
+# a prerelease on GitHub. Any other version goes to `latest` and becomes the
+# latest GitHub release.
+#
+# npm trusted publishing (OIDC, no npm token) is bound to this file name: keep
+# the publish job in publish.yml, and do not call it from another workflow.
+# If the publish job fails, use "Re-run failed jobs": a version that npm
+# already has is skipped, and a GitHub release that already exists is updated.
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release, e.g. 4.0.0-alpha.2 or 4.0.0 (alpha, beta and rc go to the `next` dist-tag)'
+        description: 'Version to release, e.g. 4.0.0-alpha.2 or 4.0.0 (a version with a prerelease part goes to the `next` dist-tag)'
         type: string
         required: true
 
@@ -31,7 +40,10 @@ jobs:
       pull-requests: read
     outputs:
       version: ${{ steps.version.outputs.version }}
-      body: ${{ steps.changelog.outputs.body }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+      dist-tag: ${{ steps.version.outputs.dist-tag }}
+      # A promotion has no fragment, so no changelog section: say what it promotes.
+      body: ${{ steps.changelog.outputs.changed == 'true' && steps.changelog.outputs.body || format('Stable release of {0}.', steps.version.outputs.previous) }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -49,8 +61,25 @@ jobs:
         env:
           VERSION: ${{ inputs.version }}
         run: |
+          PREVIOUS=$(node -p 'require("./package.json").version')
           npm version "$VERSION" --no-git-tag-version
-          echo "version=$(node -p 'require("./package.json").version')" >> "$GITHUB_OUTPUT"
+          VERSION=$(node -p 'require("./package.json").version')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "previous=$PREVIOUS" >> "$GITHUB_OUTPUT"
+          # A version with a prerelease part (4.0.0-alpha.2) goes to the `next` dist-tag.
+          if [[ $VERSION == *-* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+            echo "dist-tag=next" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+            echo "dist-tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+          # A stable version after a prerelease (4.0.0-rc.1 → 4.0.0) promotes it.
+          if [[ $PREVIOUS == *-* && $VERSION != *-* ]]; then
+            echo "promotion=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "promotion=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Fold changelog fragments
         id: changelog
@@ -59,8 +88,10 @@ jobs:
           command: release
           version: ${{ steps.version.outputs.version }}
 
+      # The fragments of a prerelease are folded into its own section, so
+      # promoting it to a stable version can have no fragment.
       - name: Fail when there is nothing to release
-        if: steps.changelog.outputs.changed != 'true'
+        if: steps.changelog.outputs.changed != 'true' && steps.version.outputs.promotion != 'true'
         run: |
           echo "::error::No fragment in .changelog/: nothing to release."
           exit 1
@@ -86,8 +117,6 @@ jobs:
     permissions:
       contents: write
       id-token: write
-    env:
-      VERSION: ${{ needs.release.outputs.version }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -96,7 +125,6 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
-          registry-url: https://registry.npmjs.org/
 
       - name: Get npm cache directory
         id: npm-cache-dir
@@ -150,31 +178,21 @@ jobs:
           fail_ci_if_error: false
           verbose: true
 
-      - run: |
-          NPM_TAG='latest'
-          IS_PRERELEASE=false
-
-          if [[ $VERSION =~ 'alpha' || $VERSION =~ 'beta' || $VERSION =~ 'rc' ]]; then
-            NPM_TAG='next'
-            IS_PRERELEASE=true
-          fi
-
-          echo "NPM_TAG=$NPM_TAG" >> "$GITHUB_ENV"
-          echo "IS_PRERELEASE=$IS_PRERELEASE" >> "$GITHUB_ENV"
-
-      - uses: JS-DevTools/npm-publish@19c28f1ef146469e409470805ea4279d47c3d35c # v3.1.1
+      - name: Publish @studiometa/js-toolkit
+        uses: JS-DevTools/npm-publish@0fd2f4369c5d6bcfcde6091a7c527d810b9b5c3f # v4.1.5
         with:
+          package: packages/js-toolkit
+          access: public
           provenance: true
-          package: packages/js-toolkit/
-          tag: ${{ env.NPM_TAG }}
-          token: ${{ secrets.NPM_TOKEN }}
+          tag: ${{ needs.release.outputs.dist-tag }}
 
-      - uses: JS-DevTools/npm-publish@19c28f1ef146469e409470805ea4279d47c3d35c # v3.1.1
+      - name: Publish @studiometa/eslint-plugin-js-toolkit
+        uses: JS-DevTools/npm-publish@0fd2f4369c5d6bcfcde6091a7c527d810b9b5c3f # v4.1.5
         with:
+          package: packages/eslint-plugin
+          access: public
           provenance: true
-          package: packages/eslint-plugin/
-          tag: ${{ env.NPM_TAG }}
-          token: ${{ secrets.NPM_TOKEN }}
+          tag: ${{ needs.release.outputs.dist-tag }}
 
       - uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0
         with:
@@ -182,4 +200,6 @@ jobs:
           name: v${{ needs.release.outputs.version }}
           body: ${{ needs.release.outputs.body }}
           draft: false
-          prerelease: ${{ env.IS_PRERELEASE }}
+          prerelease: ${{ needs.release.outputs.prerelease }}
+          makeLatest: ${{ needs.release.outputs.prerelease == 'true' && 'false' || 'true' }}
+          allowUpdates: true
