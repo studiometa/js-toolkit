@@ -54,7 +54,7 @@ jobs:
 
       - name: Fold changelog fragments
         id: changelog
-        uses: weareikko/changelog@cb24219df8d46e3549a6fe5c10e06f9b01e5011e # 1.0.1
+        uses: weareikko/changelog@600f4225cfd2778967eaffa693e86666c5a2d4bd # 1.0.2
         with:
           command: release
           version: ${{ steps.version.outputs.version }}
