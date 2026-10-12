@@ -1,0 +1,28 @@
+name: changelog
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  changelog:
+    name: Changelog
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Every change to the published sources needs a fragment in .changelog/,
+      # unless the pull request has the `no-changelog` label (tests, refactors,
+      # tooling).
+      - uses: weareikko/changelog@600f4225cfd2778967eaffa693e86666c5a2d4bd # 1.0.2
+        with:
+          command: check
+          require-paths: |
+            packages/js-toolkit/src/**
+            packages/eslint-plugin/src/**
