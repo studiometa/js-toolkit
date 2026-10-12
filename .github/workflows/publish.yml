@@ -33,12 +33,12 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       body: ${{ steps.changelog.outputs.body }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           # The changelog action reads the commit that added each fragment.
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
 
@@ -54,7 +54,7 @@ jobs:
 
       - name: Fold changelog fragments
         id: changelog
-        uses: weareikko/changelog@600f4225cfd2778967eaffa693e86666c5a2d4bd # 1.0.2
+        uses: weareikko/changelog@c25888e03ad7c8bbaee897b84e778ebce9e9301c # 1.0.3
         with:
           command: release
           version: ${{ steps.version.outputs.version }}
@@ -89,11 +89,11 @@ jobs:
     env:
       VERSION: ${{ needs.release.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           ref: ${{ needs.release.outputs.version }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org/
@@ -103,7 +103,7 @@ jobs:
         shell: bash
         run: echo "dir=$(npm config get cache)" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         id: npm-cache
         with:
           path: |
@@ -142,7 +142,7 @@ jobs:
         working-directory: packages/eslint-plugin
 
       - name: Upload oxlint-plugin coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4.6.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: packages/eslint-plugin/coverage/clover.xml
@@ -162,21 +162,21 @@ jobs:
           echo "NPM_TAG=$NPM_TAG" >> "$GITHUB_ENV"
           echo "IS_PRERELEASE=$IS_PRERELEASE" >> "$GITHUB_ENV"
 
-      - uses: JS-DevTools/npm-publish@v3
+      - uses: JS-DevTools/npm-publish@19c28f1ef146469e409470805ea4279d47c3d35c # v3.1.1
         with:
           provenance: true
           package: packages/js-toolkit/
           tag: ${{ env.NPM_TAG }}
           token: ${{ secrets.NPM_TOKEN }}
 
-      - uses: JS-DevTools/npm-publish@v3
+      - uses: JS-DevTools/npm-publish@19c28f1ef146469e409470805ea4279d47c3d35c # v3.1.1
         with:
           provenance: true
           package: packages/eslint-plugin/
           tag: ${{ env.NPM_TAG }}
           token: ${{ secrets.NPM_TOKEN }}
 
-      - uses: ncipollo/release-action@v1
+      - uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0
         with:
           tag: ${{ needs.release.outputs.version }}
           name: v${{ needs.release.outputs.version }}

@@ -17,8 +17,8 @@ jobs:
   export_size:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: weareikko/export-size@1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: weareikko/export-size@aa6bed1e055800d94917055e9b34d6f85d1aba3a # 1.1.1
         with:
           # `packages/js-toolkit/` is the folder npm publishes, so the report
           # measures exactly what a consumer installs. It resolves to its own
