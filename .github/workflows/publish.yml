@@ -1,20 +1,83 @@
 name: publish-and-release
 
-# A tag publishes the packages that live on the branch it points at, so this
-# file needs no version gate: a `4.x` tag is created here and publishes v4,
-# while a `3.x` tag is created on the `3.x` branch, whose copy of this file
-# publishes v3. The workflow always runs from the ref of the tag.
+# Run from `main` to release 4.x: the `release` job bumps the version, folds
+# the `.changelog/` fragments into CHANGELOG.md, commits, tags and pushes, then
+# `publish-and-release` publishes that tag. A tag pushed with GITHUB_TOKEN
+# does not start other workflows, so both jobs live in this run.
+#
+# The `3.x` branch keeps its own copy of this file, which still publishes on a
+# tag push: a `3.x` tag created on that branch publishes v3 from it.
 #
 # A prerelease goes to the `next` dist-tag, which is what keeps `latest` on
 # 3.x while 4.x is an alpha.
 
 on:
-  push:
-    tags:
-      - '*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release, e.g. 4.0.0-alpha.2 or 4.0.0 (alpha, beta and rc go to the `next` dist-tag)'
+        type: string
+        required: true
+
+concurrency: release
 
 jobs:
+  release:
+    name: Bump version and changelog
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      pull-requests: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      body: ${{ steps.changelog.outputs.body }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The changelog action reads the commit that added each fragment.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # `postversion` in the root package.json moves every workspace to the
+      # same version.
+      - name: Bump version
+        id: version
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          npm version "$VERSION" --no-git-tag-version
+          echo "version=$(node -p 'require("./package.json").version')" >> "$GITHUB_OUTPUT"
+
+      - name: Fold changelog fragments
+        id: changelog
+        uses: weareikko/changelog@cb24219df8d46e3549a6fe5c10e06f9b01e5011e # 1.0.1
+        with:
+          command: release
+          version: ${{ steps.version.outputs.version }}
+
+      - name: Fail when there is nothing to release
+        if: steps.changelog.outputs.changed != 'true'
+        run: |
+          echo "::error::No fragment in .changelog/: nothing to release."
+          exit 1
+
+      - name: Commit, tag and push
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md .changelog package.json package-lock.json packages/*/package.json
+          git commit -m "chore: release $VERSION"
+          git tag "$VERSION"
+          git push origin HEAD:main "$VERSION"
+
   publish-and-release:
+    needs: release
     # Ubuntu, not macOS: the specs run in a real Chromium, and `playwright
     # install --with-deps` only installs system dependencies on Ubuntu. It also
     # makes the release run the suite in the same environment `tests.yml`
@@ -23,8 +86,12 @@ jobs:
     permissions:
       contents: write
       id-token: write
+    env:
+      VERSION: ${{ needs.release.outputs.version }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release.outputs.version }}
 
       - uses: actions/setup-node@v4
         with:
@@ -34,7 +101,7 @@ jobs:
       - name: Get npm cache directory
         id: npm-cache-dir
         shell: bash
-        run: echo "dir=$(npm config get cache)" >> ${GITHUB_OUTPUT}
+        run: echo "dir=$(npm config get cache)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/cache@v4
         id: npm-cache
@@ -87,13 +154,13 @@ jobs:
           NPM_TAG='latest'
           IS_PRERELEASE=false
 
-          if [[ $GITHUB_REF_NAME =~ 'alpha' || $GITHUB_REF_NAME =~ 'beta' || $GITHUB_REF_NAME =~ 'rc' ]]; then
+          if [[ $VERSION =~ 'alpha' || $VERSION =~ 'beta' || $VERSION =~ 'rc' ]]; then
             NPM_TAG='next'
             IS_PRERELEASE=true
           fi
 
-          echo "NPM_TAG=$NPM_TAG" >> $GITHUB_ENV
-          echo "IS_PRERELEASE=$IS_PRERELEASE" >> $GITHUB_ENV
+          echo "NPM_TAG=$NPM_TAG" >> "$GITHUB_ENV"
+          echo "IS_PRERELEASE=$IS_PRERELEASE" >> "$GITHUB_ENV"
 
       - uses: JS-DevTools/npm-publish@v3
         with:
@@ -111,8 +178,8 @@ jobs:
 
       - uses: ncipollo/release-action@v1
         with:
-          tag: ${{ github.ref }}
-          name: v${{ github.ref_name }}
-          body: Please refer to [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/CHANGELOG.md) for details.
+          tag: ${{ needs.release.outputs.version }}
+          name: v${{ needs.release.outputs.version }}
+          body: ${{ needs.release.outputs.body }}
           draft: false
           prerelease: ${{ env.IS_PRERELEASE }}

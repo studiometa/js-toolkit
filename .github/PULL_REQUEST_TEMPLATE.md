@@ -32,4 +32,6 @@
 - [ ] I have linked an issue or discussion.
 - [ ] I have added tests (if possible).
 - [ ] I have updated the documentation accordingly.
-- [ ] I have updated the changelog.
+- [ ] I have added a changelog fragment in `.changelog/<slug>.md` (or set the `no-changelog` label).
+
+<!-- Do not edit CHANGELOG.md: the release workflow folds the fragments into it. A fragment only holds `### Added|Changed|Deprecated|Removed|Fixed|Security|Dependencies` sections with their entries, and no pull request number: the release adds it. See https://github.com/weareikko/changelog -->
