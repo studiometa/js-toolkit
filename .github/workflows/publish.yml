@@ -1,155 +1,57 @@
 name: publish-and-release
 
-# Run from `main` to release 4.x: the `release` job bumps the version, folds
-# the `.changelog/` fragments into CHANGELOG.md, commits, tags and pushes, then
-# `publish-and-release` publishes that tag. A tag pushed with GITHUB_TOKEN
-# does not start other workflows, so both jobs live in this run:
+# Each merge into main releases 4.x from what its fragments describe. A manual
+# run (`gh workflow run publish.yml -f version=major`) forces a bump.
 #
-#   gh workflow run publish.yml --ref main -f version=4.0.0-alpha.2
+# `.changelog/prerelease` (`alpha`) makes each release a prerelease
+# (4.0.0-alpha.2, …) on the `next` dist-tag, which keeps `latest` on 3.x. A pull
+# request that deletes the file releases 4.0.0 on `latest`.
 #
-# The `3.x` branch keeps its own copy of this file, which still publishes on a
-# tag push: a `3.x` tag created on that branch publishes v3 from it.
+# The `3.x` branch keeps its own copy of this file, which publishes on a tag
+# push. Tags pushed by this workflow start no other workflow.
 #
-# A version with a prerelease part (4.0.0-alpha.2) goes to the `next` dist-tag,
-# which is what keeps `latest` on 3.x while 4.x is an alpha, and is marked as
-# a prerelease on GitHub. Any other version goes to `latest` and becomes the
-# latest GitHub release.
-#
-# npm trusted publishing (OIDC, no npm token) is bound to this file name: keep
-# the publish job in publish.yml, and do not call it from another workflow.
-# If the publish job fails, use "Re-run failed jobs": a version that npm
-# already has is skipped, and a GitHub release that already exists is updated.
-
+# npm trusted publishing is bound to this file name: keep the publish job here.
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release, e.g. 4.0.0-alpha.2 or 4.0.0 (a version with a prerelease part goes to the `next` dist-tag)'
-        type: string
-        required: true
+        description: 'Version: `auto` follows the fragments; `patch`, `minor` or `major` forces that bump'
+        type: choice
+        options: [auto, patch, minor, major]
+        default: auto
 
-concurrency: release
+# One release at a time. GitHub keeps only the newest pending run: it
+# releases everything that main has at that point.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
-  release:
-    name: Bump version and changelog
+  # Ubuntu, not macOS: the specs run in a real Chromium, and `playwright
+  # install --with-deps` only installs system dependencies on Ubuntu.
+  test:
+    name: Test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    permissions:
-      contents: write
-      pull-requests: read
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-      prerelease: ${{ steps.version.outputs.prerelease }}
-      dist-tag: ${{ steps.version.outputs.dist-tag }}
-      # A promotion has no fragment, so no changelog section: say what it promotes.
-      body: ${{ steps.changelog.outputs.changed == 'true' && steps.changelog.outputs.body || format('Stable release of {0}.', steps.version.outputs.previous) }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-        with:
-          # The changelog action reads the commit that added each fragment.
-          fetch-depth: 0
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
-
-      # `postversion` in the root package.json moves every workspace to the
-      # same version.
-      - name: Bump version
-        id: version
-        env:
-          VERSION: ${{ inputs.version }}
-        run: |
-          PREVIOUS=$(node -p 'require("./package.json").version')
-          npm version "$VERSION" --no-git-tag-version
-          VERSION=$(node -p 'require("./package.json").version')
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "previous=$PREVIOUS" >> "$GITHUB_OUTPUT"
-          # A version with a prerelease part (4.0.0-alpha.2) goes to the `next` dist-tag.
-          if [[ $VERSION == *-* ]]; then
-            echo "prerelease=true" >> "$GITHUB_OUTPUT"
-            echo "dist-tag=next" >> "$GITHUB_OUTPUT"
-          else
-            echo "prerelease=false" >> "$GITHUB_OUTPUT"
-            echo "dist-tag=latest" >> "$GITHUB_OUTPUT"
-          fi
-          # A stable version after a prerelease (4.0.0-rc.1 → 4.0.0) promotes it.
-          if [[ $PREVIOUS == *-* && $VERSION != *-* ]]; then
-            echo "promotion=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "promotion=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Fold changelog fragments
-        id: changelog
-        uses: weareikko/changelog@c25888e03ad7c8bbaee897b84e778ebce9e9301c # 1.0.3
-        with:
-          command: release
-          version: ${{ steps.version.outputs.version }}
-
-      # The fragments of a prerelease are folded into its own section, so
-      # promoting it to a stable version can have no fragment.
-      - name: Fail when there is nothing to release
-        if: steps.changelog.outputs.changed != 'true' && steps.version.outputs.promotion != 'true'
-        run: |
-          echo "::error::No fragment in .changelog/: nothing to release."
-          exit 1
-
-      - name: Commit, tag and push
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add CHANGELOG.md .changelog package.json package-lock.json packages/*/package.json
-          git commit -m "chore: release $VERSION"
-          git tag "$VERSION"
-          git push origin HEAD:main "$VERSION"
-
-  publish-and-release:
-    needs: release
-    # Ubuntu, not macOS: the specs run in a real Chromium, and `playwright
-    # install --with-deps` only installs system dependencies on Ubuntu. It also
-    # makes the release run the suite in the same environment `tests.yml`
-    # verifies every pull request in.
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      id-token: write
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-        with:
-          ref: ${{ needs.release.outputs.version }}
-
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: 24
-
-      - name: Get npm cache directory
-        id: npm-cache-dir
-        shell: bash
-        run: echo "dir=$(npm config get cache)" >> "$GITHUB_OUTPUT"
-
-      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-        id: npm-cache
-        with:
-          path: |
-            ${{ steps.npm-cache-dir.outputs.dir }}
-            **/node_modules
-            .eslintcache
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: ${{ runner.os }}-node-
+          cache: npm
 
       - run: npm ci --no-audit --no-fund
 
       - name: Build the published packages
         run: npm run build
 
-      # The specs run in a real browser, so the runner needs one. They cover
-      # native view transitions, frame-aligned scheduling and DOM lifecycle,
-      # which is what makes them worth running again on the release commit
-      # rather than trusting the pull request that produced it.
+      # The specs cover native view transitions, frame-aligned scheduling and
+      # DOM lifecycle: they need a real browser.
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
         working-directory: packages/js-toolkit
@@ -158,18 +60,17 @@ jobs:
         run: npm test
         working-directory: packages/js-toolkit
 
-      # The last gate before the tarball goes out: packs the package and runs
-      # the result through a Node, a browser and a TypeScript consumer, without
-      # the workspace aliases. What passes here is what a consumer installs.
+      # Packs the package and runs the result through a Node, a browser and a
+      # TypeScript consumer, without the workspace aliases.
       - name: Check the packed package
         run: npm run check:package
         working-directory: packages/js-toolkit
 
-      - name: Test oxlint-plugin
+      - name: Test eslint-plugin
         run: npm test -- --retry=3 --coverage.enabled
         working-directory: packages/eslint-plugin
 
-      - name: Upload oxlint-plugin coverage to Codecov
+      - name: Upload eslint-plugin coverage to Codecov
         uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4.6.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -178,6 +79,58 @@ jobs:
           fail_ci_if_error: false
           verbose: true
 
+  # Folds the fragments, bumps every package.json, commits `chore: release
+  # <version>`, tags, pushes and creates the GitHub release.
+  release:
+    name: Release
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      pull-requests: read
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      dist-tag: ${{ steps.release.outputs.dist-tag }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Release
+        id: release
+        uses: weareikko/changelog@9d93346df9858eaa29007bd8530aad8f4c5b539a # 0.1.0
+        with:
+          command: release
+          version: ${{ inputs.version || 'auto' }}
+          commit-message: 'chore: release {version}'
+
+  # "Re-run failed jobs" on this job publishes what a failed run left: npm
+  # skips a version that it already has.
+  publish:
+    name: Publish to npm
+    needs: release
+    if: needs.release.outputs.version != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: refs/tags/${{ needs.release.outputs.version }}
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: npm
+
+      # The action publishes with --ignore-scripts: this step builds `dist/`,
+      # and the test job ran the checks.
+      - name: Install and build
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+
+      # Trusted publishing (OIDC): no npm token. A prerelease goes to `next`.
       - name: Publish @studiometa/js-toolkit
         uses: JS-DevTools/npm-publish@0fd2f4369c5d6bcfcde6091a7c527d810b9b5c3f # v4.1.5
         with:
@@ -193,13 +146,3 @@ jobs:
           access: public
           provenance: true
           tag: ${{ needs.release.outputs.dist-tag }}
-
-      - uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0
-        with:
-          tag: ${{ needs.release.outputs.version }}
-          name: v${{ needs.release.outputs.version }}
-          body: ${{ needs.release.outputs.body }}
-          draft: false
-          prerelease: ${{ needs.release.outputs.prerelease }}
-          makeLatest: ${{ needs.release.outputs.prerelease == 'true' && 'false' || 'true' }}
-          allowUpdates: true
