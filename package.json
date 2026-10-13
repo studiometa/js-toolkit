@@ -28,7 +28,6 @@
     "fix": "npm run fix:static && npm run fix:fmt",
     "fix:static": "npm run lint:static -- --fix",
     "fix:fmt": "oxfmt .",
-    "postversion": "npm version --workspaces $npm_package_version",
     "subpaths": "node scripts/generate-subpaths.js packages/js-toolkit",
     "subpaths:check": "node scripts/generate-subpaths.js --check packages/js-toolkit",
     "postinstall": "patch-package"
