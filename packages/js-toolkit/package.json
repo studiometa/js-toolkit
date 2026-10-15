@@ -824,6 +824,7 @@
     "demo:preview": "vite preview demo --host",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
+    "postdocs:build": "node ../../scripts/build-skills.js --well-known docs/.vitepress/dist",
     "docs:preview": "vitepress preview docs",
     "test": "npm run check:diagnostics && npm run check:doc-links && npm run test:fixtures && vitest run",
     "test:fixtures": "node scripts/build-runtime-fixtures.js",
