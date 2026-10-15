@@ -21,6 +21,7 @@
   "homepage": "https://js-toolkit-v4.studiometa.dev",
   "files": [
     "dist",
+    "skills",
     "README.md",
     "LICENSE"
   ],
@@ -812,7 +813,8 @@
     }
   },
   "scripts": {
-    "build": "node scripts/build.js",
+    "build": "node scripts/build.js && npm run build:skills",
+    "build:skills": "node ../../scripts/build-skills.js",
     "check:constant-subpaths": "node scripts/check-constant-subpaths.js",
     "check:diagnostics": "node scripts/check-diagnostics.js",
     "check:doc-links": "node scripts/check-doc-links.js",

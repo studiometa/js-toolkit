@@ -54,6 +54,16 @@ There is no build step to adopt: the same class runs from a `<script type="modul
 
 The design record lives in the repository: [DESIGN.md](./DESIGN.md) states what v4 does, and [RATIONALE.md](./RATIONALE.md) states why, which options were refused, and what the measurements are.
 
+## Agent skills
+
+The package ships the `studiometa-js-toolkit` [agent skill](https://agentskills.io). The skill teaches coding agents how to use the package, and it matches the installed version. Link the skills of your dependencies into your project with the [`skills` CLI](https://github.com/vercel-labs/skills):
+
+```bash
+npx skills experimental_sync
+```
+
+The command links each skill from `node_modules` into the agent folders (`.agents/skills/`, `.claude/skills/`…). When you update the package, the linked skill updates too.
+
 ## Contributing
 
 See the [repository README](https://github.com/studiometa/js-toolkit#contributing). Fixes for the 3.x line go to the [`3.x` branch](https://github.com/studiometa/js-toolkit/tree/3.x).

@@ -15,6 +15,7 @@
   "sideEffects": false,
   "files": [
     "dist",
+    "skills",
     "README.md",
     "LICENSE"
   ],
@@ -29,7 +30,8 @@
     }
   },
   "scripts": {
-    "build": "node scripts/build.js",
+    "build": "node scripts/build.js && npm run build:skills",
+    "build:skills": "node ../../scripts/build-skills.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint:types": "tsc -p tsconfig.json"
