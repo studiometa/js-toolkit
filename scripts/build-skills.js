@@ -16,7 +16,7 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { globSync } from 'node:fs';
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, posix, relative, resolve } from 'node:path';
 
 const repositoryRoot = resolve(dirname(new URL(import.meta.url).pathname), '..');
@@ -231,17 +231,20 @@ async function publishSkills(outputDirectory) {
   for (const target of Object.values(targets)) {
     const skill = await buildSkill(join(repositoryRoot, target.directory));
     const archive = join(wellKnownDirectory, `${skill.name}.tar.gz`);
-    // The ustar format and the bare paths are what the `skills` CLI reads: it
-    // refuses `./` path segments and skips the GNU long name entries.
-    execFileSync('tar', [
-      '--format=ustar',
-      '-czf',
-      archive,
-      '-C',
-      skill.directory,
+    // The `skills` CLI reads the name field of each tar header and refuses `./`
+    // path segments: keep the paths bare and under the 100 characters of that
+    // field, which every `tar` implementation writes the same way.
+    const paths = [
       'SKILL.md',
-      'references',
-    ]);
+      ...(await readdir(join(skill.directory, 'references'), { recursive: true })).map(
+        (path) => `references/${path}`,
+      ),
+    ];
+    const longPath = paths.find((path) => path.length >= 100);
+    if (longPath) {
+      throw new Error(`${skill.name}: "${longPath}" is too long for a tar header.`);
+    }
+    execFileSync('tar', ['-czf', archive, '-C', skill.directory, 'SKILL.md', 'references']);
     const digest = createHash('sha256')
       .update(await readFile(archive))
       .digest('hex');
