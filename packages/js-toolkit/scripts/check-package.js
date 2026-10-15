@@ -12,6 +12,7 @@ const packageRoot = resolve(dirname(new URL(import.meta.url).pathname), '..');
 const packageName = '@studiometa/js-toolkit';
 const typescriptCompiler = resolve(packageRoot, '../../node_modules/typescript/bin/tsc');
 const distArtifact = /^dist\/(?:[^/]+\/)*[^/]+\.(?:js|js\.map|d\.ts)$/;
+const skillFile = /^skills\/studiometa-js-toolkit\/(?:[^/]+\/)*[^/]+\.md$/;
 
 async function run(command, args, options = {}) {
   try {
@@ -42,19 +43,21 @@ function assertPackageContent(metadata) {
 
   assert.deepEqual(
     topLevel,
-    ['LICENSE', 'README.md', 'dist', 'package.json'],
+    ['LICENSE', 'README.md', 'dist', 'package.json', 'skills'],
     `Unexpected packed top-level content:\n${topLevel.join('\n')}`,
   );
 
-  // `LICENSE` and `README.md` are the two files npm renders on the package page;
-  // everything else has to be a build artifact, so no source, spec or config
-  // ever reaches a consumer.
+  // `LICENSE` and `README.md` are the two files npm renders on the package page,
+  // and the agent skill is Markdown; everything else has to be a build artifact,
+  // so no source, spec or config ever reaches a consumer.
   const documentation = new Set(['LICENSE', 'README.md', 'package.json']);
-  const unexpected = files.filter((path) => !documentation.has(path) && !distArtifact.test(path));
+  const unexpected = files.filter(
+    (path) => !documentation.has(path) && !distArtifact.test(path) && !skillFile.test(path),
+  );
   assert.deepEqual(
     unexpected,
     [],
-    `Only the manifest, LICENSE, README.md and built JavaScript, declarations and source maps are allowed:\n${unexpected.join('\n')}`,
+    `Only the manifest, LICENSE, README.md, the agent skill and built JavaScript, declarations and source maps are allowed:\n${unexpected.join('\n')}`,
   );
 
   const forbiddenTests = files.filter((path) =>
@@ -68,6 +71,14 @@ function assertPackageContent(metadata) {
 
   assert(fileSet.has('dist/index.js'), 'dist/index.js is missing from the package.');
   assert(fileSet.has('dist/index.d.ts'), 'dist/index.d.ts is missing from the package.');
+  assert(
+    fileSet.has('skills/studiometa-js-toolkit/SKILL.md'),
+    'skills/studiometa-js-toolkit/SKILL.md is missing from the package.',
+  );
+  assert(
+    fileSet.has('skills/studiometa-js-toolkit/references/api/index.md'),
+    'The references of the agent skill are missing from the package: run `npm run build`.',
+  );
 
   return fileSet;
 }

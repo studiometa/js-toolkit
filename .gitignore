@@ -41,3 +41,6 @@ coverage/
 /index.d.ts
 /lcov.info
 *.tsbuildinfo
+
+# Generated agent skill references
+/packages/*/skills/*/references/

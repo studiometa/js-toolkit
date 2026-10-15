@@ -21,6 +21,7 @@
   "homepage": "https://js-toolkit-v4.studiometa.dev",
   "files": [
     "dist",
+    "skills",
     "README.md",
     "LICENSE"
   ],
@@ -812,7 +813,8 @@
     }
   },
   "scripts": {
-    "build": "node scripts/build.js",
+    "build": "node scripts/build.js && npm run build:skills",
+    "build:skills": "node ../../scripts/build-skills.js",
     "check:constant-subpaths": "node scripts/check-constant-subpaths.js",
     "check:diagnostics": "node scripts/check-diagnostics.js",
     "check:doc-links": "node scripts/check-doc-links.js",
@@ -822,6 +824,7 @@
     "demo:preview": "vite preview demo --host",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
+    "postdocs:build": "node ../../scripts/build-skills.js --well-known docs/.vitepress/dist",
     "docs:preview": "vitepress preview docs",
     "test": "npm run check:diagnostics && npm run check:doc-links && npm run test:fixtures && vitest run",
     "test:fixtures": "node scripts/build-runtime-fixtures.js",

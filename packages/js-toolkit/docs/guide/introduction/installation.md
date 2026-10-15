@@ -128,3 +128,21 @@ registerManifest({
 ```
 
 See [Autoloading](/guide/going-further/autoloading.html).
+
+## Agent skills
+
+The package ships the `studiometa-js-toolkit` [agent skill](https://agentskills.io). It teaches coding agents the v4 API and holds the documentation of the installed version, so an agent does not write v3 code. Link it into your project with the [`skills` CLI](https://github.com/vercel-labs/skills):
+
+```bash
+npx skills experimental_sync
+```
+
+The command links the skills of your dependencies from `node_modules` into the agent folders (`.agents/skills/`, `.claude/skills/`…). `@studiometa/ui` asks the CLI for this skill too, so a project that only lists `@studiometa/ui` also gets it.
+
+Without npm, install the skills from this website. It publishes them at `/.well-known/agent-skills/index.json`, as the [Agent Skills Discovery](https://specification.website/spec/agent-readiness/agent-skills-discovery/) convention defines:
+
+```bash
+npx skills add https://js-toolkit-v4.studiometa.dev
+```
+
+These skills match the version that this website documents, which can differ from the version that your project installs. Prefer `npx skills experimental_sync` in a project that installs the package.
