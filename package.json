@@ -33,12 +33,12 @@
     "postinstall": "patch-package"
   },
   "devDependencies": {
-    "@types/node": "22.19.0",
-    "oxfmt": "0.62.0",
-    "oxlint": "1.77.0",
-    "oxlint-tsgolint": "7.0.2001",
+    "@types/node": "22.20.5",
+    "oxfmt": "0.73.0",
+    "oxlint": "1.88.0",
+    "oxlint-tsgolint": "7.0.2004",
     "patch-package": "8.0.1",
     "typescript": "7.0.2",
-    "vite": "8.2.1"
+    "vite": "8.3.4"
   }
 }
