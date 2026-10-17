@@ -44,6 +44,6 @@
     "vitest": "4.1.10"
   },
   "dependencies": {
-    "@oxlint/plugins": "1.77.0"
+    "@oxlint/plugins": "1.88.0"
   }
 }
