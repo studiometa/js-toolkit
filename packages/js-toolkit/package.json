@@ -851,7 +851,7 @@
     "playwright": "^1.50.0",
     "tailwindcss": "4.2.2",
     "tsdown": "0.22.14",
-    "vite": "8.2.1",
+    "vite": "8.2.4",
     "vitepress": "2.0.0-alpha.19",
     "vitepress-plugin-llms": "1.12.0",
     "vitest": "4.1.10"
