@@ -20,7 +20,7 @@ jobs:
       # Every change to the published sources needs a fragment in .changelog/,
       # unless the pull request has the `no-changelog` label (tests, refactors,
       # tooling).
-      - uses: weareikko/changelog@9d93346df9858eaa29007bd8530aad8f4c5b539a # 0.1.0
+      - uses: weareikko/changelog@fce59bfe7b620305dfcc222f1b150dda9c3cc157 # 0.1.3
         with:
           command: check
           require-paths: |
