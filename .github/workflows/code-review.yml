@@ -12,7 +12,12 @@ jobs:
     name: Review pull request
     runs-on: ubuntu-latest
     # Same-repo PRs only: fork PRs don't receive secrets on pull_request.
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    # Renovate PRs are skipped: dependency updates need no agent review. The
+    # check is on the author, not on the `renovate` label, because Renovate adds
+    # its label after it opens the PR, so the `opened` event has no label.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository
+      && github.event.pull_request.user.login != 'renovate[bot]'
     # The review settings, the provider credentials and the OpenTelemetry
     # configuration all reach the CLI as ambient environment: it reads
     # CODE_REVIEW_* directly and de-prefixes CODE_REVIEW_<PROVIDER>_* creds.
@@ -25,9 +30,8 @@ jobs:
     # change here. GitHub's workflow scanning reads "dump every secret into the
     # environment" as an exfiltration attempt, flags the file, and holds every
     # run as `action_required` until someone with write access approves it by
-    # hand — which is why reviews across the org have been held since
-    # 2026-09-16. The cost of naming each value is one line here when the org
-    # gains an option.
+    # hand. The cost of naming each value is one line here when the org gains
+    # an option.
     env:
       CODE_REVIEW_DEPTH: ${{ vars.CODE_REVIEW_DEPTH }}
       CODE_REVIEW_THINKING_LEVEL: ${{ vars.CODE_REVIEW_THINKING_LEVEL }}
@@ -36,15 +40,12 @@ jobs:
       CODE_REVIEW_OTEL_EXPORTER_OTLP_ENDPOINT: ${{ vars.CODE_REVIEW_OTEL_EXPORTER_OTLP_ENDPOINT }}
       CODE_REVIEW_OTEL_EXPORTER_OTLP_PROTOCOL: ${{ vars.CODE_REVIEW_OTEL_EXPORTER_OTLP_PROTOCOL }}
       CODE_REVIEW_OTEL_SEMCONV_STABILITY_OPT_IN: ${{ vars.CODE_REVIEW_OTEL_SEMCONV_STABILITY_OPT_IN }}
-      CODE_REVIEW_CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CODE_REVIEW_CLOUDFLARE_ACCOUNT_ID }}
-      CODE_REVIEW_CLOUDFLARE_API_KEY: ${{ secrets.CODE_REVIEW_CLOUDFLARE_API_KEY }}
-      CODE_REVIEW_CLOUDFLARE_GATEWAY_ID: ${{ secrets.CODE_REVIEW_CLOUDFLARE_GATEWAY_ID }}
       CODE_REVIEW_OPENROUTER_API_KEY: ${{ secrets.CODE_REVIEW_OPENROUTER_API_KEY }}
       CODE_REVIEW_OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.CODE_REVIEW_OTEL_EXPORTER_OTLP_HEADERS }}
     steps:
       # The composite action checks out the repo itself (checkout: true default).
       # `model` is an input rather than an env entry because the action sets
       # CODE_REVIEW_MODEL from it.
-      - uses: weareikko/code-review@4a45715c5767ff15fb45aaf5873d9bbf2bff856c # 0.9.8
+      - uses: weareikko/code-review@acc1e87bd65a0ad55415d159103ce798841129ba # 0.11.1
         with:
           model: ${{ vars.CODE_REVIEW_MODEL }}
