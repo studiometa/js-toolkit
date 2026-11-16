@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. Each pull request adds a fragment in `.changelog/`; the release workflow folds them in here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 4.0.0-alpha.5 - 2026-11-16
+
+### Dependencies
+
+- Update dependency @oxlint/plugins to v1.93.0 ([#887])
+
+[#887]: https://github.com/studiometa/js-toolkit/pull/887
+
 ## 4.0.0-alpha.4 - 2026-11-09
 
 ### Dependencies
