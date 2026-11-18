@@ -72,6 +72,46 @@ describe('trapFocus', () => {
     expect(document.activeElement?.id).toBe('d');
   });
 
+  it('skips what is not rendered or is inert', () => {
+    const element = render(`
+      <button id="a" style="visibility: hidden"></button>
+      <button id="b" hidden></button>
+      <div inert><button id="c"></button></div>
+      <details><summary>summary</summary><button id="d"></button></details>
+      <button id="e" style="display: none"></button>
+      <button id="f"></button>
+    `);
+    trapFocus(element, tab());
+    expect(document.activeElement?.id).toBe('f');
+  });
+
+  it('wraps forwards from the last rendered element when a hidden one follows it', () => {
+    const element = render(`
+      <button id="a"></button>
+      <button id="b"></button>
+      <ul style="display: none"><li><a id="c" href="#">hidden</a></li></ul>
+    `);
+    element.querySelector<HTMLElement>('#b')?.focus();
+    const event = tab();
+    trapFocus(element, event);
+    expect(document.activeElement?.id).toBe('a');
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  it('wraps backwards from the first rendered element when a hidden one precedes it', () => {
+    const element = render(`
+      <button id="a" style="visibility: hidden"></button>
+      <button id="b"></button>
+      <button id="c"></button>
+      <button id="d" style="display: none"></button>
+    `);
+    element.querySelector<HTMLElement>('#b')?.focus();
+    const event = tab(true);
+    trapFocus(element, event);
+    expect(document.activeElement?.id).toBe('c');
+    expect(event.defaultPrevented).toBe(true);
+  });
+
   it('does nothing when the element holds nothing focusable', () => {
     const element = render('<p>text</p>');
     const event = tab();
