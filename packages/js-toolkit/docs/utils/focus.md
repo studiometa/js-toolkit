@@ -67,7 +67,7 @@ Remembers what had focus, so `untrapFocus()` can give it back.
 trapFocus(el: HTMLElement, event: KeyboardEvent): void
 ```
 
-Keeps `Tab` and `Shift+Tab` inside `el`.
+Keeps `Tab` and `Shift+Tab` inside `el`. Like tab navigation, it skips elements that are not rendered (`display: none`, `visibility: hidden`, the content of a closed `<details>`) or that are `inert`.
 
 ### untrapFocus
 

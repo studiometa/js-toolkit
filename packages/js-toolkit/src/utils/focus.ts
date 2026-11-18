@@ -1,18 +1,18 @@
 import { getSharedRuntimeSlot } from '../shared-runtime.js';
 
-/** What tab navigation can reach, in document order. */
+/** What tab navigation can reach, in document order, before the rendering check. */
 const FOCUSABLE = [
-  'a[href]:not([tabindex^="-"]):not([inert])',
-  'area[href]:not([tabindex^="-"]):not([inert])',
-  'input:not([disabled]):not([tabindex^="-"]):not([inert])',
-  'select:not([disabled]):not([tabindex^="-"]):not([inert])',
-  'textarea:not([disabled]):not([tabindex^="-"]):not([inert])',
-  'button:not([disabled]):not([tabindex^="-"]):not([inert])',
-  'iframe:not([tabindex^="-"]):not([inert])',
-  'audio:not([tabindex^="-"]):not([inert])',
-  'video:not([tabindex^="-"]):not([inert])',
-  '[contenteditable]:not([tabindex^="-"]):not([inert])',
-  '[tabindex]:not([tabindex^="-"]):not([inert])',
+  'a[href]:not([tabindex^="-"])',
+  'area[href]:not([tabindex^="-"])',
+  'input:not([disabled]):not([tabindex^="-"])',
+  'select:not([disabled]):not([tabindex^="-"])',
+  'textarea:not([disabled]):not([tabindex^="-"])',
+  'button:not([disabled]):not([tabindex^="-"])',
+  'iframe:not([tabindex^="-"])',
+  'audio:not([tabindex^="-"])',
+  'video:not([tabindex^="-"])',
+  '[contenteditable]:not([tabindex^="-"])',
+  '[tabindex]:not([tabindex^="-"])',
 ].join(', ');
 
 /**
@@ -42,7 +42,12 @@ export function trapFocus(el: HTMLElement, event: KeyboardEvent): void {
 
   state.focusedBefore ??= document.activeElement;
 
-  const focusable = [...el.querySelectorAll<HTMLElement>(FOCUSABLE)];
+  // Tab navigation skips what is not rendered or is inert, so the list must too:
+  // a hidden first or last candidate would hold the focus or let it escape.
+  const focusable = [...el.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+    (element) =>
+      element.checkVisibility({ visibilityProperty: true }) && !element.closest('[inert]'),
+  );
   if (focusable.length === 0) {
     return;
   }
