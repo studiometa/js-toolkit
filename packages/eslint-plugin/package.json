@@ -37,11 +37,11 @@
     "lint:types": "tsc -p tsconfig.json"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "4.1.10",
+    "@vitest/coverage-v8": "4.1.12",
     "eslint": "9.34.0",
     "tsdown": "0.22.14",
     "typescript": "7.0.2",
-    "vitest": "4.1.10"
+    "vitest": "4.1.12"
   },
   "dependencies": {
     "@oxlint/plugins": "1.93.0"
