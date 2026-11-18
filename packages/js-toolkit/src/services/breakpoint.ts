@@ -131,13 +131,17 @@ function createBreakpointService(): Service<BreakpointProps> {
       return props;
     },
     start(emit) {
+      // The last emitted name. Reads refresh `props.name` on their own, so it
+      // cannot tell whether subscribers have heard of a crossing yet.
+      let published = '';
       const publishIfCrossed = () => {
         // A media-query change invalidates the task cache immediately.
         widestMatch.clear();
         const name = currentBreakpoint();
-        if (name === props.name) {
+        if (name === published) {
           return;
         }
+        published = name;
         props.name = name;
         emit(props);
       };
@@ -154,7 +158,8 @@ function createBreakpointService(): Service<BreakpointProps> {
         };
       };
 
-      props.name = currentBreakpoint();
+      published = currentBreakpoint();
+      props.name = published;
       let unlisten = listen();
       breakpointState.refresh = () => {
         unlisten();
