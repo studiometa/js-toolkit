@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. Each pull request adds a fragment in `.changelog/`; the release workflow folds them in here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 4.0.0-rc.1 - 2026-11-18
+
+### Fixed
+
+- Emit every breakpoint crossing, even when a resize handler, a `media:` mount strategy or another listener reads the breakpoint before the breakpoint service hears the change: responsive components, responsive options and `option<Name>Changed()` hooks no longer miss it (#894) ([#895])
+
+[#895]: https://github.com/studiometa/js-toolkit/pull/895
+
 ## 4.0.0-rc.0 - 2026-11-18
 
 ### Fixed
