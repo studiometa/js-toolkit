@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
+import { page } from 'vitest/browser';
 import { settle } from '../test/index.js';
 import { BREAKPOINTS, getBreakpoints, setBreakpoints, useBreakpoint } from './breakpoint.js';
 
@@ -69,5 +70,43 @@ describe('useBreakpoint', () => {
 
     setBreakpoints({ small: '0rem', large: '0rem' });
     expect(seen).toEqual([]);
+  });
+
+  describe('when the props are read before the service hears a crossing', () => {
+    const crossing = async (read: () => void) => {
+      await page.viewport(400, 600);
+      setBreakpoints({ narrow: '0rem', wide: '40rem' });
+      const seen: string[] = [];
+      const unsubscribe = useBreakpoint().subscribe(({ name }) => seen.push(name));
+      window.addEventListener('resize', read);
+      try {
+        await page.viewport(800, 600);
+        await settle();
+        await page.viewport(400, 600);
+        await settle();
+      } finally {
+        window.removeEventListener('resize', read);
+        unsubscribe();
+      }
+      return seen;
+    };
+
+    it('still emits when a resize listener reads them', async () => {
+      // `resize` runs before media-query `change` events in a rendering update.
+      expect(await crossing(() => useBreakpoint().props())).toEqual(['wide', 'narrow']);
+    });
+
+    it('still emits when an older media-query listener reads them', async () => {
+      await page.viewport(400, 600);
+      // Created before the service builds its own lists, so it is notified first.
+      const older = window.matchMedia('(min-width: 40rem)');
+      const read = () => useBreakpoint().props();
+      older.addEventListener('change', read);
+      try {
+        expect(await crossing(() => {})).toEqual(['wide', 'narrow']);
+      } finally {
+        older.removeEventListener('change', read);
+      }
+    });
   });
 });

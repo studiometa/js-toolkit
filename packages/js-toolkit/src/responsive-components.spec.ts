@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
+import { page } from 'vitest/browser';
 import { Base, type BaseConfig } from './Base.js';
 import { DIAGNOSTICS } from './diagnostic-contract.js';
 import { whenDOMSettled } from './dom-mutations.js';
@@ -90,6 +91,34 @@ afterEach(async () => {
 });
 
 describe('responsive component declarations', () => {
+  it('follows a viewport crossing that also drives a media mount strategy', async () => {
+    await page.viewport(400, 600);
+    const menu = defineTracked('Menu');
+    const panel = defineTracked('Panel');
+    const menuEl = render({ 'data-component:narrow': menu.name, 'data-component:wide': '' });
+    render({ 'data-component': panel.name, 'data-mount': 'media:(min-width: 40rem)' });
+    register(menu, panel);
+    // Replacing the set after the scan makes the strategy's list older than the
+    // service's lists, so the registry reads the breakpoint before the service hears it.
+    setBreakpoints({ narrow: '0rem', wide: '40rem' });
+    await whenDOMSettled();
+    expect(instance(menuEl, menu.name)?.$isMounted).toBe(true);
+
+    try {
+      await page.viewport(800, 600);
+      await settle();
+      await whenDOMSettled();
+      expect(getMountedInstances(menu.name)).toEqual([]);
+
+      await page.viewport(400, 600);
+      await settle();
+      await whenDOMSettled();
+      expect(instance(menuEl, menu.name)?.$isMounted).toBe(true);
+    } finally {
+      await page.viewport(414, 896);
+    }
+  });
+
   it('unions base and scoped token sets, supports several tokens, and deduplicates names', async () => {
     at('small');
     const action = defineTracked('Action');
