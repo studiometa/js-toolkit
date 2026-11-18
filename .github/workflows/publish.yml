@@ -3,8 +3,8 @@ name: publish-and-release
 # Each merge into main releases 4.x from what its fragments describe. A manual
 # run (`gh workflow run publish.yml -f version=major`) forces a bump.
 #
-# `.changelog/prerelease` (`alpha`) makes each release a prerelease
-# (4.0.0-alpha.2, …) on the `next` dist-tag, which keeps `latest` on 3.x. A pull
+# `.changelog/prerelease` (`rc`) makes each release a prerelease
+# (4.0.0-rc.0, …) on the `next` dist-tag, which keeps `latest` on 3.x. A pull
 # request that deletes the file releases 4.0.0 on `latest`.
 #
 # The `3.x` branch keeps its own copy of this file, which publishes on a tag

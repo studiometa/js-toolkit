@@ -58,7 +58,7 @@ Visit [js-toolkit-v4.studiometa.dev](https://js-toolkit-v4.studiometa.dev) to le
 | `main`                                                     | 4.x                 | `next`   | [js-toolkit-v4.studiometa.dev](https://js-toolkit-v4.studiometa.dev) |
 | [`3.x`](https://github.com/studiometa/js-toolkit/tree/3.x) | 3.x, in maintenance | `latest` | [js-toolkit.studiometa.dev](https://js-toolkit.studiometa.dev)       |
 
-4.0 is a breaking major and is currently an alpha, so `latest` still installs 3.x. The two domains swap when 4.0.0 ships. Open a fix for the 3.x line against the `3.x` branch, and anything about 4.x against `main`.
+4.0 is a breaking major and is currently a release candidate, so `latest` still installs 3.x. The two domains swap when 4.0.0 ships. Open a fix for the 3.x line against the `3.x` branch, and anything about 4.x against `main`.
 
 ## Packages
 

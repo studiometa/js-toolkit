@@ -7,7 +7,7 @@
 > A JavaScript data-attributes driven micro-framework shipped with plenty of useful utility functions to boost your project.
 
 > [!WARNING]
-> **This is the 4.0 alpha.** It is published under the `next` dist-tag, and it is a breaking major: `latest` still installs 3.x. The API is stable and documented, but the version is an alpha because it has not yet been run on a production project. Expect the occasional break until 4.0.0 ships.
+> **This is the 4.0 release candidate.** It is published under the `next` dist-tag, and it is a breaking major: `latest` still installs 3.x. The API is frozen: until 4.0.0 ships, a release candidate only gets fixes.
 >
 > For 3.x, install `@studiometa/js-toolkit@latest` and read [js-toolkit.studiometa.dev](https://js-toolkit.studiometa.dev).
 
